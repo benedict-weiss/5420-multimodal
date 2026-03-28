@@ -1,4 +1,4 @@
-# CLAUDE.md — Multimodal CITE-seq Cell State Prediction
+# Implementation — Multimodal CITE-seq Cell State Prediction
 
 ## Goal
 Classify immune cell types from paired RNA + protein (CITE-seq) data using contrastive learning. Compare: RNA-only baseline → contrastive MLP → contrastive transformer. Transformer adds interpretability via attention weights.

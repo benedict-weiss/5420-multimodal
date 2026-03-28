@@ -50,9 +50,14 @@ pip install -r requirements.txt
 │   ├── evaluate.py                # Metrics (AUC-ROC, accuracy, ASW, Recall@k, PHATE)
 │   └── attention_analysis.py      # Attention heatmaps and marker validation
 ├── notebooks/                     # Analysis notebooks
-├── results/                       # Figures and metrics
+├── results/
+│   ├── figures/                   # Generated plots
+│   └── metrics/                   # Saved metric outputs
 ├── implementation.md              # Detailed architecture spec
-└── biology.md                     # Biological context and expected results
+├── biology.md                     # Biological context and expected results
+├── requirements.txt               # Python dependencies
+├── README.md
+└── .gitignore
 ```
 
 ## Usage
