@@ -23,10 +23,11 @@ compute_recall_at_k(z_rna, z_protein, k_values=[10, 20, 30, 40, 50]) -> dict:
     - Check if the true match (same cell index) is in the top-k
     - Return dict: {k: recall_value for k in k_values}
 
-plot_umap(embeddings, labels, title, save_path):
-    - Fit UMAP on embeddings
+plot_phate(embeddings, labels, title, save_path):
+    - Fit PHATE on embeddings: phate_op = phate.PHATE(n_components=2); coords = phate_op.fit_transform(embeddings)
     - Scatter plot colored by cell type labels
     - Save to save_path as PNG
+    - Use a random subsample if > 20k cells for speed
 
 compute_batch_entropy(embeddings, batch_labels, n_neighbors=50) -> float:
     - For each cell, find n_neighbors nearest neighbors

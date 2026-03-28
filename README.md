@@ -47,7 +47,7 @@ pip install -r requirements.txt
 │   ├── train_baseline.py          # Model 1: RNA-only
 │   ├── train_contrastive_mlp.py   # Model 2: contrastive MLP
 │   ├── train_contrastive_tf.py    # Model 3: contrastive transformer
-│   ├── evaluate.py                # Metrics (AUC-ROC, accuracy, ASW, Recall@k)
+│   ├── evaluate.py                # Metrics (AUC-ROC, accuracy, ASW, Recall@k, PHATE)
 │   └── attention_analysis.py      # Attention heatmaps and marker validation
 ├── notebooks/                     # Analysis notebooks
 ├── results/                       # Figures and metrics
@@ -70,4 +70,4 @@ python src/train_contrastive_tf.py --data_path data/ --seed 42 --batch_size 256
 
 ## Dependencies
 
-anndata, scanpy, muon, gseapy, torch, scikit-learn, umap-learn, matplotlib, seaborn
+anndata, scanpy, muon, gseapy, torch, scikit-learn, phate, matplotlib, seaborn

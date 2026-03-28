@@ -4,6 +4,6 @@ muon
 gseapy
 torch
 scikit-learn
-umap-learn
+phate
 matplotlib
 seaborn

@@ -84,7 +84,7 @@ Classify immune cell types from paired RNA + protein (CITE-seq) data using contr
 - Accuracy (overall + per-class)
 - Average Silhouette Width on embeddings (normalize: (ASW+1)/2)
 - Recall@k on contrastive embeddings (k=10,20,30,40,50)
-- UMAP colored by cell type (all three models)
+- PHATE colored by cell type (all three models)
 - Attention heatmaps: cell type × pathway tokens, cell type × protein tokens
 - Top-10 attended tokens per cell type vs known markers (CD34→HSC, CD19→B cell, CD3/CD4/CD8→T cell, CD14→monocyte, CD56→NK)
 - Wilcoxon rank-sum test across 5+ random seeds for significance
@@ -115,7 +115,7 @@ project/
 ```
 
 ## Dependencies
-anndata, scanpy, muon, gseapy, torch, scikit-learn, umap-learn, matplotlib, seaborn
+anndata, scanpy, muon, gseapy, torch, scikit-learn, phate, matplotlib, seaborn
 
 ## Hardware
 GPU recommended for transformer (≥8GB VRAM). MLP trains fine on CPU. Dataset fits ~4GB RAM.

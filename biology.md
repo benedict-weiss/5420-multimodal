@@ -110,7 +110,7 @@ If batch effects are strong, consider adding batch as a covariate or using batch
 
 ## Key Biological Validation Checks
 
-1. **UMAP sanity check**: after contrastive pretraining, UMAP of joint embeddings should show cells clustering by cell type, not by batch/site/donor
+1. **PHATE sanity check**: after contrastive pretraining, PHATE of joint embeddings should show cells clustering by cell type, not by batch/site/donor
 2. **Marker gene/protein verification**: the top differentially expressed features per cluster should match known markers
 3. **Rare cell type recovery**: check if rare populations (pDCs, MAIT cells, early progenitors) are identifiable in the multimodal embedding but not in RNA-only
 4. **Cross-modality consistency**: cells that are close in RNA space should generally be close in protein space (with exceptions for post-transcriptionally regulated proteins)
