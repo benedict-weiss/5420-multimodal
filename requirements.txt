@@ -1,0 +1,9 @@
+anndata
+scanpy
+muon
+gseapy
+torch
+scikit-learn
+umap-learn
+matplotlib
+seaborn
