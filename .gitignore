@@ -1,0 +1,22 @@
+# Data
+data/
+*.h5ad
+*.h5ad.gz
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Results (large files)
+results/figures/*.png
+results/metrics/*.csv
