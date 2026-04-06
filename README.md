@@ -88,7 +88,7 @@ pytest tests/test_preprocessing.py -v
 pytest tests/test_preprocessing.py -v -m integration
 ```
 
-53 tests cover: modality splitting, RNA/protein preprocessing, pathway tokenization, label encoding, donor-based splitting, PCA data leakage prevention, and full pipeline integration.
+58 tests cover: modality splitting, RNA/protein preprocessing, pathway tokenization, label encoding, donor-based splitting, PCA data leakage prevention, and full pipeline integration.
 
 ## Dependencies
 
