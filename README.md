@@ -49,13 +49,18 @@ pip install -r requirements.txt
 │   ├── train_contrastive_tf.py    # Model 3: contrastive transformer
 │   ├── evaluate.py                # Metrics (AUC-ROC, accuracy, ASW, Recall@k, PHATE)
 │   └── attention_analysis.py      # Attention heatmaps and marker validation
+├── tests/
+│   ├── conftest.py                # Shared fixtures and dataset constants
+│   ├── inspect_real_data.py       # One-time script to discover dataset column names
+│   └── test_preprocessing.py      # 53 unit + integration tests for preprocessing
 ├── notebooks/                     # Analysis notebooks
 ├── results/
 │   ├── figures/                   # Generated plots
 │   └── metrics/                   # Saved metric outputs
 ├── implementation.md              # Detailed architecture spec
 ├── biology.md                     # Biological context and expected results
-├── requirements.txt               # Python dependencies
+├── requirements.txt               # Python dependencies (pinned where needed)
+├── pytest.ini                     # Test configuration
 ├── README.md
 └── .gitignore
 ```
@@ -73,6 +78,20 @@ python src/train_contrastive_mlp.py --data_path data/ --seed 42 --batch_size 512
 python src/train_contrastive_tf.py --data_path data/ --seed 42 --batch_size 256
 ```
 
+## Testing
+
+```bash
+# Run all preprocessing tests
+pytest tests/test_preprocessing.py -v
+
+# Run integration tests only
+pytest tests/test_preprocessing.py -v -m integration
+```
+
+53 tests cover: modality splitting, RNA/protein preprocessing, pathway tokenization, label encoding, donor-based splitting, PCA data leakage prevention, and full pipeline integration.
+
 ## Dependencies
 
-anndata, scanpy, muon, gseapy, torch, scikit-learn, phate, matplotlib, seaborn
+anndata, scanpy, muon, gseapy, torch, scikit-learn, phate, matplotlib, seaborn, pytest
+
+**Note**: `numpy<2` and `setuptools<78` are pinned in `requirements.txt` for compatibility with muon and gseapy.

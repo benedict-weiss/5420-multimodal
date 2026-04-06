@@ -9,27 +9,31 @@ Classify immune cell types from paired RNA + protein (CITE-seq) data using contr
 - **Load**: `anndata.read_h5ad()` → single AnnData object
 - **Size**: 90,261 cells, 12 donors, 4 sites
 - **Modalities concatenated in one matrix**: split on `adata.var['feature_types']` — `'GEX'` (13,953 genes) and `'ADT'` (134 proteins)
-- **Labels**: cell type annotations in `adata.obs` (exact column name TBD — inspect after loading)
-- **Batch info**: donor and site IDs in `adata.obs`
+- **Labels**: `adata.obs['cell_type']` — 45 cell types
+- **Batch info**: `adata.obs['DonorNumber']` (9 donors: donor1–donor9), `adata.obs['Site']` (4 sites: site1–site4), `adata.obs['batch']` (12 batches, format s{site}d{donor})
+- **Pre-existing split**: `adata.obs['is_train']` — 'train' (66,175), 'test' (15,066), 'iid_holdout' (9,020)
 - **Train/test split**: hold out 2-3 donors. Secondary split: hold out 1 site.
+- **Note**: `adata.var_names` are not unique — call `.var_names_make_unique()` after loading
 
 ## Preprocessing
 
 ### RNA
 1. Separate: `adata[:, adata.var['feature_types'] == 'GEX']`
-2. `scanpy.pp.normalize_total(target_sum=1e4)` → `log1p` → `highly_variable_genes(n_top_genes=4000)` → subset → `scale(max_value=10)` → `pca(n_comps=256)`
-3. Model input: `adata.obsm['X_pca']` — shape (90261, 256)
+2. `scanpy.pp.normalize_total(target_sum=1e4)` → `log1p` → `highly_variable_genes(n_top_genes=4000)` → subset → `scale(max_value=10)` → PCA via `sklearn.decomposition.PCA(n_comps=256)`
+3. Model input: shape (90261, 256)
+4. **Data leakage prevention**: PCA must be fit on training data only. `preprocess_rna()` accepts an injectable `pca_model` parameter — fit on train, then pass fitted model to transform test data.
 
 ### Protein
 1. Separate: `adata[:, adata.var['feature_types'] == 'ADT']`
-2. CLR normalize with `muon.prot.pp.clr()`
-3. Model input: `adata.X` — shape (90261, 134), no PCA needed
+2. Convert sparse to dense, add pseudocount (1e-6), CLR normalize with `muon.prot.pp.clr()`
+3. Model input: dense array shape (90261, 134), no PCA needed
 
 ### Pathway tokenization (transformer only)
-1. Load KEGG gene sets via `gseapy.get_library('KEGG_2021_Human')`
-2. For each pathway with ≥5 measured genes in HVG list, average log-normalized expression across member genes
-3. Result: (90261, ~300) matrix. Store pathway names for attention interpretation.
-4. Reshape to (batch, n_pathways, 1) for transformer input — each token is a scalar
+1. Call AFTER normalize_total + log1p but BEFORE HVG subsetting (uses full gene set)
+2. Load KEGG gene sets via `gseapy.get_library('KEGG_2021_Human')` (injectable `gene_sets` dict for testing)
+3. For each pathway with ≥5 measured genes, average log-normalized expression across member genes
+4. Result: (90261, ~300) matrix. Store pathway names for attention interpretation.
+5. Reshape to (batch, n_pathways, 1) for transformer input — each token is a scalar
 
 ## Three Models
 
@@ -115,7 +119,9 @@ project/
 ```
 
 ## Dependencies
-anndata, scanpy, muon, gseapy, torch, scikit-learn, phate, matplotlib, seaborn
+anndata, scanpy, muon, gseapy==0.10.8, torch, scikit-learn, phate, matplotlib, seaborn, pytest
+
+**Version constraints**: `numpy<2` (muon transitive dep chain), `setuptools<78` (gseapy needs `pkg_resources`)
 
 ## Hardware
 GPU recommended for transformer (≥8GB VRAM). MLP trains fine on CPU. Dataset fits ~4GB RAM.
