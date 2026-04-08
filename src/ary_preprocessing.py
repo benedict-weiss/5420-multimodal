@@ -72,7 +72,7 @@ def preprocess_rna(rna_adata: an.AnnData):
     sc.pp.normalize_total(rna_adata, target_sum=1e4) # normalize to find proportions of expression
     sc.pp.log1p(rna_adata) # compresses scale and normalizes relative differences
     sc.pp.highly_variable_genes(rna_adata, n_top_genes=4000) # we're gleaning the top 4000 most variable genes
-    rna_adata = rna_adata[:, rna_adata.var.highly_variable] # we only care about these highly variable genes in our analysis
+    rna_adata = rna_adata[:, rna_adata.var.highly_variable].copy() # we only care about these highly variable genes in our analysis
     sc.pp.scale(rna_adata, max_value=10) # scaling based on size; want each gene to partipate equally to PCA
     sc.tl.pca(rna_adata, n_comps=256) # performs PCA, only want top 256 variable genes 
     return (rna_adata.obsm['X_pca']) # expected shape = (n_cells, 256)
