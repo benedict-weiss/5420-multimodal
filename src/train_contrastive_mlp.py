@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+import math
 import random
 import time
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +37,17 @@ try:
 except Exception:
     compute_accuracy = None
     compute_auroc = None
+
+
+def _sanitize_json(obj: object) -> object:
+    """Recursively replace non-finite floats (NaN/Inf) with None for valid JSON output."""
+    if isinstance(obj, float):
+        return None if not math.isfinite(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_json(v) for v in obj]
+    return obj
 
 
 def set_seed(seed: int) -> None:
@@ -226,14 +238,40 @@ def main(args: argparse.Namespace) -> None:
             adata, test_donors=args.test_donors, donor_col=args.donor_col
         )
     elif args.split_col in adata.obs.columns:
-        split_values = set(args.split_test_values)
-        split_arr = adata.obs[args.split_col].astype(str).values
-        test_mask = np.array([v in split_values for v in split_arr], dtype=bool)
+        def _parse_bool_like(value: object) -> bool | None:
+            if isinstance(value, (bool, np.bool_)):
+                return bool(value)
+            text = str(value).strip().lower()
+            if text in {"true", "1", "yes", "y", "t"}:
+                return True
+            if text in {"false", "0", "no", "n", "f"}:
+                return False
+            return None
+
+        raw_split_values = list(args.split_test_values)
+        split_series = adata.obs[args.split_col]
+        split_arr_raw = split_series.values
+
+        parsed_column_values = [_parse_bool_like(v) for v in split_arr_raw]
+        column_is_bool_like = all(v is not None for v in parsed_column_values)
+        parsed_test_values = [_parse_bool_like(v) for v in raw_split_values]
+        test_values_are_bool_like = all(v is not None for v in parsed_test_values)
+
+        if column_is_bool_like and test_values_are_bool_like:
+            split_values_bool = set(parsed_test_values)
+            test_mask = np.array([v in split_values_bool for v in parsed_column_values], dtype=bool)
+        elif column_is_bool_like and set(str(v).strip().lower() for v in raw_split_values) == {"test"}:
+            test_mask = np.array([v is False for v in parsed_column_values], dtype=bool)
+        else:
+            split_values_str = set(str(v) for v in raw_split_values)
+            split_arr = split_series.astype(str).values
+            test_mask = np.array([v in split_values_str for v in split_arr], dtype=bool)
+
         test_global_idx = np.where(test_mask)[0]
         train_global_idx = np.where(~test_mask)[0]
         print(
             f"Using predefined split column '{args.split_col}' with test values "
-            f"{sorted(split_values)}"
+            f"{sorted(str(v) for v in raw_split_values)}"
         )
     else:
         train_global_idx, test_global_idx = train_test_split(
@@ -290,7 +328,14 @@ def main(args: argparse.Namespace) -> None:
     trainval_labels = train_labels
 
     if len(val_local_idx) == 0:
-        raise ValueError("Validation split is empty. Increase train set size or val_ratio.")
+        warnings.warn(
+            "Validation split is empty; proceeding without a held-out validation set. "
+            "Stage A monitoring will use the training split. "
+            "Consider increasing --val_ratio or training set size.",
+            UserWarning,
+            stacklevel=2,
+        )
+        val_local_idx = train_local_idx
 
     stage_a_train_loader, stage_a_val_loader = get_dataloaders(
         rna_pca=trainval_rna,
@@ -304,11 +349,23 @@ def main(args: argparse.Namespace) -> None:
     # Full-train + test loaders for Stage B classifier training/evaluation
     classifier_train_dataset = CITEseqDataset(train_rna_pca, train_protein, train_labels)
     classifier_test_dataset = CITEseqDataset(test_rna_pca, test_protein, test_labels)
+    # Use val_local_idx (subset of training data) for Stage B checkpoint selection
+    classifier_val_dataset = CITEseqDataset(
+        trainval_rna[val_local_idx],
+        trainval_protein[val_local_idx],
+        trainval_labels[val_local_idx],
+    )
 
     classifier_train_loader = DataLoader(
         classifier_train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
+        drop_last=False,
+    )
+    classifier_val_loader = DataLoader(
+        classifier_val_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
         drop_last=False,
     )
     classifier_test_loader = DataLoader(
@@ -412,7 +469,7 @@ def main(args: argparse.Namespace) -> None:
 
     stage_b_optimizer = Adam(classifier.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
-    best_test_acc = -1.0
+    best_val_acc = -1.0
     best_classifier_state = clone_state_dict(classifier)
     stage_b_history = []
 
@@ -444,33 +501,35 @@ def main(args: argparse.Namespace) -> None:
             n_train_batches += 1
 
         train_loss = total_train_loss / max(1, n_train_batches)
-        test_loss, y_true, y_pred, y_proba = evaluate_classifier_epoch(
-            loader=classifier_test_loader,
+
+        # Checkpoint selection uses val split (not test) to avoid leakage
+        val_loss, y_val_true, y_val_pred, y_val_proba = evaluate_classifier_epoch(
+            loader=classifier_val_loader,
             rna_encoder=rna_encoder,
             protein_encoder=protein_encoder,
             classifier=classifier,
             device=device,
         )
+        val_metrics = compute_metrics(y_val_true, y_val_pred, y_val_proba, n_classes=n_classes)
 
-        test_metrics = compute_metrics(y_true, y_pred, y_proba, n_classes=n_classes)
         stage_b_history.append(
             {
                 "epoch": epoch,
                 "train_loss": float(train_loss),
-                "test_loss": float(test_loss),
-                "test_accuracy": float(test_metrics["accuracy"]),
-                "test_macro_auroc": float(test_metrics["macro_auroc"]),
+                "val_loss": float(val_loss),
+                "val_accuracy": float(val_metrics["accuracy"]),
+                "val_macro_auroc": float(val_metrics["macro_auroc"]),
             }
         )
 
-        if test_metrics["accuracy"] > best_test_acc:
-            best_test_acc = float(test_metrics["accuracy"])
+        if val_metrics["accuracy"] > best_val_acc:
+            best_val_acc = float(val_metrics["accuracy"])
             best_classifier_state = clone_state_dict(classifier)
 
         print(
             f"[Stage B] Epoch {epoch:03d} | train_loss={train_loss:.4f} | "
-            f"test_loss={test_loss:.4f} | test_acc={test_metrics['accuracy']:.4f} | "
-            f"test_auroc={test_metrics['macro_auroc']:.4f}"
+            f"val_loss={val_loss:.4f} | val_acc={val_metrics['accuracy']:.4f} | "
+            f"val_auroc={val_metrics['macro_auroc']:.4f}"
         )
 
     classifier.load_state_dict(best_classifier_state)
@@ -521,13 +580,15 @@ def main(args: argparse.Namespace) -> None:
 
     with open(run_dir / "metrics.json", "w", encoding="utf-8") as f:
         json.dump(
-            {
-                "final_test_loss": float(final_test_loss),
-                "final_accuracy": float(final_metrics["accuracy"]),
-                "final_macro_auroc": float(final_metrics["macro_auroc"]),
-                "stage_a_history": stage_a_history,
-                "stage_b_history": stage_b_history,
-            },
+            _sanitize_json(
+                {
+                    "final_test_loss": float(final_test_loss),
+                    "final_accuracy": float(final_metrics["accuracy"]),
+                    "final_macro_auroc": float(final_metrics["macro_auroc"]),
+                    "stage_a_history": stage_a_history,
+                    "stage_b_history": stage_b_history,
+                }
+            ),
             f,
             indent=2,
         )
