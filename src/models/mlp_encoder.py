@@ -1,20 +1,48 @@
-"""
-mlp_encoder.py — MLP encoder for both modalities
+"""MLP encoder for RNA/protein branches in the dual-encoder setup."""
 
-Implement the following:
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 
 class MLPEncoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim=256, output_dim=128):
-        - Linear(input_dim, hidden_dim) -> BatchNorm1d -> ReLU
-        - Linear(hidden_dim, output_dim) -> BatchNorm1d -> ReLU
+    """
+    Two-layer MLP encoder with optional L2-normalized output.
 
-    def forward(self, x) -> torch.Tensor:
-        - Pass through layers
-        - L2 normalize output: F.normalize(x, p=2, dim=1)
-        - Return shape (batch, output_dim)
+    Architecture:
+      Linear(input_dim, hidden_dim) -> BatchNorm1d -> ReLU
+      Linear(hidden_dim, output_dim) -> BatchNorm1d -> ReLU
 
-Usage:
-    - RNA encoder: MLPEncoder(input_dim=256)   # 256 PCA dims
-    - Protein encoder: MLPEncoder(input_dim=134)  # 134 CLR-normalized proteins
-    - Baseline uses same architecture but without L2 normalization (add a flag or subclass)
-"""
+    Args:
+        input_dim: Input feature dimension.
+        hidden_dim: Hidden layer width.
+        output_dim: Embedding dimension.
+        normalize_output: If True, apply L2 normalization across feature dim.
+            Set False for baseline training where raw encoder activations are desired.
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int = 256,
+        output_dim: int = 128,
+        normalize_output: bool = True,
+    ):
+        super().__init__()
+
+        self.normalize_output = normalize_output
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim),
+            nn.BatchNorm1d(output_dim),
+            nn.ReLU(),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Encode features into output_dim embeddings."""
+        z = self.net(x)
+        if self.normalize_output:
+            z = F.normalize(z, p=2, dim=1)
+        return z
