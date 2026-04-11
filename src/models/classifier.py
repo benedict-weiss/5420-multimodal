@@ -1,19 +1,33 @@
-"""
-classifier.py — Classification head for cell type prediction
+"""Classification head for cell type prediction from learned embeddings."""
 
-Implement the following:
+import torch
+import torch.nn as nn
+
 
 class ClassificationHead(nn.Module):
-    def __init__(self, input_dim, n_classes, hidden_dim=64, dropout=0.2):
-        - Linear(input_dim, hidden_dim) -> ReLU -> Dropout(dropout) -> Linear(hidden_dim, n_classes)
+    """
+    Two-layer MLP head that outputs raw logits.
 
-    def forward(self, x) -> torch.Tensor:
-        - Return logits shape (batch, n_classes)
-        - Do NOT apply softmax — use with F.cross_entropy which expects raw logits
+    Intended use in the dual-encoder pipeline:
+      input = concat([z_rna, z_protein], dim=1)
+    """
 
-Usage:
-    - Baseline (Model 1): ClassificationHead(input_dim=128, n_classes=n)
-        - Input is MLP encoder output (128-d)
-    - Contrastive models (Models 2 & 3): ClassificationHead(input_dim=256, n_classes=n)
-        - Input is concatenated [z_rna; z_protein] (128 + 128 = 256-d)
-"""
+    def __init__(
+        self,
+        input_dim: int,
+        n_classes: int,
+        hidden_dim: int = 64,
+        dropout: float = 0.2,
+    ):
+        super().__init__()
+
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, n_classes),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Return raw class logits of shape (batch_size, n_classes)."""
+        return self.net(x)
