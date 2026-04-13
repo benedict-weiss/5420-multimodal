@@ -54,7 +54,9 @@ def test_attention_weights_shape(small_rna_enc):
     _ = small_rna_enc(x)
     attn = small_rna_enc.get_attention_weights()
     assert attn is not None
-    assert attn.shape == (4, 20), f"Expected (4, 20), got {attn.shape}"
+    # Shape is (batch, n_tokens): CLS row sliced to exclude CLS-to-CLS entry
+    n_tokens = 20
+    assert attn.shape == (4, n_tokens), f"Expected (4, {n_tokens}), got {attn.shape}"
 
 
 def test_attention_weights_nonnegative(small_rna_enc):
@@ -65,11 +67,12 @@ def test_attention_weights_nonnegative(small_rna_enc):
 
 
 def test_attention_weights_sum_leq_one(small_rna_enc):
-    """CLS-to-token slice sums to <= 1.0 (CLS-to-CLS weight is absorbed)."""
+    """CLS-to-token slice sums to (0, 1.0] — CLS-to-CLS weight is the missing portion."""
     x = torch.randn(4, 20)
     _ = small_rna_enc(x)
     attn = small_rna_enc.get_attention_weights()
     row_sums = attn.sum(dim=1)
+    assert (row_sums > 0).all(), f"Row sums are zero or negative: {row_sums}"
     assert (row_sums <= 1.0 + 1e-5).all(), f"Row sums exceed 1.0: {row_sums}"
 
 
