@@ -117,7 +117,13 @@ def plot_attention_heatmap(
         top_n:             Maximum tokens to display (applied when n_tokens > top_n).
     """
     cell_types = list(attention_by_type.keys())
+    if len(cell_types) == 0:
+        raise ValueError("attention_by_type dict is empty. No cell types to plot.")
     matrix = np.array([attention_by_type[ct] for ct in cell_types])  # (n_types, n_tokens)
+    if matrix.shape[1] != len(token_names):
+        raise ValueError(
+            f"token_names length {len(token_names)} != attention matrix width {matrix.shape[1]}"
+        )
 
     if len(token_names) > top_n:
         avg_attn = matrix.mean(axis=0)
@@ -174,6 +180,10 @@ def plot_token_attention_per_cell_type(
         raise ImportError("pandas is required for plot_token_attention_per_cell_type")
     import pandas as pd
 
+    if attention_weights.shape[1] != len(token_names):
+        raise ValueError(
+            f"token_names length {len(token_names)} != attention matrix width {attention_weights.shape[1]}"
+        )
     sel_mask = np.isin(cell_type_labels, selected_types)
     if sel_mask.sum() == 0:
         raise ValueError(f"No cells found for selected_types={selected_types}")
