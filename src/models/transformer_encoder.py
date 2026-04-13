@@ -20,6 +20,18 @@ class AttentionTransformerEncoderLayer(nn.TransformerEncoderLayer):
         super().__init__(*args, **kwargs)
         self._last_attn_weights: Optional[torch.Tensor] = None
 
+    def forward(self, src, src_mask=None, src_key_padding_mask=None, is_causal=False):
+        # Temporarily set training=True to prevent PyTorch's per-layer C++ fast path
+        # (torch._transformer_encoder_layer_fwd), which bypasses _sa_block and silently
+        # drops attention weight capture when the model is in inference mode under no_grad.
+        was_training = self.training
+        self.training = True
+        try:
+            out = super().forward(src, src_mask, src_key_padding_mask, is_causal)
+        finally:
+            self.training = was_training
+        return out
+
     def _sa_block(
         self,
         x: torch.Tensor,

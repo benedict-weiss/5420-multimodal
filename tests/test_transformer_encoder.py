@@ -76,6 +76,17 @@ def test_attention_weights_sum_leq_one(small_rna_enc):
     assert (row_sums <= 1.0 + 1e-5).all(), f"Row sums exceed 1.0: {row_sums}"
 
 
+def test_attention_weights_under_no_grad_eval(small_rna_enc):
+    """Attention extraction must work in inference mode (model.eval + no_grad)."""
+    small_rna_enc.eval()
+    x = torch.randn(4, 20)
+    with torch.no_grad():
+        _ = small_rna_enc(x)
+    attn = small_rna_enc.get_attention_weights()
+    assert attn is not None, "get_attention_weights() returned None under eval+no_grad"
+    assert attn.shape == (4, 20)
+
+
 def test_clip_loss_smoke(small_rna_enc, small_protein_enc):
     """Two TransformerEncoders + CLIPLoss should produce a finite scalar loss."""
     from src.models.contrastive_loss import CLIPLoss
