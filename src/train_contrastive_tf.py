@@ -278,6 +278,11 @@ def main(args: argparse.Namespace) -> None:
 
     rna_adata, protein_adata = split_modalities(adata)
 
+    # Normalize RNA before pathway tokenization (required by build_pathway_tokens)
+    import scanpy as sc
+    sc.pp.normalize_total(rna_adata, target_sum=1e4)
+    sc.pp.log1p(rna_adata)
+
     # Pathway tokens: built on full dataset — KEGG gene sets are global, no leakage risk.
     gene_sets = None
     if args.gene_sets_path:
