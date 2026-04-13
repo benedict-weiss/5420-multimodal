@@ -279,8 +279,13 @@ def main(args: argparse.Namespace) -> None:
     rna_adata, protein_adata = split_modalities(adata)
 
     # Pathway tokens: built on full dataset — KEGG gene sets are global, no leakage risk.
+    gene_sets = None
+    if args.gene_sets_path:
+        print(f"Loading gene sets from {args.gene_sets_path}...")
+        with open(args.gene_sets_path, "r", encoding="utf-8") as f:
+            gene_sets = json.load(f)
     print("Building pathway tokens (KEGG_2021_Human)...")
-    pathway_matrix, pathway_names = build_pathway_tokens(rna_adata)
+    pathway_matrix, pathway_names = build_pathway_tokens(rna_adata, gene_sets=gene_sets)
     n_pathways = pathway_matrix.shape[1]
     print(f"  Pathway matrix shape: {pathway_matrix.shape}")
 
@@ -585,6 +590,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min_delta", type=float, default=1e-4)
     parser.add_argument("--save_attention", action="store_true", default=True)
     parser.add_argument("--no_save_attention", dest="save_attention", action="store_false")
+    parser.add_argument(
+        "--gene_sets_path", type=str, default=None,
+        help="Path to pre-cached KEGG gene sets JSON (e.g. data/kegg_2021_human.json). "
+             "If omitted, fetches from Enrichr API at runtime.",
+    )
     return parser.parse_args()
 
 
