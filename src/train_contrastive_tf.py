@@ -216,9 +216,9 @@ def extract_attention(
         a_protein = protein_encoder.get_attention_weights()
 
         if a_rna is not None:
-            attn_rna_all.append(a_rna.cpu().numpy())
+            attn_rna_all.append(a_rna.detach().cpu().numpy())
         if a_protein is not None:
-            attn_protein_all.append(a_protein.cpu().numpy())
+            attn_protein_all.append(a_protein.detach().cpu().numpy())
         labels_all.append(batch["label"].numpy())
 
     return (
@@ -501,6 +501,8 @@ def main(args: argparse.Namespace) -> None:
             "stage": "contrastive_pretrain",
             "best_epoch": best_epoch,
             "best_val_loss": float(best_val),
+            "n_pathways": n_pathways,
+            "n_proteins": n_proteins,
             "rna_encoder_state_dict": rna_encoder.state_dict(),
             "protein_encoder_state_dict": protein_encoder.state_dict(),
             "args": vars(args),
@@ -510,6 +512,8 @@ def main(args: argparse.Namespace) -> None:
     torch.save(
         {
             "stage": "classifier_finetune",
+            "n_pathways": n_pathways,
+            "n_proteins": n_proteins,
             "rna_encoder_state_dict": rna_encoder.state_dict(),
             "protein_encoder_state_dict": protein_encoder.state_dict(),
             "classifier_state_dict": classifier.state_dict(),
