@@ -57,6 +57,9 @@ read -r -a TF_EMBED_LIST <<< "${TF_EMBED_LIST:-128}"
 mkdir -p "$REPO_ROOT/logs"
 cd "$REPO_ROOT"
 
+# Ensure Python can import the local src package on HPC nodes.
+export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
+
 if [[ -n "$ENV_ACTIVATE" ]]; then
   eval "$ENV_ACTIVATE"
 fi
@@ -93,7 +96,7 @@ if [[ "$MODEL" == "mlp" ]]; then
   out_dir="$OUT_ROOT/tune/$trial"
   mkdir -p "$out_dir"
 
-  python src/train_contrastive_mlp.py \
+  python -m src.train_contrastive_mlp \
     --data_path "$DATA_PATH" \
     --output_dir "$out_dir" \
     --seed "$seed" \
@@ -135,7 +138,7 @@ elif [[ "$MODEL" == "tf" ]]; then
   out_dir="$OUT_ROOT/tune/$trial"
   mkdir -p "$out_dir"
 
-  python src/train_contrastive_tf.py \
+  python -m src.train_contrastive_tf \
     --data_path "$DATA_PATH" \
     --output_dir "$out_dir" \
     --seed "$seed" \

@@ -3,6 +3,8 @@ numpy<2                  # muon transitive dep chain breaks on numpy 2.x
 scipy>=1.10              # used in tests (scipy.sparse) and by scanpy/anndata
 pandas>=2.0              # used directly in preprocessing.py
 anndata>=0.9
+# anndata/mudata import path requires zarr at runtime
+zarr<3
 scanpy>=1.9,<2
 muon>=0.1,<1
 scikit-learn>=1.3

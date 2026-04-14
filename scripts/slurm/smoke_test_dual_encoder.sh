@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=dualenc-smoke
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
+#SBATCH --partition=gpu_devel
+#SBATCH --gres=gpu:rtx_5000_ada:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
 #SBATCH --time=02:00:00
@@ -26,6 +26,9 @@ ENV_ACTIVATE="${ENV_ACTIVATE:-}"
 mkdir -p "$REPO_ROOT/logs"
 cd "$REPO_ROOT"
 
+# Ensure Python can import the local src package on HPC nodes.
+export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
+
 if [[ -n "$ENV_ACTIVATE" ]]; then
   eval "$ENV_ACTIVATE"
 fi
@@ -48,13 +51,13 @@ COMMON_ARGS=(
 
 if [[ "$MODEL" == "mlp" ]]; then
   # Include iid_holdout in test set by default to avoid accidental leakage into train.
-  python src/train_contrastive_mlp.py \
+  python -m src.train_contrastive_mlp \
     "${COMMON_ARGS[@]}" \
     --split_col is_train \
     --split_test_values test iid_holdout
 elif [[ "$MODEL" == "tf" ]]; then
   # max_cells keeps smoke tests fast on full pipelines.
-  python src/train_contrastive_tf.py \
+  python -m src.train_contrastive_tf \
     "${COMMON_ARGS[@]}" \
     --max_cells 8000 \
     --no_save_attention
