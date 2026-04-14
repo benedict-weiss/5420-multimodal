@@ -446,6 +446,17 @@ def main(args: argparse.Namespace) -> None:
         json.dump(hvg_genes, f)
     torch.save(pca_model, run_dir / "rna_pca_model.pt")
 
+    # Save test embeddings for evaluate.py (Option B)
+    with torch.no_grad():
+        encoder.eval()
+        emb_list = []
+        for rna_batch, _ in test_loader:
+            emb_list.append(encoder(rna_batch.to(device)).cpu().numpy())
+    test_emb = np.concatenate(emb_list, axis=0)
+    np.save(run_dir / "test_embeddings.npy", test_emb)
+    np.save(run_dir / "test_labels.npy", test_labels)
+    print(f"Test embeddings saved: {test_emb.shape}")
+
     print("\n=== Training complete ===")
     print(f"Run directory: {run_dir}")
     print(f"Final test loss:     {final_test_loss:.4f}")
