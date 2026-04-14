@@ -256,6 +256,13 @@ def main(args: argparse.Namespace) -> None:
     if not adata.var_names.is_unique:
         adata.var_names_make_unique()
 
+    if args.max_cells is not None and args.max_cells < adata.shape[0]:
+        rng = np.random.default_rng(args.seed)
+        idx = rng.choice(adata.shape[0], size=args.max_cells, replace=False)
+        idx.sort()
+        adata = adata[idx].copy()
+        print(f"Subsampled to {args.max_cells} cells for smoke test.")
+
     labels_all, label_mapping = get_labels(adata, label_col=args.label_col)
     n_classes = len(label_mapping)
 
@@ -269,7 +276,7 @@ def main(args: argparse.Namespace) -> None:
             np.arange(adata.shape[0]),
             test_size=args.test_size,
             random_state=args.seed,
-            stratify=labels_all,
+            stratify=None if args.max_cells is not None else labels_all,
         )
         train_global_idx = np.asarray(train_global_idx)
         test_global_idx = np.asarray(test_global_idx)
@@ -606,6 +613,10 @@ def parse_args() -> argparse.Namespace:
         "--gene_sets_path", type=str, default=None,
         help="Path to pre-cached KEGG gene sets JSON (e.g. data/kegg_2021_human.json). "
              "If omitted, fetches from Enrichr API at runtime.",
+    )
+    parser.add_argument(
+        "--max_cells", type=int, default=None,
+        help="Randomly subsample to this many cells after loading (for smoke tests).",
     )
     return parser.parse_args()
 
