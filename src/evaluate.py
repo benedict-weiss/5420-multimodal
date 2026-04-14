@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
-import json
 from pathlib import Path
 
 import matplotlib
@@ -67,13 +65,15 @@ def compute_asw(embeddings: np.ndarray, labels: np.ndarray) -> float:
 def compute_recall_at_k(
     z_rna: np.ndarray,
     z_protein: np.ndarray,
-    k_values: list[int] = [10, 20, 30, 40, 50],
+    k_values: list[int] | None = None,
 ) -> dict:
     """
     Cross-modal retrieval recall@k. Both inputs must be L2-normalized.
     For each RNA embedding, checks if the paired protein embedding (same index)
     is within the top-k most similar protein embeddings by cosine similarity.
     """
+    if k_values is None:
+        k_values = [10, 20, 30, 40, 50]
     sim = z_rna @ z_protein.T  # (n, n) — cosine sim for L2-normed inputs
     results: dict = {}
     for k in k_values:
@@ -102,7 +102,7 @@ def plot_phate(
     coords = phate_op.fit_transform(embeddings)
 
     unique_labels = sorted(set(labels))
-    cmap = plt.cm.get_cmap("tab20", max(len(unique_labels), 1))
+    cmap = matplotlib.colormaps.get_cmap("tab20").resampled(max(len(unique_labels), 1))
     label_to_color = {lbl: cmap(i) for i, lbl in enumerate(unique_labels)}
 
     fig, ax = plt.subplots(figsize=(10, 7))
@@ -141,9 +141,8 @@ def compute_batch_entropy(
 
     entropies: list[float] = []
     for i in range(len(embeddings)):
-        counts = np.zeros(len(unique_batches))
-        for b in batch_labels[indices[i]]:
-            counts[batch_to_idx[b]] += 1
+        neighbor_batch_ids = np.array([batch_to_idx[b] for b in batch_labels[indices[i]]])
+        counts = np.bincount(neighbor_batch_ids, minlength=len(unique_batches)).astype(float)
         if counts.sum() > 0:
             entropies.append(float(_scipy_entropy(counts / counts.sum())))
     return float(np.mean(entropies)) if entropies else 0.0
