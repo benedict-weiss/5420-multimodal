@@ -47,48 +47,90 @@ pip install -r requirements.txt
 │   ├── train_baseline.py          # Model 1: RNA-only
 │   ├── train_contrastive_mlp.py   # Model 2: contrastive MLP
 │   ├── train_contrastive_tf.py    # Model 3: contrastive transformer
-│   ├── evaluate.py                # Metrics (AUC-ROC, accuracy, ASW, Recall@k, PHATE)
+│   ├── evaluate.py                # Metrics + paper figure generator (PHATE, ASW, Recall@k, AUROC)
 │   └── attention_analysis.py      # Attention heatmaps and marker validation
 ├── tests/
 │   ├── conftest.py                # Shared fixtures and dataset constants
 │   ├── inspect_real_data.py       # One-time script to discover dataset column names
-│   └── test_preprocessing.py      # 53 unit + integration tests for preprocessing
-├── notebooks/                     # Analysis notebooks
+│   ├── test_preprocessing.py      # 53 unit + integration tests for preprocessing
+│   └── test_evaluate.py           # 17 unit tests for metric functions
 ├── results/
-│   ├── figures/                   # Generated plots
-│   └── metrics/                   # Saved metric outputs
+│   ├── checkpoints/               # Model checkpoints and saved embeddings (per run)
+│   └── figures/                   # Generated paper figures
+├── docs/
+│   └── superpowers/specs/         # Design specs
 ├── implementation.md              # Detailed architecture spec
 ├── biology.md                     # Biological context and expected results
 ├── requirements.txt               # Python dependencies (pinned where needed)
 ├── pytest.ini                     # Test configuration
-├── README.md
-└── .gitignore
+└── README.md
 ```
 
-## Usage
+## Training
 
 ```bash
-# Train baseline
-python src/train_baseline.py --data_path data/ --seed 42
+# Model 1: RNA-only baseline (~5-10 min, CPU ok)
+python -m src.train_baseline --data_path data/ --seed 42
 
-# Train contrastive MLP
-python src/train_contrastive_mlp.py --data_path data/ --seed 42 --batch_size 512
+# Model 2: Contrastive MLP (~30-45 min, GPU recommended)
+python -m src.train_contrastive_mlp --data_path data/ --seed 42 --batch_size 512
 
-# Train contrastive transformer
-python src/train_contrastive_tf.py --data_path data/ --seed 42 --batch_size 256
+# Model 3: Contrastive transformer (~60-90 min, GPU required)
+python -m src.train_contrastive_tf --data_path data/ --seed 42 --batch_size 256
 ```
+
+Each run saves a timestamped checkpoint directory under `results/checkpoints/` containing model weights, metrics, and test-set embeddings.
+
+## Evaluation
+
+Generate all paper figures from trained checkpoints:
+
+```bash
+# Auto-discovers latest run of each model type
+python -m src.evaluate --checkpoint_dir results/checkpoints --output_dir results/figures
+
+# Or pin specific runs
+python -m src.evaluate \
+  --baseline_dir results/checkpoints/baseline_rna_seed42_<timestamp> \
+  --mlp_dir results/checkpoints/contrastive_mlp_seed42_<timestamp> \
+  --tf_dir results/checkpoints/contrastive_tf_seed42_<timestamp> \
+  --output_dir results/figures
+```
+
+Produces five figures:
+
+| Figure | Description |
+|--------|-------------|
+| `fig_model_comparison.png` | Accuracy and Macro AUROC bar chart across all 3 models |
+| `fig_training_curves.png` | Train/val loss over epochs (Stage A + B for contrastive models) |
+| `fig_phate_{baseline,mlp,tf}.png` | PHATE 2D embedding colored by cell type |
+| `fig_recall_at_k.png` | Cross-modal retrieval Recall@k for contrastive models |
+| `fig_asw.png` | Normalized average silhouette width per model |
+
+## Attention Analysis
+
+```bash
+# Visualize transformer attention weights and validate against known markers
+python -m src.attention_analysis \
+  --checkpoint_dir results/checkpoints/contrastive_tf_seed42_<timestamp>
+```
+
+Produces attention heatmaps (RNA pathways and protein markers per cell type) and a `marker_validation.json` reporting recall of known markers (CD3→T, CD19→B, CD34→HSC, etc.).
 
 ## Testing
 
 ```bash
-# Run all preprocessing tests
-pytest tests/test_preprocessing.py -v
+# All tests (70 total)
+python -m pytest tests/ -v
 
-# Run integration tests only
-pytest tests/test_preprocessing.py -v -m integration
+# Preprocessing tests only (53 tests)
+python -m pytest tests/test_preprocessing.py -v
+
+# Evaluate metric function tests (17 tests)
+python -m pytest tests/test_evaluate.py -v
 ```
 
-58 tests cover: modality splitting, RNA/protein preprocessing, pathway tokenization, label encoding, donor-based splitting, PCA data leakage prevention, and full pipeline integration.
+Tests cover: modality splitting, RNA/protein preprocessing, pathway tokenization, label encoding, donor-based splitting, PCA leakage prevention, full pipeline integration, and all 7 evaluation metric functions.
 
 ## Dependencies
 
