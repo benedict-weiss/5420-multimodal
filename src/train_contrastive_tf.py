@@ -573,6 +573,22 @@ def main(args: argparse.Namespace) -> None:
         np.save(run_dir / "tf_attention_labels.npy", attn_labels)
         print(f"Attention weights saved to {run_dir}/")
 
+    # Save test embeddings for evaluate.py (Option B)
+    with torch.no_grad():
+        rna_encoder.train(False)
+        protein_encoder.train(False)
+        z_rna_list, z_prot_list = [], []
+        for batch in classifier_test_loader:
+            z_rna_list.append(rna_encoder(batch["rna"].to(device)).cpu().numpy())
+            z_prot_list.append(protein_encoder(batch["protein"].to(device)).cpu().numpy())
+    z_rna_all = np.concatenate(z_rna_list, axis=0)
+    z_prot_all = np.concatenate(z_prot_list, axis=0)
+    np.save(run_dir / "test_embeddings.npy", np.concatenate([z_rna_all, z_prot_all], axis=1))
+    np.save(run_dir / "test_rna_embeddings.npy", z_rna_all)
+    np.save(run_dir / "test_protein_embeddings.npy", z_prot_all)
+    np.save(run_dir / "test_labels.npy", test_labels)
+    print(f"Test embeddings saved: rna {z_rna_all.shape}, protein {z_prot_all.shape}")
+
     print("\n=== Training complete ===")
     print(f"Run directory: {run_dir}")
     print(f"Final test accuracy: {final_metrics['accuracy']:.4f}")
