@@ -197,16 +197,17 @@ def _int_labels_to_strings(label_ints: np.ndarray, label_mapping: dict) -> np.nd
     """Convert integer label array to string names using label_mapping.json.
 
     Handles both {str_name: int_idx} (baseline/mlp format) and
-    {int_idx: str_name} (tf format) automatically.
+    {int_idx: str_name} (tf format) by inspecting value types.
     """
     if not label_mapping:
         return label_ints.astype(str)
-    first_key = next(iter(label_mapping))
-    try:
-        int(first_key)
-        int_to_name = {int(k): str(v) for k, v in label_mapping.items()}
-    except ValueError:
+    first_val = next(iter(label_mapping.values()))
+    if isinstance(first_val, int) or (isinstance(first_val, str) and first_val.lstrip("-").isdigit()):
+        # {str_name: int_idx} format — values are integers
         int_to_name = {int(v): str(k) for k, v in label_mapping.items()}
+    else:
+        # {int_idx: str_name} format — values are cell type strings
+        int_to_name = {int(k): str(v) for k, v in label_mapping.items()}
     return np.array([int_to_name.get(int(l), str(l)) for l in label_ints])
 
 
@@ -293,13 +294,14 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
                 ax.plot(ea, [h["train_loss"] for h in stage_a], label="Stage A train", color="tab:blue")
                 ax.plot(ea, [h["val_loss"] for h in stage_a], label="Stage A val",
                         color="tab:blue", linestyle="--")
-            if stage_b and stage_a:
-                offset = stage_a[-1]["epoch"]
+            if stage_b:
+                offset = stage_a[-1]["epoch"] if stage_a else 0
                 eb = [offset + h["epoch"] for h in stage_b]
                 ax.plot(eb, [h["train_loss"] for h in stage_b], label="Stage B train", color="tab:orange")
                 ax.plot(eb, [h["val_loss"] for h in stage_b], label="Stage B val",
                         color="tab:orange", linestyle="--")
-                ax.axvline(offset, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
+                if stage_a:
+                    ax.axvline(offset, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
 
         ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Training Curves")
         ax.set_xlabel("Epoch")
@@ -431,7 +433,11 @@ def main(argv: list[str] | None = None) -> None:
     run_dirs: dict[str, Path] = {}
     for mkey, override in overrides.items():
         if override:
-            run_dirs[mkey] = Path(override)
+            p = Path(override)
+            if not p.is_dir():
+                print(f"[error] --{mkey}_dir does not exist: {p}")
+                return
+            run_dirs[mkey] = p
         elif ckpt_root.exists():
             found = _find_latest_run(ckpt_root, prefixes[mkey])
             if found:
