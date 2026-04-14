@@ -212,7 +212,11 @@ def build_pathway_tokens(
     if gene_sets is None:
         import gseapy
         print("Loading KEGG_2021_Human gene sets...")
-        gene_sets = gseapy.get_library('KEGG_2021_Human')
+        # gseapy 0.10.x has no get_library(); use gsea_gmt_parser which downloads from Enrichr
+        if hasattr(gseapy, 'get_library'):
+            gene_sets = gseapy.get_library('KEGG_2021_Human')
+        else:
+            gene_sets = gseapy.parser.gsea_gmt_parser('KEGG_2021_Human')
 
     adata = rna_adata.copy()
 
