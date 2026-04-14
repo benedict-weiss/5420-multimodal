@@ -11,6 +11,7 @@ import warnings
 from pathlib import Path
 
 import numpy as np
+import scanpy as sc
 import torch
 import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
@@ -279,7 +280,6 @@ def main(args: argparse.Namespace) -> None:
     rna_adata, protein_adata = split_modalities(adata)
 
     # Normalize RNA before pathway tokenization (required by build_pathway_tokens)
-    import scanpy as sc
     sc.pp.normalize_total(rna_adata, target_sum=1e4)
     sc.pp.log1p(rna_adata)
 
@@ -330,7 +330,12 @@ def main(args: argparse.Namespace) -> None:
         batch_size=args.batch_size,
     )
 
-    classifier_train_dataset = CITEseqDataset(train_pathway, train_protein, train_labels)
+    # Stage B train excludes the val split to avoid optimistic accuracy tracking
+    classifier_train_dataset = CITEseqDataset(
+        train_pathway[train_local_idx],
+        train_protein[train_local_idx],
+        train_labels[train_local_idx],
+    )
     classifier_test_dataset = CITEseqDataset(test_pathway, test_protein, test_labels)
     classifier_val_dataset = CITEseqDataset(
         train_pathway[val_local_idx],
@@ -394,6 +399,7 @@ def main(args: argparse.Namespace) -> None:
             stage_a_train_loader, rna_encoder, protein_encoder,
             clip_loss, device, optimizer=stage_a_optimizer,
         )
+        # optimizer=None already skips backward(); no_grad here for memory efficiency
         with torch.no_grad():
             val_loss = run_contrastive_epoch(
                 stage_a_val_loader, rna_encoder, protein_encoder,
@@ -537,8 +543,9 @@ def main(args: argparse.Namespace) -> None:
         run_dir / "stage_b_best.pt",
     )
 
+    # Save as {int_idx: str_name} so attention_analysis.py can index directly by integer label
     with open(run_dir / "label_mapping.json", "w", encoding="utf-8") as f:
-        json.dump({str(k): int(v) for k, v in label_mapping.items()}, f, indent=2)
+        json.dump({int(v): str(k) for k, v in label_mapping.items()}, f, indent=2)
     with open(run_dir / "pathway_names.json", "w", encoding="utf-8") as f:
         json.dump(pathway_names, f, indent=2)
     with open(run_dir / "metrics.json", "w", encoding="utf-8") as f:

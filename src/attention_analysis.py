@@ -1,6 +1,10 @@
 """Attention heatmaps and biological validation for the contrastive transformer."""
 
 from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
 from typing import Optional
 
 import matplotlib
@@ -81,7 +85,7 @@ def validate_against_markers(
                           Only cell types present in both dicts are evaluated.
 
     Returns:
-        {cell_type: {'found': [...], 'missing': [...], 'precision': float}}
+        {cell_type: {'found': [...], 'missing': [...], 'recall': float}}
     """
     result: dict = {}
     for cell_type, top_tokens in top_tokens_dict.items():
@@ -91,8 +95,8 @@ def validate_against_markers(
         top_names = {name for name, _ in top_tokens}
         found = [m for m in expected if m in top_names]
         missing = [m for m in expected if m not in top_names]
-        precision = len(found) / len(expected) if expected else 0.0
-        result[cell_type] = {"found": found, "missing": missing, "precision": precision}
+        recall = len(found) / len(expected) if expected else 0.0
+        result[cell_type] = {"found": found, "missing": missing, "recall": recall}
     return result
 
 
@@ -148,7 +152,7 @@ def plot_attention_heatmap(
     ax.set_title(title)
     ax.set_xlabel("Token")
     ax.set_ylabel("Cell type")
-    plt.xticks(rotation=45, ha="right", fontsize=7)
+    ax.tick_params(axis="x", rotation=45, labelsize=7)
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -205,8 +209,100 @@ def plot_token_attention_per_cell_type(
     fig_w = max(12, len(top_names) * 0.6)
     fig, ax = plt.subplots(figsize=(fig_w, 5))
     sns.violinplot(data=df, x="token", y="attention", hue="cell_type", ax=ax, cut=0)
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=8)
+    ax.tick_params(axis="x", rotation=45, labelsize=8)
     ax.set_title("Attention distribution by token and cell type")
     plt.tight_layout()
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
+
+
+# Known biological markers for validation (CD3→T cells, CD19→B cells, etc.)
+_DEFAULT_MARKERS = {
+    "HSC": ["CD34", "CD38"],
+    "B cell": ["CD19", "CD20"],
+    "Transitional B": ["CD19", "CD24"],
+    "CD4 T": ["CD3", "CD4"],
+    "CD8 T": ["CD3", "CD8"],
+    "NK": ["CD56", "CD16"],
+    "Monocyte": ["CD14", "CD11b"],
+    "pDC": ["CD123", "CD303"],
+}
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(
+        description="Analyze transformer attention weights from a contrastive_tf checkpoint dir"
+    )
+    parser.add_argument(
+        "--checkpoint_dir", type=str, required=True,
+        help="Path to a contrastive_tf run directory containing .npy attention files",
+    )
+    parser.add_argument(
+        "--output_dir", type=str, default=None,
+        help="Where to save plots (defaults to --checkpoint_dir)",
+    )
+    parser.add_argument("--top_k", type=int, default=10, help="Top-k tokens for marker validation")
+    parser.add_argument("--top_n_heatmap", type=int, default=20, help="Max tokens in heatmap")
+    args = parser.parse_args(argv)
+
+    ckpt = Path(args.checkpoint_dir)
+    out = Path(args.output_dir) if args.output_dir else ckpt
+    out.mkdir(parents=True, exist_ok=True)
+
+    # Load artifacts
+    attn_rna = np.load(ckpt / "tf_attention_rna.npy")
+    attn_protein = np.load(ckpt / "tf_attention_protein.npy")
+    labels = np.load(ckpt / "tf_attention_labels.npy")
+
+    with open(ckpt / "label_mapping.json", encoding="utf-8") as f:
+        raw = json.load(f)
+    # label_mapping.json is saved as {int_idx: str_name}; JSON keys are always strings
+    label_names = {int(k): v for k, v in raw.items()}
+
+    with open(ckpt / "pathway_names.json", encoding="utf-8") as f:
+        pathway_names: list[str] = json.load(f)
+
+    # Infer protein token names from attention shape (generic fallback)
+    n_proteins = attn_protein.shape[1]
+    protein_names = [f"protein_{i}" for i in range(n_proteins)]
+
+    print(f"Loaded: {attn_rna.shape[0]} cells, {attn_rna.shape[1]} pathways, "
+          f"{n_proteins} proteins, {len(label_names)} cell types")
+
+    # Aggregate by cell type
+    attn_by_type_rna = aggregate_attention_by_cell_type(attn_rna, labels, label_names)
+    attn_by_type_prot = aggregate_attention_by_cell_type(attn_protein, labels, label_names)
+
+    # Heatmaps
+    plot_attention_heatmap(
+        attn_by_type_rna, pathway_names,
+        title="RNA pathway attention by cell type",
+        save_path=str(out / "attention_heatmap_rna.png"),
+        top_n=args.top_n_heatmap,
+    )
+    print(f"Saved: {out / 'attention_heatmap_rna.png'}")
+
+    plot_attention_heatmap(
+        attn_by_type_prot, protein_names,
+        title="Protein attention by cell type",
+        save_path=str(out / "attention_heatmap_protein.png"),
+        top_n=args.top_n_heatmap,
+    )
+    print(f"Saved: {out / 'attention_heatmap_protein.png'}")
+
+    # Marker validation on protein tokens
+    top_tokens = get_top_tokens(attn_by_type_prot, protein_names, top_k=args.top_k)
+    validation = validate_against_markers(top_tokens, _DEFAULT_MARKERS)
+    print("\n=== Marker validation (protein) ===")
+    for ct, res in validation.items():
+        print(f"  {ct}: recall={res['recall']:.2f}  found={res['found']}  missing={res['missing']}")
+
+    # Save validation results
+    val_path = out / "marker_validation.json"
+    with open(val_path, "w", encoding="utf-8") as f:
+        json.dump(validation, f, indent=2)
+    print(f"Saved: {val_path}")
+
+
+if __name__ == "__main__":
+    main()
