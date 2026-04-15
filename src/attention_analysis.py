@@ -275,6 +275,62 @@ def validate_against_markers(
     return result
 
 
+def compute_marker_ranks(
+    attention_by_type: dict,
+    expected_markers: dict,
+    token_names: list[str],
+) -> dict:
+    """
+    For each (cell type, expected marker), report rank (1 = most attended).
+
+    Returns: {cell_type: {marker: {"resolved": str|None, "rank": int|None,
+                                    "n_tokens": int, "percentile": float|None}}}
+    Percentile is (n_tokens - rank + 1) / n_tokens; 1.0 means top, 0.0 means bottom.
+    """
+    result: dict = {}
+    for cell_type, attn in attention_by_type.items():
+        if cell_type not in expected_markers:
+            continue
+        order = np.argsort(attn)[::-1]
+        rank_of_idx = {int(idx): r + 1 for r, idx in enumerate(order)}
+        n = len(token_names)
+        entries: dict = {}
+        for marker in expected_markers[cell_type]:
+            resolved = resolve_marker_alias(marker, token_names)
+            if resolved is None or resolved not in token_names:
+                entries[marker] = {"resolved": None, "rank": None,
+                                   "n_tokens": n, "percentile": None}
+                continue
+            idx = token_names.index(resolved)
+            rank = rank_of_idx[idx]
+            entries[marker] = {
+                "resolved": resolved,
+                "rank": rank,
+                "n_tokens": n,
+                "percentile": (n - rank + 1) / n,
+            }
+        result[cell_type] = entries
+    return result
+
+
+def compute_specificity_scores(attention_by_type: dict) -> dict:
+    """
+    Z-score attention per token across cell types.
+
+    High z means the cell type attends this token unusually much vs other types —
+    a better proxy for 'marker' than raw attention, which is biased toward
+    globally-interesting tokens like CD45.
+
+    Returns same shape as input: {cell_type: np.ndarray(n_tokens,)}.
+    """
+    cell_types = list(attention_by_type.keys())
+    matrix = np.array([attention_by_type[ct] for ct in cell_types])  # (types, tokens)
+    mu = matrix.mean(axis=0, keepdims=True)
+    sigma = matrix.std(axis=0, keepdims=True) + 1e-8
+    z = (matrix - mu) / sigma
+    return {ct: z[i] for i, ct in enumerate(cell_types)}
+
+
 def plot_attention_heatmap(
     attention_by_type: dict,
     token_names: list,
@@ -580,6 +636,15 @@ def main(argv: list[str] | None = None) -> None:
     )
     print(f"Saved: {out / 'attention_heatmap_rna.png'}")
 
+    specificity = compute_specificity_scores(attn_by_type_prot)
+    plot_per_celltype_top_heatmap(
+        specificity, protein_names,
+        title="Protein attention SPECIFICITY (z-scored across cell types, per-row top-K)",
+        save_path=str(out / "attention_heatmap_protein_specificity.png"),
+        top_k_per_row=args.top_k_per_row,
+    )
+    print(f"Saved: {out / 'attention_heatmap_protein_specificity.png'}")
+
     plot_attention_heatmap(
         attn_by_type_prot, protein_names,
         title="Protein attention by cell type",
@@ -603,10 +668,28 @@ def main(argv: list[str] | None = None) -> None:
     for ct, res in validation.items():
         print(f"  {ct}: recall={res['recall']:.2f}  found={res['found']}  missing={res['missing']}")
 
+    ranks = compute_marker_ranks(attn_by_type_prot, _DEFAULT_MARKERS, protein_names)
+    specificity = compute_specificity_scores(attn_by_type_prot)
+    top_tokens_spec = get_top_tokens(specificity, protein_names, top_k=args.top_k)
+    validation_spec = validate_against_markers(
+        top_tokens_spec, _DEFAULT_MARKERS, token_names=protein_names
+    )
+    ranks_spec = compute_marker_ranks(specificity, _DEFAULT_MARKERS, protein_names)
+
+    enriched = {
+        ct: {
+            "top_10_recall": validation.get(ct, {}).get("recall"),
+            "top_10_recall_specificity": validation_spec.get(ct, {}).get("recall"),
+            "marker_ranks_raw": ranks.get(ct, {}),
+            "marker_ranks_specificity": ranks_spec.get(ct, {}),
+        }
+        for ct in _DEFAULT_MARKERS
+    }
+
     # Save validation results
     val_path = out / "marker_validation.json"
     with open(val_path, "w", encoding="utf-8") as f:
-        json.dump(validation, f, indent=2)
+        json.dump(enriched, f, indent=2)
     print(f"Saved: {val_path}")
 
     if attn_by_type_prot_per_head is not None:
