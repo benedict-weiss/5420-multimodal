@@ -331,6 +331,64 @@ def compute_specificity_scores(attention_by_type: dict) -> dict:
     return {ct: z[i] for i, ct in enumerate(cell_types)}
 
 
+def best_rank_across_heads(
+    attention_per_head: np.ndarray,   # (cells, layers, heads, tokens)
+    labels: np.ndarray,
+    label_names: dict,
+    expected_markers: dict,
+    token_names: list[str],
+) -> dict:
+    """
+    For each (cell_type, marker), find the (layer, head) whose cell-type-mean
+    attention gives that marker the best (lowest) rank, and report it.
+
+    Returns:
+      {cell_type: {marker: {"resolved": str|None,
+                             "best_rank": int|None,
+                             "best_layer": int|None,
+                             "best_head": int|None,
+                             "n_tokens": int}}}
+    """
+    if attention_per_head.ndim != 4:
+        raise ValueError(f"Expected 4-d per-head attn, got {attention_per_head.shape}")
+    n_cells, n_layers, n_heads, n_tokens = attention_per_head.shape
+    result: dict = {}
+    for label_int, label_str in label_names.items():
+        if label_str not in expected_markers:
+            continue
+        mask = labels == int(label_int)
+        if mask.sum() == 0:
+            continue
+        # (layers, heads, tokens) mean attention for this cell type
+        mean_attn = attention_per_head[mask].mean(axis=0)
+        entries: dict = {}
+        for marker in expected_markers[label_str]:
+            resolved = resolve_marker_alias(marker, token_names)
+            if resolved is None or resolved not in token_names:
+                entries[marker] = {"resolved": None, "best_rank": None,
+                                   "best_layer": None, "best_head": None,
+                                   "n_tokens": n_tokens}
+                continue
+            tok_idx = token_names.index(resolved)
+            best_rank = None
+            best_lh = (None, None)
+            for layer in range(n_layers):
+                for head in range(n_heads):
+                    row = mean_attn[layer, head]
+                    # rank of tok_idx: 1 + count of tokens with strictly greater attn
+                    rank = 1 + int((row > row[tok_idx]).sum())
+                    if best_rank is None or rank < best_rank:
+                        best_rank = rank
+                        best_lh = (layer, head)
+            entries[marker] = {
+                "resolved": resolved, "best_rank": best_rank,
+                "best_layer": best_lh[0], "best_head": best_lh[1],
+                "n_tokens": n_tokens,
+            }
+        result[label_str] = entries
+    return result
+
+
 def plot_attention_heatmap(
     attention_by_type: dict,
     token_names: list,
@@ -722,6 +780,23 @@ def main(argv: list[str] | None = None) -> None:
         with open(val_per_head_path, "w", encoding="utf-8") as f:
             json.dump(validation_per_head, f, indent=2)
         print(f"Saved: {val_per_head_path}")
+
+        best_rank = best_rank_across_heads(
+            attn_protein_per_head, labels, label_names,
+            _DEFAULT_MARKERS, protein_names,
+        )
+        best_rank_path = out / "marker_best_rank_per_head.json"
+        with open(best_rank_path, "w", encoding="utf-8") as f:
+            json.dump(best_rank, f, indent=2)
+        print(f"Saved: {best_rank_path}")
+        print("\n=== Best (layer, head) per marker ===")
+        for ct, markers in best_rank.items():
+            for m, info in markers.items():
+                if info["best_rank"] is None:
+                    continue
+                print(f"  {ct} / {m} ({info['resolved']}): "
+                      f"rank={info['best_rank']}/{info['n_tokens']} "
+                      f"@layer{info['best_layer']} head{info['best_head']}")
     else:
         print(
             "[warn] Per-head protein attention unavailable; skipping per-head-aware "
