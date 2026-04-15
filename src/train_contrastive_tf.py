@@ -555,6 +555,8 @@ def main(args: argparse.Namespace) -> None:
         json.dump({int(v): str(k) for k, v in label_mapping.items()}, f, indent=2)
     with open(run_dir / "pathway_names.json", "w", encoding="utf-8") as f:
         json.dump(pathway_names, f, indent=2)
+    with open(run_dir / "protein_names.json", "w", encoding="utf-8") as f:
+        json.dump([str(n) for n in protein_adata.var_names], f, indent=2)
     with open(run_dir / "metrics.json", "w", encoding="utf-8") as f:
         json.dump(
             _sanitize_json({

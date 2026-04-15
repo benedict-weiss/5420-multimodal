@@ -216,16 +216,26 @@ def plot_token_attention_per_cell_type(
     plt.close(fig)
 
 
-# Known biological markers for validation (CD3→T cells, CD19→B cells, etc.)
+# Known biological markers for validation. Keys must match BMMC cell_type labels
+# in adata.obs['cell_type']. Markers must exist in the ADT panel (134 proteins;
+# CD34 is notably absent, so HSC is validated via CD38 only).
 _DEFAULT_MARKERS = {
-    "HSC": ["CD34", "CD38"],
-    "B cell": ["CD19", "CD20"],
-    "Transitional B": ["CD19", "CD24"],
-    "CD4 T": ["CD3", "CD4"],
-    "CD8 T": ["CD3", "CD8"],
+    "HSC": ["CD38"],
     "NK": ["CD56", "CD16"],
-    "Monocyte": ["CD14", "CD11b"],
+    "Transitional B": ["CD19", "CD24"],
     "pDC": ["CD123", "CD303"],
+    "CD14+ Mono": ["CD14", "HLA-DR"],
+    "CD16+ Mono": ["CD16", "CD14"],
+    "CD4+ T naive": ["CD3", "CD4"],
+    "CD4+ T activated": ["CD3", "CD4"],
+    "CD8+ T naive": ["CD3", "CD8"],
+    "Naive CD20+ B IGKC+": ["CD19", "CD20"],
+    "Naive CD20+ B IGKC-": ["CD19", "CD20"],
+    "MAIT": ["CD3", "CD8"],
+    "T reg": ["CD3", "CD4"],
+    "Plasma cell IGKC+": ["CD38"],
+    "Plasma cell IGKC-": ["CD38"],
+    "cDC2": ["CD11c", "HLA-DR"],
 }
 
 
@@ -243,6 +253,11 @@ def main(argv: list[str] | None = None) -> None:
     )
     parser.add_argument("--top_k", type=int, default=10, help="Top-k tokens for marker validation")
     parser.add_argument("--top_n_heatmap", type=int, default=20, help="Max tokens in heatmap")
+    parser.add_argument(
+        "--data_path", type=str, default=None,
+        help="Fallback: path to .h5ad(.gz) to infer protein names "
+             "if protein_names.json is absent in --checkpoint_dir",
+    )
     args = parser.parse_args(argv)
 
     ckpt = Path(args.checkpoint_dir)
@@ -262,9 +277,37 @@ def main(argv: list[str] | None = None) -> None:
     with open(ckpt / "pathway_names.json", encoding="utf-8") as f:
         pathway_names: list[str] = json.load(f)
 
-    # Infer protein token names from attention shape (generic fallback)
     n_proteins = attn_protein.shape[1]
-    protein_names = [f"protein_{i}" for i in range(n_proteins)]
+    protein_names_path = ckpt / "protein_names.json"
+    if protein_names_path.exists():
+        with open(protein_names_path, encoding="utf-8") as f:
+            protein_names = json.load(f)
+        if len(protein_names) != n_proteins:
+            raise ValueError(
+                f"protein_names.json has {len(protein_names)} entries but "
+                f"attention has {n_proteins} tokens"
+            )
+    elif args.data_path is not None:
+        import anndata as ad
+        from src.preprocessing import load_data, split_modalities
+        adata = load_data(args.data_path)
+        if not adata.var_names.is_unique:
+            adata.var_names_make_unique()
+        _, protein_adata = split_modalities(adata)
+        protein_names = [str(n) for n in protein_adata.var_names]
+        if len(protein_names) != n_proteins:
+            raise ValueError(
+                f"Inferred {len(protein_names)} protein names from {args.data_path} "
+                f"but attention has {n_proteins} tokens"
+            )
+        # Persist for future runs on this checkpoint
+        with open(protein_names_path, "w", encoding="utf-8") as f:
+            json.dump(protein_names, f, indent=2)
+        print(f"Inferred and saved: {protein_names_path}")
+    else:
+        print("[warn] protein_names.json missing and --data_path not provided; "
+              "falling back to generic names (marker validation will fail).")
+        protein_names = [f"protein_{i}" for i in range(n_proteins)]
 
     print(f"Loaded: {attn_rna.shape[0]} cells, {attn_rna.shape[1]} pathways, "
           f"{n_proteins} proteins, {len(label_names)} cell types")
