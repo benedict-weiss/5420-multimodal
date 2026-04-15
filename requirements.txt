@@ -23,5 +23,8 @@ matplotlib>=3.7
 seaborn>=0.13
 phate>=1.0
 
-# Model training (needed for dataset.py, train_*.py, models/ — not yet implemented)
-torch>=2.0
+# Model training
+# Keep a conservative torch range in base requirements; HPC installs should use a
+# CUDA-matched wheel index explicitly (example for CUDA 12.8 clusters):
+#   pip install --index-url https://download.pytorch.org/whl/cu128 torch torchvision torchaudio
+torch>=2.0,<2.12
