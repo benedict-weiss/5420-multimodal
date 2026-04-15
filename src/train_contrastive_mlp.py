@@ -206,6 +206,63 @@ def evaluate_classifier_epoch(
     return total_loss / n_batches, y_true, y_pred, y_proba
 
 
+def run_stage_a_probe(
+    train_loader: DataLoader,
+    val_loader: DataLoader,
+    rna_encoder: MLPEncoder,
+    protein_encoder: MLPEncoder,
+    n_classes: int,
+    embedding_dim: int,
+    classifier_hidden_dim: int,
+    classifier_lr: float,
+    weight_decay: float,
+    probe_epochs: int,
+    device: torch.device,
+) -> float:
+    """Train a lightweight classifier probe on frozen Stage A embeddings and return val accuracy."""
+    rna_was_training = rna_encoder.training
+    protein_was_training = protein_encoder.training
+    rna_encoder.eval()
+    protein_encoder.eval()
+
+    probe = ClassificationHead(
+        input_dim=embedding_dim * 2,
+        n_classes=n_classes,
+        hidden_dim=classifier_hidden_dim,
+        dropout=0.0,
+    ).to(device)
+    probe_optimizer = Adam(probe.parameters(), lr=classifier_lr, weight_decay=weight_decay)
+
+    for _ in range(max(1, probe_epochs)):
+        probe.train()
+        for batch in train_loader:
+            rna = batch["rna"].to(device)
+            protein = batch["protein"].to(device)
+            y = batch["label"].to(device)
+
+            with torch.no_grad():
+                z = torch.cat([rna_encoder(rna), protein_encoder(protein)], dim=1)
+
+            probe_optimizer.zero_grad()
+            logits = probe(z)
+            loss = F.cross_entropy(logits, y)
+            loss.backward()
+            probe_optimizer.step()
+
+    _, y_val_true, y_val_pred, y_val_proba = evaluate_classifier_epoch(
+        loader=val_loader,
+        rna_encoder=rna_encoder,
+        protein_encoder=protein_encoder,
+        classifier=probe,
+        device=device,
+    )
+    probe_metrics = compute_metrics(y_val_true, y_val_pred, y_val_proba, n_classes=n_classes)
+
+    rna_encoder.train(rna_was_training)
+    protein_encoder.train(protein_was_training)
+    return float(probe_metrics["accuracy"])
+
+
 def build_train_val_indices(labels: np.ndarray, val_ratio: float, seed: int) -> tuple[np.ndarray, np.ndarray]:
     idx = np.arange(labels.shape[0])
     if val_ratio <= 0:
@@ -244,6 +301,7 @@ def main(args: argparse.Namespace) -> None:
     n_classes = len(label_mapping)
 
     # Train/test split
+    val_global_idx = np.array([], dtype=int)
     if args.test_donors:
         train_global_idx, test_global_idx = split_by_donor(
             adata, test_donors=args.test_donors, donor_col=args.donor_col
@@ -260,6 +318,7 @@ def main(args: argparse.Namespace) -> None:
             return None
 
         raw_split_values = list(args.split_test_values)
+        raw_val_values = list(args.split_val_values) if args.split_val_values else []
         split_series = adata.obs[args.split_col]
         split_arr_raw = split_series.values
 
@@ -268,22 +327,41 @@ def main(args: argparse.Namespace) -> None:
         parsed_test_values = [_parse_bool_like(v) for v in raw_split_values]
         test_values_are_bool_like = all(v is not None for v in parsed_test_values)
 
-        if column_is_bool_like and test_values_are_bool_like:
-            split_values_bool = set(parsed_test_values)
-            test_mask = np.array([v in split_values_bool for v in parsed_column_values], dtype=bool)
-        elif column_is_bool_like and set(str(v).strip().lower() for v in raw_split_values) == {"test"}:
-            test_mask = np.array([v is False for v in parsed_column_values], dtype=bool)
-        else:
-            split_values_str = set(str(v) for v in raw_split_values)
+        def _mask_from_values(raw_values: list[object]) -> np.ndarray:
+            parsed_values = [_parse_bool_like(v) for v in raw_values]
+            values_are_bool_like = all(v is not None for v in parsed_values)
+
+            if column_is_bool_like and values_are_bool_like:
+                target_bool = set(parsed_values)
+                return np.array([v in target_bool for v in parsed_column_values], dtype=bool)
+            if column_is_bool_like and set(str(v).strip().lower() for v in raw_values) == {"test"}:
+                return np.array([v is False for v in parsed_column_values], dtype=bool)
+
+            split_values_str = set(str(v) for v in raw_values)
             split_arr = split_series.astype(str).values
-            test_mask = np.array([v in split_values_str for v in split_arr], dtype=bool)
+            return np.array([v in split_values_str for v in split_arr], dtype=bool)
+
+        test_mask = _mask_from_values(raw_split_values)
+        val_mask = _mask_from_values(raw_val_values) if raw_val_values else np.zeros_like(test_mask)
+
+        overlap_mask = test_mask & val_mask
+        if np.any(overlap_mask):
+            raise ValueError("split_test_values and split_val_values overlap. Provide disjoint split values.")
+
+        train_mask = ~(test_mask | val_mask)
+        if not np.any(train_mask):
+            raise ValueError("Training split is empty after applying split_test_values/split_val_values.")
 
         test_global_idx = np.where(test_mask)[0]
-        train_global_idx = np.where(~test_mask)[0]
+        train_global_idx = np.where(train_mask)[0]
+        if raw_val_values:
+            val_global_idx = np.where(val_mask)[0]
         print(
             f"Using predefined split column '{args.split_col}' with test values "
             f"{sorted(str(v) for v in raw_split_values)}"
         )
+        if raw_val_values:
+            print(f"Using predefined validation values {sorted(str(v) for v in raw_val_values)}")
     else:
         train_global_idx, test_global_idx = train_test_split(
             np.arange(adata.shape[0]),
@@ -297,6 +375,9 @@ def main(args: argparse.Namespace) -> None:
 
     if len(test_global_idx) == 0:
         raise ValueError("Test split is empty. Adjust --test_donors or split settings.")
+
+    if args.split_val_values and len(val_global_idx) == 0:
+        raise ValueError("Validation split is empty. Adjust --split_val_values.")
 
     rna_adata, protein_adata = split_modalities(adata)
 
@@ -327,45 +408,69 @@ def main(args: argparse.Namespace) -> None:
         f"test RNA {test_rna_pca.shape}, test protein {test_protein.shape}"
     )
 
-    # Train/val split for Stage A early stopping
-    train_local_idx, val_local_idx = build_train_val_indices(
-        labels=train_labels,
-        val_ratio=args.val_ratio,
-        seed=args.seed,
-    )
-
-    trainval_rna = train_rna_pca
-    trainval_protein = train_protein
-    trainval_labels = train_labels
-
-    if len(val_local_idx) == 0:
-        warnings.warn(
-            "Validation split is empty; proceeding without a held-out validation set. "
-            "Stage A monitoring will use the training split. "
-            "Consider increasing --val_ratio or training set size.",
-            UserWarning,
-            stacklevel=2,
+    # Train/val split for Stage A monitoring.
+    if len(val_global_idx) > 0:
+        val_rna = rna_adata[val_global_idx].copy()
+        val_rna_pca = preprocess_rna(
+            val_rna,
+            n_comps=args.rna_pca_dim,
+            pca_model=pca_model,
+            hvg_genes=hvg_genes,
         )
-        val_local_idx = train_local_idx
+        val_protein = preprocess_protein(protein_adata[val_global_idx].copy())
+        val_labels = labels_all[val_global_idx]
 
-    stage_a_train_loader, stage_a_val_loader = get_dataloaders(
-        rna_pca=trainval_rna,
-        protein_clr=trainval_protein,
-        labels=trainval_labels,
-        train_idx=train_local_idx,
-        test_idx=val_local_idx,
-        batch_size=args.batch_size,
-    )
+        stage_a_train_loader = DataLoader(
+            CITEseqDataset(train_rna_pca, train_protein, train_labels),
+            batch_size=args.batch_size,
+            shuffle=True,
+            drop_last=False,
+        )
+        stage_a_val_loader = DataLoader(
+            CITEseqDataset(val_rna_pca, val_protein, val_labels),
+            batch_size=args.batch_size,
+            shuffle=False,
+            drop_last=False,
+        )
+        classifier_val_dataset = CITEseqDataset(val_rna_pca, val_protein, val_labels)
+    else:
+        train_local_idx, val_local_idx = build_train_val_indices(
+            labels=train_labels,
+            val_ratio=args.val_ratio,
+            seed=args.seed,
+        )
+
+        trainval_rna = train_rna_pca
+        trainval_protein = train_protein
+        trainval_labels = train_labels
+
+        if len(val_local_idx) == 0:
+            warnings.warn(
+                "Validation split is empty; proceeding without a held-out validation set. "
+                "Stage A monitoring will use the training split. "
+                "Consider increasing --val_ratio or training set size.",
+                UserWarning,
+                stacklevel=2,
+            )
+            val_local_idx = train_local_idx
+
+        stage_a_train_loader, stage_a_val_loader = get_dataloaders(
+            rna_pca=trainval_rna,
+            protein_clr=trainval_protein,
+            labels=trainval_labels,
+            train_idx=train_local_idx,
+            test_idx=val_local_idx,
+            batch_size=args.batch_size,
+        )
+        classifier_val_dataset = CITEseqDataset(
+            trainval_rna[val_local_idx],
+            trainval_protein[val_local_idx],
+            trainval_labels[val_local_idx],
+        )
 
     # Full-train + test loaders for Stage B classifier training/evaluation
     classifier_train_dataset = CITEseqDataset(train_rna_pca, train_protein, train_labels)
     classifier_test_dataset = CITEseqDataset(test_rna_pca, test_protein, test_labels)
-    # Use val_local_idx (subset of training data) for Stage B checkpoint selection
-    classifier_val_dataset = CITEseqDataset(
-        trainval_rna[val_local_idx],
-        trainval_protein[val_local_idx],
-        trainval_labels[val_local_idx],
-    )
 
     classifier_train_loader = DataLoader(
         classifier_train_dataset,
@@ -426,6 +531,7 @@ def main(args: argparse.Namespace) -> None:
     )
 
     best_val = float("inf")
+    best_probe_acc = -1.0
     best_epoch = -1
     patience_counter = 0
     best_rna_state = clone_state_dict(rna_encoder)
@@ -468,20 +574,58 @@ def main(args: argparse.Namespace) -> None:
             }
         )
 
-        improved = (best_val - val_loss) > args.min_delta
-        if improved:
-            best_val = val_loss
-            best_epoch = epoch
-            patience_counter = 0
-            best_rna_state = clone_state_dict(rna_encoder)
-            best_protein_state = clone_state_dict(protein_encoder)
+        improved = False
+        probe_val_acc: float | None = None
+        if args.stage_a_select_metric == "probe_accuracy":
+            should_probe = (epoch == 1) or (epoch % max(1, args.stage_a_probe_every) == 0)
+            if should_probe:
+                probe_val_acc = run_stage_a_probe(
+                    train_loader=classifier_train_loader,
+                    val_loader=classifier_val_loader,
+                    rna_encoder=rna_encoder,
+                    protein_encoder=protein_encoder,
+                    n_classes=n_classes,
+                    embedding_dim=args.embedding_dim,
+                    classifier_hidden_dim=args.classifier_hidden_dim,
+                    classifier_lr=args.stage_a_probe_lr,
+                    weight_decay=args.weight_decay,
+                    probe_epochs=args.stage_a_probe_epochs,
+                    device=device,
+                )
+                stage_a_history[-1]["probe_val_accuracy"] = float(probe_val_acc)
+                improved = (probe_val_acc - best_probe_acc) > args.stage_a_probe_min_delta
+                if improved:
+                    best_probe_acc = float(probe_val_acc)
+                    best_val = val_loss
+                    best_epoch = epoch
+                    patience_counter = 0
+                    best_rna_state = clone_state_dict(rna_encoder)
+                    best_protein_state = clone_state_dict(protein_encoder)
+                else:
+                    patience_counter += 1
         else:
-            patience_counter += 1
+            improved = (best_val - val_loss) > args.min_delta
+            if improved:
+                best_val = val_loss
+                best_epoch = epoch
+                patience_counter = 0
+                best_rna_state = clone_state_dict(rna_encoder)
+                best_protein_state = clone_state_dict(protein_encoder)
+            else:
+                patience_counter += 1
 
         print(
             f"[Stage A] Epoch {epoch:03d} | train_loss={train_loss:.4f} | "
             f"val_loss={val_loss:.4f} | best_val={best_val:.4f} | lr={current_lr:.2e}"
+            + (
+                f" | probe_val_acc={probe_val_acc:.4f} | best_probe={best_probe_acc:.4f}"
+                if probe_val_acc is not None
+                else ""
+            )
         )
+
+        if args.stage_a_select_metric == "probe_accuracy" and probe_val_acc is None:
+            continue
 
         if patience_counter >= args.patience:
             print(f"Early stopping at epoch {epoch} (patience={args.patience}).")
@@ -683,6 +827,13 @@ def parse_args() -> argparse.Namespace:
         default=["test"],
         help="Values in split_col treated as test when --test_donors is not provided",
     )
+    parser.add_argument(
+        "--split_val_values",
+        type=str,
+        nargs="*",
+        default=None,
+        help="Optional values in split_col treated as validation; leaves remaining values for training",
+    )
     parser.add_argument("--test_size", type=float, default=0.2)
     parser.add_argument("--val_ratio", type=float, default=0.1)
 
@@ -727,6 +878,37 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--classifier_epochs", type=int, default=50)
     parser.add_argument("--patience", type=int, default=10)
     parser.add_argument("--min_delta", type=float, default=1e-4)
+    parser.add_argument(
+        "--stage_a_select_metric",
+        type=str,
+        default="val_loss",
+        choices=["val_loss", "probe_accuracy"],
+        help="Checkpoint/early-stop criterion for Stage A",
+    )
+    parser.add_argument(
+        "--stage_a_probe_every",
+        type=int,
+        default=5,
+        help="Probe Stage A representation every N epochs when using probe_accuracy criterion",
+    )
+    parser.add_argument(
+        "--stage_a_probe_epochs",
+        type=int,
+        default=3,
+        help="Number of epochs to train the Stage A probe head",
+    )
+    parser.add_argument(
+        "--stage_a_probe_lr",
+        type=float,
+        default=1e-3,
+        help="Learning rate for Stage A probe classifier",
+    )
+    parser.add_argument(
+        "--stage_a_probe_min_delta",
+        type=float,
+        default=1e-4,
+        help="Minimum probe accuracy improvement to reset Stage A patience",
+    )
 
     return parser.parse_args()
 

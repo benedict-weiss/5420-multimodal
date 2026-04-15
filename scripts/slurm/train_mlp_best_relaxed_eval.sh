@@ -50,6 +50,21 @@ PATIENCE="${PATIENCE:-1000}"
 MIN_DELTA="${MIN_DELTA:-0.0}"
 VAL_RATIO="${VAL_RATIO:-0.1}"
 
+# Split-aware evaluation policy:
+#   train split values -> training
+#   test split values  -> validation/checkpointing
+#   iid_holdout        -> final held-out test
+SPLIT_COL="${SPLIT_COL:-is_train}"
+SPLIT_VAL_VALUES="${SPLIT_VAL_VALUES:-test}"
+SPLIT_TEST_VALUES="${SPLIT_TEST_VALUES:-iid_holdout}"
+
+# Optional Stage A checkpoint criterion.
+STAGE_A_SELECT_METRIC="${STAGE_A_SELECT_METRIC:-probe_accuracy}"
+STAGE_A_PROBE_EVERY="${STAGE_A_PROBE_EVERY:-5}"
+STAGE_A_PROBE_EPOCHS="${STAGE_A_PROBE_EPOCHS:-3}"
+STAGE_A_PROBE_LR="${STAGE_A_PROBE_LR:-1e-3}"
+STAGE_A_PROBE_MIN_DELTA="${STAGE_A_PROBE_MIN_DELTA:-1e-4}"
+
 mkdir -p "$REPO_ROOT/logs" "$RUN_ROOT" "$FIG_ROOT"
 cd "$REPO_ROOT"
 
@@ -78,8 +93,14 @@ python -m src.train_contrastive_mlp \
   --val_ratio "$VAL_RATIO" \
   --patience "$PATIENCE" \
   --min_delta "$MIN_DELTA" \
-  --split_col is_train \
-  --split_test_values test iid_holdout
+  --stage_a_select_metric "$STAGE_A_SELECT_METRIC" \
+  --stage_a_probe_every "$STAGE_A_PROBE_EVERY" \
+  --stage_a_probe_epochs "$STAGE_A_PROBE_EPOCHS" \
+  --stage_a_probe_lr "$STAGE_A_PROBE_LR" \
+  --stage_a_probe_min_delta "$STAGE_A_PROBE_MIN_DELTA" \
+  --split_col "$SPLIT_COL" \
+  --split_val_values "$SPLIT_VAL_VALUES" \
+  --split_test_values "$SPLIT_TEST_VALUES"
 
 # Resolve latest run directory generated above.
 latest_run=$(find "$RUN_ROOT" -maxdepth 1 -type d -name "contrastive_mlp_seed${SEED}_*" | sort | tail -n 1)
