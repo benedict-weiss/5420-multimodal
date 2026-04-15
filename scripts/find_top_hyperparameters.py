@@ -42,9 +42,12 @@ def find_top_hyperparameters(
         if model_type and not trial_dir.name.startswith(model_type):
             continue
         
-        metrics_file = trial_dir / "metrics.json"
-        if not metrics_file.exists():
+        # Tuning outputs are nested as:
+        # tune/<trial_name>/<run_name>/metrics.json
+        metric_candidates = sorted(trial_dir.rglob("metrics.json"))
+        if not metric_candidates:
             continue
+        metrics_file = metric_candidates[-1]
         
         try:
             with open(metrics_file) as f:
@@ -55,14 +58,14 @@ def find_top_hyperparameters(
             
             results.append({
                 "trial_name": trial_dir.name,
-                "run_dir": str(trial_dir),
+                "run_dir": str(metrics_file.parent),
                 "config": config,
                 "accuracy": metrics.get("final_accuracy", 0.0),
                 "auroc": metrics.get("final_macro_auroc", 0.0),
                 "metrics": metrics,
             })
         except (json.JSONDecodeError, KeyError) as e:
-            print(f"  Skipping {trial_dir.name}: {e}")
+            print(f"  Skipping {metrics_file}: {e}")
             continue
     
     if not results:
@@ -157,8 +160,13 @@ if __name__ == "__main__":
     
     metric = sys.argv[1] if len(sys.argv) > 1 else "final_accuracy"
     model_type = sys.argv[2] if len(sys.argv) > 2 else "mlp"
+    checkpoint_dir = sys.argv[3] if len(sys.argv) > 3 else "results/checkpoints"
     
-    results = find_top_hyperparameters(metric=metric, model_type=model_type)
+    results = find_top_hyperparameters(
+        checkpoint_dir=checkpoint_dir,
+        metric=metric,
+        model_type=model_type,
+    )
     
     if results:
         print("\nTop configuration details:")
