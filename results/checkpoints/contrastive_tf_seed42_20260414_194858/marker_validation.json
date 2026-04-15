@@ -1,0 +1,34 @@
+{
+  "HSC": {
+    "found": [],
+    "missing": [
+      "CD34",
+      "CD38"
+    ],
+    "recall": 0.0
+  },
+  "NK": {
+    "found": [],
+    "missing": [
+      "CD56",
+      "CD16"
+    ],
+    "recall": 0.0
+  },
+  "Transitional B": {
+    "found": [],
+    "missing": [
+      "CD19",
+      "CD24"
+    ],
+    "recall": 0.0
+  },
+  "pDC": {
+    "found": [],
+    "missing": [
+      "CD123",
+      "CD303"
+    ],
+    "recall": 0.0
+  }
+}

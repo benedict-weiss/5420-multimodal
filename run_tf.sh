@@ -15,4 +15,4 @@ module load miniconda
 source activate multimodal_env
 
 # Run training
-python -m src.train_contrastive_tf --data_path data/ --seed 42 --batch_size 256 --gene_sets_path data/kegg_2021_human.json --contrastive_epochs 1 --classifier_epochs 1
+python -m src.train_contrastive_tf --data_path data/ --seed 42 --batch_size 256 --gene_sets_path data/kegg_2021_human.json
