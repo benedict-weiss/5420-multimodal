@@ -53,25 +53,25 @@ CONTRASTIVE_EPOCHS="${CONTRASTIVE_EPOCHS:-150}"
 CLASSIFIER_EPOCHS="${CLASSIFIER_EPOCHS:-30}"
 
 # Overfitting-aware defaults for Stage A stopping.
-PATIENCE="${PATIENCE:-12}"
+PATIENCE="${PATIENCE:-20}"
 MIN_DELTA="${MIN_DELTA:-1e-4}"
 VAL_RATIO="${VAL_RATIO:-0.1}"
 
 # Split-aware evaluation policy:
-#   train split values -> training
-#   test split values  -> validation/checkpointing
-#   iid_holdout        -> final held-out test
+#   split_test_values are treated as final held-out test.
+#   validation defaults to stratified split from training data (transformer-like).
 SPLIT_COL="${SPLIT_COL:-is_train}"
-SPLIT_VAL_VALUES="${SPLIT_VAL_VALUES:-test}"
 SPLIT_TEST_VALUES="${SPLIT_TEST_VALUES:-iid_holdout}"
+USE_PREDEFINED_VAL_SPLIT="${USE_PREDEFINED_VAL_SPLIT:-0}"
+SPLIT_VAL_VALUES="${SPLIT_VAL_VALUES:-test}"
 
 # Optional Stage A checkpoint criterion.
-STAGE_A_SELECT_METRIC="${STAGE_A_SELECT_METRIC:-probe_accuracy}"
+STAGE_A_SELECT_METRIC="${STAGE_A_SELECT_METRIC:-val_loss}"
 STAGE_A_PROBE_EVERY="${STAGE_A_PROBE_EVERY:-3}"
 STAGE_A_PROBE_EPOCHS="${STAGE_A_PROBE_EPOCHS:-5}"
 STAGE_A_PROBE_LR="${STAGE_A_PROBE_LR:-1e-3}"
 STAGE_A_PROBE_MIN_DELTA="${STAGE_A_PROBE_MIN_DELTA:-2e-3}"
-STAGE_A_PROBE_START_EPOCH="${STAGE_A_PROBE_START_EPOCH:-5}"
+STAGE_A_PROBE_START_EPOCH="${STAGE_A_PROBE_START_EPOCH:-10}"
 
 # Micro-tune knobs (2 x 2 x 2 = 8 runs by default).
 read -r -a MICRO_LR_LIST <<< "${MICRO_LR_LIST:-3e-4 1e-3}"
@@ -98,6 +98,12 @@ run_one() {
   mkdir -p "$out_dir" "$fig_dir"
 
   echo "[train] label=$run_label lr=$run_lr wd=$run_wd patience=$run_patience"
+  local extra_split_args=()
+  if [[ "$USE_PREDEFINED_VAL_SPLIT" == "1" ]]; then
+    extra_split_args+=(--use_predefined_val_split)
+    extra_split_args+=(--split_val_values "$SPLIT_VAL_VALUES")
+  fi
+
   python -m src.train_contrastive_mlp \
     --data_path "$DATA_PATH" \
     --output_dir "$out_dir" \
@@ -123,8 +129,8 @@ run_one() {
     --stage_a_probe_min_delta "$STAGE_A_PROBE_MIN_DELTA" \
     --stage_a_probe_start_epoch "$STAGE_A_PROBE_START_EPOCH" \
     --split_col "$SPLIT_COL" \
-    --split_val_values "$SPLIT_VAL_VALUES" \
-    --split_test_values "$SPLIT_TEST_VALUES"
+    --split_test_values "$SPLIT_TEST_VALUES" \
+    "${extra_split_args[@]}"
 
   local latest_run
   latest_run=$(find "$out_dir" -maxdepth 1 -type d -name "contrastive_mlp_seed${SEED}_*" | sort | tail -n 1)

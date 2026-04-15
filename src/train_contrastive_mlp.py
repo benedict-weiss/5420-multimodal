@@ -318,7 +318,11 @@ def main(args: argparse.Namespace) -> None:
             return None
 
         raw_split_values = list(args.split_test_values)
-        raw_val_values = list(args.split_val_values) if args.split_val_values else []
+        raw_val_values = (
+            list(args.split_val_values)
+            if (args.use_predefined_val_split and args.split_val_values)
+            else []
+        )
         split_series = adata.obs[args.split_col]
         split_arr_raw = split_series.values
 
@@ -376,7 +380,7 @@ def main(args: argparse.Namespace) -> None:
     if len(test_global_idx) == 0:
         raise ValueError("Test split is empty. Adjust --test_donors or split settings.")
 
-    if args.split_val_values and len(val_global_idx) == 0:
+    if args.use_predefined_val_split and args.split_val_values and len(val_global_idx) == 0:
         raise ValueError("Validation split is empty. Adjust --split_val_values.")
 
     rna_adata, protein_adata = split_modalities(adata)
@@ -432,6 +436,7 @@ def main(args: argparse.Namespace) -> None:
             shuffle=False,
             drop_last=False,
         )
+        classifier_train_dataset = CITEseqDataset(train_rna_pca, train_protein, train_labels)
         classifier_val_dataset = CITEseqDataset(val_rna_pca, val_protein, val_labels)
     else:
         train_local_idx, val_local_idx = build_train_val_indices(
@@ -462,6 +467,12 @@ def main(args: argparse.Namespace) -> None:
             test_idx=val_local_idx,
             batch_size=args.batch_size,
         )
+        # Mirror transformer setup: Stage B trains only on train split, never on val split.
+        classifier_train_dataset = CITEseqDataset(
+            trainval_rna[train_local_idx],
+            trainval_protein[train_local_idx],
+            trainval_labels[train_local_idx],
+        )
         classifier_val_dataset = CITEseqDataset(
             trainval_rna[val_local_idx],
             trainval_protein[val_local_idx],
@@ -469,7 +480,6 @@ def main(args: argparse.Namespace) -> None:
         )
 
     # Full-train + test loaders for Stage B classifier training/evaluation
-    classifier_train_dataset = CITEseqDataset(train_rna_pca, train_protein, train_labels)
     classifier_test_dataset = CITEseqDataset(test_rna_pca, test_protein, test_labels)
 
     classifier_train_loader = DataLoader(
@@ -843,6 +853,11 @@ def parse_args() -> argparse.Namespace:
         nargs="*",
         default=None,
         help="Optional values in split_col treated as validation; leaves remaining values for training",
+    )
+    parser.add_argument(
+        "--use_predefined_val_split",
+        action="store_true",
+        help="Use --split_val_values for validation instead of stratified val split from training data",
     )
     parser.add_argument("--test_size", type=float, default=0.2)
     parser.add_argument("--val_ratio", type=float, default=0.1)
