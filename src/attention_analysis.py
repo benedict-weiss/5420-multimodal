@@ -158,6 +158,59 @@ def plot_attention_heatmap(
     plt.close(fig)
 
 
+def plot_per_celltype_top_heatmap(
+    attention_by_type: dict,
+    token_names: list,
+    title: str,
+    save_path: str,
+    top_k_per_row: int = 5,
+) -> None:
+    """
+    Heatmap of attention restricted to the union of each cell type's top-K tokens.
+
+    Unlike plot_attention_heatmap (which filters by GLOBAL mean attention and
+    hides cell-type-specific markers), this surfaces tokens that are strong
+    within any single row — e.g. CD25 for T reg, CD161 for MAIT.
+
+    Columns are sorted by descending max-per-column so the strongest per-row
+    peaks cluster on the left.
+    """
+    cell_types = list(attention_by_type.keys())
+    if len(cell_types) == 0:
+        raise ValueError("attention_by_type dict is empty.")
+    matrix = np.array([attention_by_type[ct] for ct in cell_types])
+    if matrix.shape[1] != len(token_names):
+        raise ValueError(
+            f"token_names length {len(token_names)} != attention matrix width {matrix.shape[1]}"
+        )
+
+    union: set = set()
+    for row in matrix:
+        union.update(np.argsort(row)[::-1][:top_k_per_row].tolist())
+    union_idx = np.array(sorted(union, key=lambda i: -matrix[:, i].max()))
+    sub = matrix[:, union_idx]
+    sub_names = [token_names[i] for i in union_idx]
+
+    fig_w = max(12, len(sub_names) * 0.35)
+    fig_h = max(5, len(cell_types) * 0.3)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    sns.heatmap(
+        sub,
+        xticklabels=sub_names,
+        yticklabels=cell_types,
+        cmap="viridis",
+        ax=ax,
+        linewidths=0,
+    )
+    ax.set_title(title)
+    ax.set_xlabel("Token")
+    ax.set_ylabel("Cell type")
+    ax.tick_params(axis="x", rotation=45, labelsize=7)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+
+
 def plot_token_attention_per_cell_type(
     attention_weights: np.ndarray,
     token_names: list,
@@ -254,6 +307,10 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--top_k", type=int, default=10, help="Top-k tokens for marker validation")
     parser.add_argument("--top_n_heatmap", type=int, default=20, help="Max tokens in heatmap")
     parser.add_argument(
+        "--top_k_per_row", type=int, default=5,
+        help="Per-row top-K for union heatmap (protein only)",
+    )
+    parser.add_argument(
         "--data_path", type=str, default=None,
         help="Fallback: path to .h5ad(.gz) to infer protein names "
              "if protein_names.json is absent in --checkpoint_dir",
@@ -332,6 +389,14 @@ def main(argv: list[str] | None = None) -> None:
         top_n=args.top_n_heatmap,
     )
     print(f"Saved: {out / 'attention_heatmap_protein.png'}")
+
+    plot_per_celltype_top_heatmap(
+        attn_by_type_prot, protein_names,
+        title=f"Protein attention by cell type (per-row top-{args.top_k_per_row}, union)",
+        save_path=str(out / "attention_heatmap_protein_per_row.png"),
+        top_k_per_row=args.top_k_per_row,
+    )
+    print(f"Saved: {out / 'attention_heatmap_protein_per_row.png'}")
 
     # Marker validation on protein tokens
     top_tokens = get_top_tokens(attn_by_type_prot, protein_names, top_k=args.top_k)
