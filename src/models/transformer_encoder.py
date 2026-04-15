@@ -133,3 +133,18 @@ class TransformerEncoder(nn.Module):
         # (batch, nhead, seq_len, seq_len) -> mean over heads -> CLS row, skip CLS-to-CLS
         attn_avg = last_layer._last_attn_weights.mean(dim=1)  # (batch, seq_len, seq_len)
         return attn_avg[:, 0, 1:]  # (batch, n_tokens)
+
+    def get_attention_weights_per_head(self) -> Optional[dict[str, torch.Tensor]]:
+        """
+        CLS-to-token attention from every encoder layer, preserving individual heads.
+
+        Returns:
+            Dict like {"layer0": (batch, nhead, n_tokens), ...}, or None if no
+            layer has cached attention weights from a forward pass yet.
+        """
+        result: dict[str, torch.Tensor] = {}
+        for layer_idx, layer in enumerate(self.encoder.layers):
+            if layer._last_attn_weights is None:
+                continue
+            result[f"layer{layer_idx}"] = layer._last_attn_weights[:, :, 0, 1:].detach()
+        return result or None

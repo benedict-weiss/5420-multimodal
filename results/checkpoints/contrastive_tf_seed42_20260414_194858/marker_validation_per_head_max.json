@@ -1,0 +1,130 @@
+{
+  "CD14+ Mono": {
+    "found": [],
+    "missing": [
+      "CD14",
+      "HLA-DR"
+    ],
+    "recall": 0.0
+  },
+  "CD16+ Mono": {
+    "found": [],
+    "missing": [
+      "CD16",
+      "CD14"
+    ],
+    "recall": 0.0
+  },
+  "CD4+ T activated": {
+    "found": [],
+    "missing": [
+      "CD3",
+      "CD4"
+    ],
+    "recall": 0.0
+  },
+  "CD4+ T naive": {
+    "found": [],
+    "missing": [
+      "CD3",
+      "CD4"
+    ],
+    "recall": 0.0
+  },
+  "CD8+ T naive": {
+    "found": [
+      "CD8"
+    ],
+    "missing": [
+      "CD3"
+    ],
+    "recall": 0.5
+  },
+  "HSC": {
+    "found": [
+      "CD38"
+    ],
+    "missing": [],
+    "recall": 1.0
+  },
+  "MAIT": {
+    "found": [],
+    "missing": [
+      "CD3",
+      "CD8"
+    ],
+    "recall": 0.0
+  },
+  "NK": {
+    "found": [
+      "CD16"
+    ],
+    "missing": [
+      "CD56"
+    ],
+    "recall": 0.5
+  },
+  "Naive CD20+ B IGKC+": {
+    "found": [],
+    "missing": [
+      "CD19",
+      "CD20"
+    ],
+    "recall": 0.0
+  },
+  "Naive CD20+ B IGKC-": {
+    "found": [],
+    "missing": [
+      "CD19",
+      "CD20"
+    ],
+    "recall": 0.0
+  },
+  "Plasma cell IGKC+": {
+    "found": [
+      "CD38"
+    ],
+    "missing": [],
+    "recall": 1.0
+  },
+  "Plasma cell IGKC-": {
+    "found": [
+      "CD38"
+    ],
+    "missing": [],
+    "recall": 1.0
+  },
+  "T reg": {
+    "found": [],
+    "missing": [
+      "CD3",
+      "CD4"
+    ],
+    "recall": 0.0
+  },
+  "Transitional B": {
+    "found": [],
+    "missing": [
+      "CD19",
+      "CD24"
+    ],
+    "recall": 0.0
+  },
+  "cDC2": {
+    "found": [],
+    "missing": [
+      "CD11c",
+      "HLA-DR"
+    ],
+    "recall": 0.0
+  },
+  "pDC": {
+    "found": [
+      "CD123"
+    ],
+    "missing": [
+      "CD303"
+    ],
+    "recall": 0.5
+  }
+}

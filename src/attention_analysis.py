@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
+import os
 from pathlib import Path
+import shutil
+import tempfile
 from typing import Optional
 
 import matplotlib
@@ -12,12 +16,151 @@ matplotlib.use("Agg")  # non-interactive backend
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import torch
 
 try:
     import pandas as pd
     _PANDAS_AVAILABLE = True
 except ImportError:
     _PANDAS_AVAILABLE = False
+
+
+def _resolve_data_file(data_path: str) -> Path:
+    path = Path(data_path)
+    if path.is_file():
+        return path
+    candidates = sorted(list(path.glob("*.h5ad")) + list(path.glob("*.h5ad.gz")))
+    if not candidates:
+        raise FileNotFoundError(f"No .h5ad or .h5ad.gz files found under {data_path}")
+    return candidates[0]
+
+
+def _load_anndata(data_path: str):
+    import anndata as ad
+
+    path = _resolve_data_file(data_path)
+    if path.suffix != ".gz":
+        return ad.read_h5ad(path)
+
+    with tempfile.NamedTemporaryFile(suffix=".h5ad", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        with gzip.open(path, "rb") as f_in:
+            with open(tmp_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        return ad.read_h5ad(tmp_path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
+def _clr_normalize(matrix) -> np.ndarray:
+    if hasattr(matrix, "toarray"):
+        matrix = matrix.toarray()
+    matrix = np.asarray(matrix, dtype=np.float32) + 1.0
+    log_matrix = np.log(matrix)
+    return log_matrix - log_matrix.mean(axis=1, keepdims=True)
+
+
+def _extract_protein_attention_per_head_from_checkpoint(
+    checkpoint_dir: Path,
+    data_path: str,
+) -> np.ndarray:
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import LabelEncoder
+
+    from src.models.transformer_encoder import TransformerEncoder
+
+    stage_a = torch.load(checkpoint_dir / "stage_a_best.pt", map_location="cpu")
+    train_args = stage_a["args"]
+    adata = _load_anndata(data_path)
+    if not adata.var_names.is_unique:
+        adata.var_names_make_unique()
+
+    if train_args.get("max_cells") is not None and train_args["max_cells"] < adata.shape[0]:
+        rng = np.random.default_rng(train_args["seed"])
+        idx = np.sort(rng.choice(adata.shape[0], size=train_args["max_cells"], replace=False))
+        adata = adata[idx].copy()
+
+    label_encoder = LabelEncoder()
+    labels_all = label_encoder.fit_transform(adata.obs[train_args["label_col"]].values)
+
+    if train_args.get("test_donors"):
+        donors = adata.obs[train_args["donor_col"]].values
+        test_idx = np.flatnonzero(np.isin(donors, train_args["test_donors"]))
+    else:
+        _, test_idx = train_test_split(
+            np.arange(adata.shape[0]),
+            test_size=train_args["test_size"],
+            random_state=train_args["seed"],
+            stratify=None if train_args.get("max_cells") is not None else labels_all,
+        )
+    test_idx = np.asarray(test_idx)
+    if test_idx.size == 0:
+        raise ValueError("Checkpoint test split resolved to zero cells during per-head extraction.")
+
+    protein_adata = adata[:, adata.var["feature_types"] == "ADT"].copy()
+    test_protein = _clr_normalize(protein_adata[test_idx].X)
+
+    protein_encoder = TransformerEncoder(
+        n_tokens=stage_a["n_proteins"],
+        d_model=train_args["d_model"],
+        nhead=train_args["nhead"],
+        num_layers=train_args["num_layers"],
+        dim_feedforward=train_args["dim_feedforward"],
+        dropout=train_args["dropout"],
+        output_dim=train_args["embedding_dim"],
+    )
+    protein_encoder.load_state_dict(stage_a["protein_encoder_state_dict"])
+    protein_encoder.eval()
+
+    per_head_batches: list[np.ndarray] = []
+    batch_size = int(train_args.get("batch_size", 256))
+    for start in range(0, test_protein.shape[0], batch_size):
+        batch = torch.tensor(test_protein[start:start + batch_size], dtype=torch.float32)
+        with torch.no_grad():
+            _ = protein_encoder(batch)
+        per_head = protein_encoder.get_attention_weights_per_head()
+        if per_head is None:
+            continue
+        per_head_batches.append(
+            np.stack(
+                [
+                    per_head[layer_name].cpu().numpy()
+                    for layer_name in sorted(
+                        per_head,
+                        key=lambda name: int(name.removeprefix("layer")),
+                    )
+                ],
+                axis=1,
+            )
+        )
+
+    if not per_head_batches:
+        raise ValueError("Per-head protein attention extraction produced no batches.")
+
+    attn = np.concatenate(per_head_batches, axis=0)
+    np.save(checkpoint_dir / "tf_attention_protein_per_head.npy", attn)
+    print(f"Saved: {checkpoint_dir / 'tf_attention_protein_per_head.npy'}")
+    return attn
+
+
+def reduce_per_head_attention(attention_per_head: np.ndarray, reduction: str) -> np.ndarray:
+    """
+    Reduce (cells, layers, heads, tokens) attention to (cells, tokens).
+
+    The reduction is taken across both layers and heads so the output captures
+    either the overall average behavior or the strongest single-head signal.
+    """
+    if attention_per_head.ndim != 4:
+        raise ValueError(
+            f"Expected per-head attention with 4 dims, got shape {attention_per_head.shape}"
+        )
+    if reduction == "mean":
+        return attention_per_head.mean(axis=(1, 2))
+    if reduction == "max":
+        return attention_per_head.max(axis=(1, 2))
+    raise ValueError(f"Unsupported reduction: {reduction}")
 
 
 def aggregate_attention_by_cell_type(
@@ -68,9 +211,29 @@ def get_top_tokens(
     return result
 
 
+def resolve_marker_alias(marker_name: str, token_names: list[str]) -> Optional[str]:
+    """
+    Map a canonical marker name to the concrete token name used by the ADT panel.
+
+    Prefers exact matches, then common panel suffix forms like CD4-1.
+    Returns None when no plausible token exists.
+    """
+    if marker_name in token_names:
+        return marker_name
+
+    prefix_matches = [name for name in token_names if name.startswith(f"{marker_name}-")]
+    if len(prefix_matches) == 1:
+        return prefix_matches[0]
+    if len(prefix_matches) > 1:
+        return sorted(prefix_matches)[0]
+
+    return None
+
+
 def validate_against_markers(
     top_tokens_dict: dict,
     expected_markers: dict,
+    token_names: Optional[list[str]] = None,
 ) -> dict:
     """
     Check how many known biological markers appear in each cell type's top-k tokens.
@@ -83,6 +246,9 @@ def validate_against_markers(
                              'CD4 T': ['CD3', 'CD4'],
                              'CD8 T': ['CD3', 'CD8']}
                           Only cell types present in both dicts are evaluated.
+        token_names:      Optional full token list. When provided, canonical marker
+                          names are resolved to concrete panel aliases like CD4-1
+                          before scoring.
 
     Returns:
         {cell_type: {'found': [...], 'missing': [...], 'recall': float}}
@@ -93,8 +259,17 @@ def validate_against_markers(
             continue
         expected = expected_markers[cell_type]
         top_names = {name for name, _ in top_tokens}
-        found = [m for m in expected if m in top_names]
-        missing = [m for m in expected if m not in top_names]
+        found = []
+        missing = []
+        for marker in expected:
+            resolved = resolve_marker_alias(marker, token_names) if token_names is not None else marker
+            if resolved is None:
+                missing.append(marker)
+                continue
+            if resolved in top_names:
+                found.append(marker)
+            else:
+                missing.append(marker)
         recall = len(found) / len(expected) if expected else 0.0
         result[cell_type] = {"found": found, "missing": missing, "recall": recall}
     return result
@@ -315,6 +490,10 @@ def main(argv: list[str] | None = None) -> None:
         help="Fallback: path to .h5ad(.gz) to infer protein names "
              "if protein_names.json is absent in --checkpoint_dir",
     )
+    parser.add_argument(
+        "--head_reduction", type=str, default="max", choices=["mean", "max"],
+        help="How to reduce saved per-head attention across layers/heads for the new plots",
+    )
     args = parser.parse_args(argv)
 
     ckpt = Path(args.checkpoint_dir)
@@ -325,6 +504,16 @@ def main(argv: list[str] | None = None) -> None:
     attn_rna = np.load(ckpt / "tf_attention_rna.npy")
     attn_protein = np.load(ckpt / "tf_attention_protein.npy")
     labels = np.load(ckpt / "tf_attention_labels.npy")
+    protein_per_head_path = ckpt / "tf_attention_protein_per_head.npy"
+    if protein_per_head_path.exists():
+        attn_protein_per_head = np.load(protein_per_head_path)
+    elif args.data_path is not None:
+        print("Per-head protein attention missing; re-extracting from stage_a_best.pt...")
+        attn_protein_per_head = _extract_protein_attention_per_head_from_checkpoint(
+            ckpt, args.data_path
+        )
+    else:
+        attn_protein_per_head = None
 
     with open(ckpt / "label_mapping.json", encoding="utf-8") as f:
         raw = json.load(f)
@@ -345,12 +534,10 @@ def main(argv: list[str] | None = None) -> None:
                 f"attention has {n_proteins} tokens"
             )
     elif args.data_path is not None:
-        import anndata as ad
-        from src.preprocessing import load_data, split_modalities
-        adata = load_data(args.data_path)
+        adata = _load_anndata(args.data_path)
         if not adata.var_names.is_unique:
             adata.var_names_make_unique()
-        _, protein_adata = split_modalities(adata)
+        protein_adata = adata[:, adata.var["feature_types"] == "ADT"].copy()
         protein_names = [str(n) for n in protein_adata.var_names]
         if len(protein_names) != n_proteins:
             raise ValueError(
@@ -372,6 +559,14 @@ def main(argv: list[str] | None = None) -> None:
     # Aggregate by cell type
     attn_by_type_rna = aggregate_attention_by_cell_type(attn_rna, labels, label_names)
     attn_by_type_prot = aggregate_attention_by_cell_type(attn_protein, labels, label_names)
+    attn_by_type_prot_per_head = None
+    if attn_protein_per_head is not None:
+        attn_protein_reduced = reduce_per_head_attention(
+            attn_protein_per_head, reduction=args.head_reduction
+        )
+        attn_by_type_prot_per_head = aggregate_attention_by_cell_type(
+            attn_protein_reduced, labels, label_names
+        )
 
     # Heatmaps
     plot_attention_heatmap(
@@ -400,7 +595,7 @@ def main(argv: list[str] | None = None) -> None:
 
     # Marker validation on protein tokens
     top_tokens = get_top_tokens(attn_by_type_prot, protein_names, top_k=args.top_k)
-    validation = validate_against_markers(top_tokens, _DEFAULT_MARKERS)
+    validation = validate_against_markers(top_tokens, _DEFAULT_MARKERS, token_names=protein_names)
     print("\n=== Marker validation (protein) ===")
     for ct, res in validation.items():
         print(f"  {ct}: recall={res['recall']:.2f}  found={res['found']}  missing={res['missing']}")
@@ -410,6 +605,42 @@ def main(argv: list[str] | None = None) -> None:
     with open(val_path, "w", encoding="utf-8") as f:
         json.dump(validation, f, indent=2)
     print(f"Saved: {val_path}")
+
+    if attn_by_type_prot_per_head is not None:
+        suffix = f"per_head_{args.head_reduction}"
+        plot_per_celltype_top_heatmap(
+            attn_by_type_prot_per_head, protein_names,
+            title=(
+                "Protein attention by cell type "
+                f"({args.head_reduction} over per-head CLS attention)"
+            ),
+            save_path=str(out / f"attention_heatmap_protein_{suffix}.png"),
+            top_k_per_row=args.top_k_per_row,
+        )
+        print(f"Saved: {out / f'attention_heatmap_protein_{suffix}.png'}")
+
+        top_tokens_per_head = get_top_tokens(
+            attn_by_type_prot_per_head, protein_names, top_k=args.top_k
+        )
+        validation_per_head = validate_against_markers(
+            top_tokens_per_head, _DEFAULT_MARKERS, token_names=protein_names
+        )
+        print(f"\n=== Marker validation (protein, {args.head_reduction} over per-head) ===")
+        for ct, res in validation_per_head.items():
+            print(
+                f"  {ct}: recall={res['recall']:.2f}  "
+                f"found={res['found']}  missing={res['missing']}"
+            )
+
+        val_per_head_path = out / f"marker_validation_{suffix}.json"
+        with open(val_per_head_path, "w", encoding="utf-8") as f:
+            json.dump(validation_per_head, f, indent=2)
+        print(f"Saved: {val_per_head_path}")
+    else:
+        print(
+            "[warn] Per-head protein attention unavailable; skipping per-head-aware "
+            "heatmap and marker validation."
+        )
 
 
 if __name__ == "__main__":
