@@ -16,6 +16,7 @@ set -euo pipefail
 # Modes:
 #   MODE=single     -> one confirmation run with fixed settings
 #   MODE=micro_tune -> small targeted sweep around best settings
+#   MODE=seed_test  -> repeat single-run setup across multiple seeds
 #
 # Submit:
 #   sbatch scripts/slurm/train_mlp_best_relaxed_eval.sh
@@ -78,6 +79,9 @@ read -r -a MICRO_LR_LIST <<< "${MICRO_LR_LIST:-3e-4 1e-3}"
 read -r -a MICRO_WD_LIST <<< "${MICRO_WD_LIST:-1e-5 3e-5}"
 read -r -a MICRO_PATIENCE_LIST <<< "${MICRO_PATIENCE_LIST:-8 12}"
 
+# Seed-testing list (uses same config/metrics as MODE=single).
+read -r -a SEED_LIST <<< "${SEED_LIST:-13 42 77}"
+
 mkdir -p "$REPO_ROOT/logs" "$RUN_ROOT" "$FIG_ROOT"
 cd "$REPO_ROOT"
 
@@ -89,15 +93,16 @@ fi
 
 run_one() {
   local run_label="$1"
-  local run_lr="$2"
-  local run_wd="$3"
-  local run_patience="$4"
+  local run_seed="$2"
+  local run_lr="$3"
+  local run_wd="$4"
+  local run_patience="$5"
 
   local out_dir="$RUN_ROOT/$run_label"
   local fig_dir="$FIG_ROOT/$run_label"
   mkdir -p "$out_dir" "$fig_dir"
 
-  echo "[train] label=$run_label lr=$run_lr wd=$run_wd patience=$run_patience"
+  echo "[train] label=$run_label seed=$run_seed lr=$run_lr wd=$run_wd patience=$run_patience"
   local extra_split_args=()
   if [[ "$USE_PREDEFINED_VAL_SPLIT" == "1" ]]; then
     extra_split_args+=(--use_predefined_val_split)
@@ -107,7 +112,7 @@ run_one() {
   python -m src.train_contrastive_mlp \
     --data_path "$DATA_PATH" \
     --output_dir "$out_dir" \
-    --seed "$SEED" \
+    --seed "$run_seed" \
     --batch_size "$BATCH_SIZE" \
     --lr "$run_lr" \
     --classifier_lr "$CLASSIFIER_LR" \
@@ -133,7 +138,7 @@ run_one() {
     "${extra_split_args[@]}"
 
   local latest_run
-  latest_run=$(find "$out_dir" -maxdepth 1 -type d -name "contrastive_mlp_seed${SEED}_*" | sort | tail -n 1)
+  latest_run=$(find "$out_dir" -maxdepth 1 -type d -name "contrastive_mlp_seed${run_seed}_*" | sort | tail -n 1)
   if [[ -z "${latest_run:-}" ]]; then
     echo "[error] Could not find newly generated run directory under $out_dir"
     exit 1
@@ -153,7 +158,7 @@ run_one() {
 }
 
 if [[ "$MODE" == "single" ]]; then
-  run_one "single_seed${SEED}" "$LR" "$WEIGHT_DECAY" "$PATIENCE"
+  run_one "single_seed${SEED}" "$SEED" "$LR" "$WEIGHT_DECAY" "$PATIENCE"
 elif [[ "$MODE" == "micro_tune" ]]; then
   total=$(( ${#MICRO_LR_LIST[@]} * ${#MICRO_WD_LIST[@]} * ${#MICRO_PATIENCE_LIST[@]} ))
   echo "[micro_tune] Running $total configurations"
@@ -161,11 +166,17 @@ elif [[ "$MODE" == "micro_tune" ]]; then
     for wd_i in "${MICRO_WD_LIST[@]}"; do
       for pat_i in "${MICRO_PATIENCE_LIST[@]}"; do
         label="micro_s${SEED}_lr${lr_i}_wd${wd_i}_pat${pat_i}"
-        run_one "$label" "$lr_i" "$wd_i" "$pat_i"
+        run_one "$label" "$SEED" "$lr_i" "$wd_i" "$pat_i"
       done
     done
   done
+elif [[ "$MODE" == "seed_test" ]]; then
+  echo "[seed_test] Running ${#SEED_LIST[@]} seeds with single-run config"
+  for seed_i in "${SEED_LIST[@]}"; do
+    label="seedtest_s${seed_i}"
+    run_one "$label" "$seed_i" "$LR" "$WEIGHT_DECAY" "$PATIENCE"
+  done
 else
-  echo "[error] Unsupported MODE='$MODE'. Use MODE=single or MODE=micro_tune"
+  echo "[error] Unsupported MODE='$MODE'. Use MODE=single, MODE=micro_tune, or MODE=seed_test"
   exit 1
 fi

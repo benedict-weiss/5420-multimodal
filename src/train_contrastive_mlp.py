@@ -88,24 +88,34 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray,
         overall_acc = float(accuracy_score(y_true, y_pred))
         per_class = classification_report(y_true, y_pred, output_dict=True, zero_division=0)
 
-    if callable(compute_auroc):
-        try:
-            auroc = float(compute_auroc(y_true, y_proba, n_classes))
-        except Exception:
+    # AUROC can be undefined when a split is missing classes. Compute over
+    # classes present in y_true to avoid unnecessary NaN/null outputs.
+    try:
+        present = np.sort(np.unique(y_true).astype(int))
+        if present.size < 2:
             auroc = float("nan")
-    else:
-        try:
-            y_true_bin = label_binarize(y_true, classes=np.arange(n_classes))
+        elif present.size == 2:
+            pos_class = int(present[1])
+            if y_proba.ndim == 2 and y_proba.shape[1] > pos_class:
+                scores = y_proba[:, pos_class]
+            else:
+                scores = y_proba[:, 1] if y_proba.ndim == 2 and y_proba.shape[1] > 1 else y_proba
+            auroc = float(roc_auc_score(y_true, scores))
+        else:
+            # Remap present global labels to contiguous [0..k-1] for multiclass AUROC.
+            proba_present = y_proba[:, present]
+            remap = {c: i for i, c in enumerate(present.tolist())}
+            y_true_remap = np.array([remap[int(c)] for c in y_true], dtype=int)
             auroc = float(
                 roc_auc_score(
-                    y_true_bin,
-                    y_proba,
+                    y_true_remap,
+                    proba_present,
                     average="macro",
                     multi_class="ovr",
                 )
             )
-        except Exception:
-            auroc = float("nan")
+    except Exception:
+        auroc = float("nan")
 
     metrics["accuracy"] = overall_acc
     metrics["macro_auroc"] = auroc
