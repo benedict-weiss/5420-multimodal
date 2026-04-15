@@ -81,6 +81,18 @@ echo "[debug] data_path=$DATA_PATH"
 echo "[debug] mode=$MODE seed=$SEED"
 echo "[debug] split_col=$SPLIT_COL split_test_values=$SPLIT_TEST_VALUES use_predefined_val_split=$USE_PREDEFINED_VAL_SPLIT split_val_values=$SPLIT_VAL_VALUES test_donors=$TEST_DONORS"
 
+export DATA_PATH
+export SPLIT_COL
+export SPLIT_TEST_VALUES
+export SPLIT_VAL_VALUES
+export USE_PREDEFINED_VAL_SPLIT
+export TEST_DONORS
+export SEED
+export VAL_RATIO
+export LABEL_COL="${LABEL_COL:-cell_type}"
+export DONOR_COL="${DONOR_COL:-DonorNumber}"
+export TEST_SIZE="${TEST_SIZE:-0.2}"
+
 python - <<'PY'
 import os
 import numpy as np
