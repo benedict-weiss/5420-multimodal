@@ -60,11 +60,12 @@ VAL_RATIO="${VAL_RATIO:-0.1}"
 
 # Split-aware evaluation policy:
 #   split_test_values are treated as final held-out test.
-#   validation defaults to stratified split from training data (transformer-like).
+#   validation defaults to a stratified split from training data.
+#   predefined validation values are opt-in only.
 SPLIT_COL="${SPLIT_COL:-is_train}"
 SPLIT_TEST_VALUES="${SPLIT_TEST_VALUES:-iid_holdout}"
 USE_PREDEFINED_VAL_SPLIT="${USE_PREDEFINED_VAL_SPLIT:-0}"
-SPLIT_VAL_VALUES="${SPLIT_VAL_VALUES:-test}"
+SPLIT_VAL_VALUES="${SPLIT_VAL_VALUES:-}"
 
 # Optional Stage A checkpoint criterion.
 STAGE_A_SELECT_METRIC="${STAGE_A_SELECT_METRIC:-val_loss}"
@@ -104,7 +105,7 @@ run_one() {
 
   echo "[train] label=$run_label seed=$run_seed lr=$run_lr wd=$run_wd patience=$run_patience"
   local extra_split_args=()
-  if [[ "$USE_PREDEFINED_VAL_SPLIT" == "1" ]]; then
+  if [[ "$USE_PREDEFINED_VAL_SPLIT" == "1" && -n "$SPLIT_VAL_VALUES" ]]; then
     extra_split_args+=(--use_predefined_val_split)
     extra_split_args+=(--split_val_values "$SPLIT_VAL_VALUES")
   fi

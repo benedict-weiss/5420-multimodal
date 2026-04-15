@@ -275,23 +275,116 @@ def run_stage_a_probe(
 
 def build_train_val_indices(labels: np.ndarray, val_ratio: float, seed: int) -> tuple[np.ndarray, np.ndarray]:
     idx = np.arange(labels.shape[0])
-    if val_ratio <= 0:
+    if val_ratio <= 0 or idx.size < 2:
         return idx, np.array([], dtype=int)
 
-    try:
-        train_idx, val_idx = train_test_split(
-            idx,
-            test_size=val_ratio,
-            random_state=seed,
-            stratify=labels,
+    unique_labels, counts = np.unique(labels, return_counts=True)
+    label_to_count = {int(label): int(count) for label, count in zip(unique_labels, counts)}
+    eligible_labels = unique_labels[counts >= 2]
+
+    if eligible_labels.size == 0:
+        warnings.warn(
+            "Could not build a class-covered validation split because every class has fewer than 2 examples. "
+            "Falling back to a regular stratified split, if possible.",
+            UserWarning,
+            stacklevel=2,
         )
-    except ValueError:
-        train_idx, val_idx = train_test_split(
-            idx,
-            test_size=val_ratio,
-            random_state=seed,
-            stratify=None,
+        try:
+            train_idx, val_idx = train_test_split(
+                idx,
+                test_size=val_ratio,
+                random_state=seed,
+                stratify=labels,
+            )
+        except ValueError:
+            train_idx, val_idx = train_test_split(
+                idx,
+                test_size=val_ratio,
+                random_state=seed,
+                stratify=None,
+            )
+        return np.asarray(train_idx), np.asarray(val_idx)
+
+    rng = np.random.default_rng(seed)
+    class_indices: dict[int, np.ndarray] = {}
+    for label in unique_labels:
+        label_idx = idx[labels == label].copy()
+        rng.shuffle(label_idx)
+        class_indices[int(label)] = label_idx
+
+    target_val_size = int(round(labels.shape[0] * val_ratio))
+    target_val_size = max(target_val_size, int(eligible_labels.size))
+    target_val_size = min(target_val_size, labels.shape[0] - 1)
+
+    val_counts = {int(label): 1 for label in eligible_labels}
+    remaining = target_val_size - int(eligible_labels.size)
+
+    if remaining > 0:
+        eligible_counts = np.array([label_to_count[int(label)] for label in eligible_labels], dtype=float)
+        capacities = eligible_counts - 1.0
+        total_capacity = float(capacities.sum())
+
+        if total_capacity > 0:
+            desired = capacities / total_capacity * remaining
+            extra_counts = np.floor(desired).astype(int)
+            leftover = remaining - int(extra_counts.sum())
+            remainders = desired - extra_counts
+
+            if leftover > 0:
+                for pos in np.argsort(-remainders):
+                    if leftover <= 0:
+                        break
+                    if extra_counts[pos] < int(capacities[pos]):
+                        extra_counts[pos] += 1
+                        leftover -= 1
+
+            if leftover > 0:
+                for pos in np.argsort(-capacities):
+                    if leftover <= 0:
+                        break
+                    available = int(capacities[pos]) - extra_counts[pos]
+                    if available <= 0:
+                        continue
+                    take = min(available, leftover)
+                    extra_counts[pos] += take
+                    leftover -= take
+
+            for pos, label in enumerate(eligible_labels):
+                val_counts[int(label)] += int(extra_counts[pos])
+
+    val_idx_parts = []
+    train_idx_parts = []
+    for label in unique_labels:
+        label_key = int(label)
+        label_idx = class_indices[label_key]
+        n_val_label = min(int(val_counts.get(label_key, 0)), int(label_idx.size))
+        val_idx_parts.append(label_idx[:n_val_label])
+        train_idx_parts.append(label_idx[n_val_label:])
+
+    val_idx = np.concatenate(val_idx_parts) if val_idx_parts else np.array([], dtype=int)
+    train_idx = np.concatenate(train_idx_parts) if train_idx_parts else np.array([], dtype=int)
+
+    if val_idx.size == 0 or train_idx.size == 0:
+        warnings.warn(
+            "Validation split could not be made class-covered; falling back to a regular stratified split.",
+            UserWarning,
+            stacklevel=2,
         )
+        try:
+            train_idx, val_idx = train_test_split(
+                idx,
+                test_size=val_ratio,
+                random_state=seed,
+                stratify=labels,
+            )
+        except ValueError:
+            train_idx, val_idx = train_test_split(
+                idx,
+                test_size=val_ratio,
+                random_state=seed,
+                stratify=None,
+            )
+
     return np.asarray(train_idx), np.asarray(val_idx)
 
 
@@ -310,7 +403,8 @@ def main(args: argparse.Namespace) -> None:
     labels_all, label_mapping = get_labels(adata, label_col=args.label_col)
     n_classes = len(label_mapping)
 
-    # Train/test split
+    # Train/test split. The held-out test set is selected once and never reused
+    # for Stage A selection or Stage B checkpointing.
     val_global_idx = np.array([], dtype=int)
     if args.test_donors:
         train_global_idx, test_global_idx = split_by_donor(
@@ -422,7 +516,8 @@ def main(args: argparse.Namespace) -> None:
         f"test RNA {test_rna_pca.shape}, test protein {test_protein.shape}"
     )
 
-    # Train/val split for Stage A monitoring.
+    # Validation is always derived from training data unless an explicit
+    # predefined validation split is requested.
     if len(val_global_idx) > 0:
         val_rna = rna_adata[val_global_idx].copy()
         val_rna_pca = preprocess_rna(
@@ -867,7 +962,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--use_predefined_val_split",
         action="store_true",
-        help="Use --split_val_values for validation instead of stratified val split from training data",
+        help="Use --split_val_values for validation instead of the default train-only stratified split",
     )
     parser.add_argument("--test_size", type=float, default=0.2)
     parser.add_argument("--val_ratio", type=float, default=0.1)
