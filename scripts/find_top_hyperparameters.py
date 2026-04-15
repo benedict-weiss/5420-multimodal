@@ -2,8 +2,25 @@
 """Find top 6 hyperparameter configurations by test accuracy or AUROC."""
 
 import json
+import math
 from pathlib import Path
 from typing import Any
+
+
+def _coerce_metric(value: Any) -> float:
+    """Convert metric values to float; map missing/non-finite values to -inf."""
+    if value is None:
+        return float("-inf")
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return float("-inf")
+    return num if math.isfinite(num) else float("-inf")
+
+
+def _format_metric(value: float) -> str:
+    """Pretty print metric values while preserving missing values as N/A."""
+    return "N/A" if value == float("-inf") else f"{value:.4f}"
 
 
 def find_top_hyperparameters(
@@ -24,6 +41,18 @@ def find_top_hyperparameters(
     Returns:
         List of dicts with keys: config, metrics, accuracy, auroc, run_dir
     """
+    metric_aliases = {
+        "final_accuracy": "accuracy",
+        "accuracy": "accuracy",
+        "final_macro_auroc": "auroc",
+        "macro_auroc": "auroc",
+        "auroc": "auroc",
+    }
+    sort_key = metric_aliases.get(metric)
+    if sort_key is None:
+        allowed = ", ".join(sorted(metric_aliases))
+        raise ValueError(f"Unsupported metric '{metric}'. Use one of: {allowed}")
+
     checkpoint_path = Path(checkpoint_dir)
     tune_dir = checkpoint_path / "tune"
     
@@ -60,8 +89,8 @@ def find_top_hyperparameters(
                 "trial_name": trial_dir.name,
                 "run_dir": str(metrics_file.parent),
                 "config": config,
-                "accuracy": metrics.get("final_accuracy", 0.0),
-                "auroc": metrics.get("final_macro_auroc", 0.0),
+                "accuracy": _coerce_metric(metrics.get("final_accuracy")),
+                "auroc": _coerce_metric(metrics.get("final_macro_auroc")),
                 "metrics": metrics,
             })
         except (json.JSONDecodeError, KeyError) as e:
@@ -73,7 +102,7 @@ def find_top_hyperparameters(
         return []
     
     # Sort by requested metric
-    results.sort(key=lambda x: x[metric], reverse=True)
+    results.sort(key=lambda x: _coerce_metric(x.get(sort_key)), reverse=True)
     
     # Print results
     print(f"\n{'='*120}")
@@ -82,8 +111,8 @@ def find_top_hyperparameters(
     
     for rank, result in enumerate(results[:top_k], 1):
         print(f"\nRank #{rank}: {result['trial_name']}")
-        print(f"  Accuracy:      {result['accuracy']:.4f}")
-        print(f"  Macro AUROC:   {result['auroc']:.4f}")
+        print(f"  Accuracy:      {_format_metric(result['accuracy'])}")
+        print(f"  Macro AUROC:   {_format_metric(result['auroc'])}")
         print(f"  Config:        {result['config']}")
         print(f"  Run Dir:       {result['run_dir']}")
     
