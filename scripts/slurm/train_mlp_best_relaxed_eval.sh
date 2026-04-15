@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:rtx_5000_ada:1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=96G
-#SBATCH --time=12:00:00
+#SBATCH --time=04:00:00
 #SBATCH --output=logs/%x_%j.out
 
 set -euo pipefail
@@ -53,7 +53,7 @@ CONTRASTIVE_EPOCHS="${CONTRASTIVE_EPOCHS:-150}"
 CLASSIFIER_EPOCHS="${CLASSIFIER_EPOCHS:-30}"
 
 # Overfitting-aware defaults for Stage A stopping.
-PATIENCE="${PATIENCE:-8}"
+PATIENCE="${PATIENCE:-12}"
 MIN_DELTA="${MIN_DELTA:-1e-4}"
 VAL_RATIO="${VAL_RATIO:-0.1}"
 
@@ -67,10 +67,11 @@ SPLIT_TEST_VALUES="${SPLIT_TEST_VALUES:-iid_holdout}"
 
 # Optional Stage A checkpoint criterion.
 STAGE_A_SELECT_METRIC="${STAGE_A_SELECT_METRIC:-probe_accuracy}"
-STAGE_A_PROBE_EVERY="${STAGE_A_PROBE_EVERY:-1}"
-STAGE_A_PROBE_EPOCHS="${STAGE_A_PROBE_EPOCHS:-3}"
+STAGE_A_PROBE_EVERY="${STAGE_A_PROBE_EVERY:-3}"
+STAGE_A_PROBE_EPOCHS="${STAGE_A_PROBE_EPOCHS:-5}"
 STAGE_A_PROBE_LR="${STAGE_A_PROBE_LR:-1e-3}"
-STAGE_A_PROBE_MIN_DELTA="${STAGE_A_PROBE_MIN_DELTA:-1e-3}"
+STAGE_A_PROBE_MIN_DELTA="${STAGE_A_PROBE_MIN_DELTA:-2e-3}"
+STAGE_A_PROBE_START_EPOCH="${STAGE_A_PROBE_START_EPOCH:-5}"
 
 # Micro-tune knobs (2 x 2 x 2 = 8 runs by default).
 read -r -a MICRO_LR_LIST <<< "${MICRO_LR_LIST:-3e-4 1e-3}"
@@ -120,6 +121,7 @@ run_one() {
     --stage_a_probe_epochs "$STAGE_A_PROBE_EPOCHS" \
     --stage_a_probe_lr "$STAGE_A_PROBE_LR" \
     --stage_a_probe_min_delta "$STAGE_A_PROBE_MIN_DELTA" \
+    --stage_a_probe_start_epoch "$STAGE_A_PROBE_START_EPOCH" \
     --split_col "$SPLIT_COL" \
     --split_val_values "$SPLIT_VAL_VALUES" \
     --split_test_values "$SPLIT_TEST_VALUES"

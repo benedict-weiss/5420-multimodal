@@ -576,7 +576,7 @@ def main(args: argparse.Namespace) -> None:
 
         improved = False
         probe_val_acc: float | None = None
-        if args.stage_a_select_metric == "probe_accuracy":
+        if args.stage_a_select_metric == "probe_accuracy" and epoch >= args.stage_a_probe_start_epoch:
             should_probe = (epoch == 1) or (epoch % max(1, args.stage_a_probe_every) == 0)
             if should_probe:
                 probe_val_acc = run_stage_a_probe(
@@ -603,6 +603,16 @@ def main(args: argparse.Namespace) -> None:
                     best_protein_state = clone_state_dict(protein_encoder)
                 else:
                     patience_counter += 1
+        elif args.stage_a_select_metric == "probe_accuracy" and epoch < args.stage_a_probe_start_epoch:
+            improved = (best_val - val_loss) > args.min_delta
+            if improved:
+                best_val = val_loss
+                best_epoch = epoch
+                patience_counter = 0
+                best_rna_state = clone_state_dict(rna_encoder)
+                best_protein_state = clone_state_dict(protein_encoder)
+            else:
+                patience_counter += 1
         else:
             improved = (best_val - val_loss) > args.min_delta
             if improved:
@@ -908,6 +918,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1e-4,
         help="Minimum probe accuracy improvement to reset Stage A patience",
+    )
+    parser.add_argument(
+        "--stage_a_probe_start_epoch",
+        type=int,
+        default=5,
+        help="Do not use probe-based Stage A checkpointing before this epoch",
     )
 
     return parser.parse_args()
