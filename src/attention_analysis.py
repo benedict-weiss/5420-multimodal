@@ -803,6 +803,26 @@ def main(argv: list[str] | None = None) -> None:
             "heatmap and marker validation."
         )
 
+    ablation_path = ckpt / "ablation_logit_drop_per_type.npy"
+    order_path = ckpt / "ablation_per_type_order.json"
+    if ablation_path.exists() and order_path.exists():
+        abl = np.load(ablation_path)
+        with open(order_path) as f:
+            order = json.load(f)
+        abl_by_type = {ct: abl[i] for i, ct in enumerate(order)}
+        abl_ranks = compute_marker_ranks(abl_by_type, _DEFAULT_MARKERS, protein_names)
+        abl_path = out / "marker_ranks_ablation.json"
+        with open(abl_path, "w") as f:
+            json.dump(abl_ranks, f, indent=2)
+        print(f"Saved: {abl_path}")
+        plot_per_celltype_top_heatmap(
+            abl_by_type, protein_names,
+            title="Per-protein logit drop by cell type (token ablation)",
+            save_path=str(out / "attention_heatmap_protein_ablation.png"),
+            top_k_per_row=args.top_k_per_row,
+        )
+        print(f"Saved: {out / 'attention_heatmap_protein_ablation.png'}")
+
 
 if __name__ == "__main__":
     main()

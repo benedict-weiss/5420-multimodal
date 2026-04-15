@@ -3,7 +3,9 @@
     "found": [],
     "missing": [
       "CD14",
-      "HLA-DR"
+      "HLA-DR",
+      "CD11b",
+      "CD64"
     ],
     "recall": 0.0
   },
@@ -11,7 +13,8 @@
     "found": [],
     "missing": [
       "CD16",
-      "CD14"
+      "CX3CR1",
+      "HLA-DR"
     ],
     "recall": 0.0
   },
@@ -19,30 +22,45 @@
     "found": [],
     "missing": [
       "CD3",
-      "CD4"
+      "CD4",
+      "CD45RO",
+      "CD69"
     ],
     "recall": 0.0
   },
   "CD4+ T naive": {
-    "found": [],
+    "found": [
+      "CD45RA"
+    ],
     "missing": [
       "CD3",
-      "CD4"
+      "CD4",
+      "CD62L"
     ],
-    "recall": 0.0
+    "recall": 0.25
   },
   "CD8+ T naive": {
     "found": [
-      "CD8"
+      "CD8",
+      "CD45RA"
     ],
     "missing": [
-      "CD3"
+      "CD3",
+      "CD62L"
     ],
     "recall": 0.5
   },
+  "Erythroblast": {
+    "found": [
+      "CD71"
+    ],
+    "missing": [],
+    "recall": 1.0
+  },
   "HSC": {
     "found": [
-      "CD38"
+      "CD38",
+      "CD45RA"
     ],
     "missing": [],
     "recall": 1.0
@@ -51,7 +69,9 @@
     "found": [],
     "missing": [
       "CD3",
-      "CD8"
+      "CD8",
+      "CD161",
+      "TCRVa7.2"
     ],
     "recall": 0.0
   },
@@ -60,36 +80,63 @@
       "CD16"
     ],
     "missing": [
-      "CD56"
+      "CD56",
+      "CD335"
     ],
-    "recall": 0.5
+    "recall": 0.3333333333333333
   },
   "Naive CD20+ B IGKC+": {
-    "found": [],
+    "found": [
+      "IgD"
+    ],
     "missing": [
       "CD19",
-      "CD20"
+      "CD20",
+      "IgM",
+      "CD21"
     ],
-    "recall": 0.0
+    "recall": 0.2
   },
   "Naive CD20+ B IGKC-": {
-    "found": [],
+    "found": [
+      "IgD"
+    ],
     "missing": [
       "CD19",
-      "CD20"
+      "CD20",
+      "IgM",
+      "CD21"
     ],
-    "recall": 0.0
+    "recall": 0.2
+  },
+  "Normoblast": {
+    "found": [
+      "CD71"
+    ],
+    "missing": [],
+    "recall": 1.0
   },
   "Plasma cell IGKC+": {
     "found": [
       "CD38"
     ],
-    "missing": [],
-    "recall": 1.0
+    "missing": [
+      "CD27"
+    ],
+    "recall": 0.5
   },
   "Plasma cell IGKC-": {
     "found": [
       "CD38"
+    ],
+    "missing": [
+      "CD27"
+    ],
+    "recall": 0.5
+  },
+  "Reticulocyte": {
+    "found": [
+      "CD71"
     ],
     "missing": [],
     "recall": 1.0
@@ -98,23 +145,29 @@
     "found": [],
     "missing": [
       "CD3",
-      "CD4"
+      "CD4",
+      "CD25",
+      "CD127"
     ],
     "recall": 0.0
   },
   "Transitional B": {
-    "found": [],
-    "missing": [
-      "CD19",
-      "CD24"
+    "found": [
+      "CD38"
     ],
-    "recall": 0.0
+    "missing": [
+      "CD24",
+      "IgM",
+      "CD19"
+    ],
+    "recall": 0.25
   },
   "cDC2": {
     "found": [],
     "missing": [
       "CD11c",
-      "HLA-DR"
+      "HLA-DR",
+      "CD1c"
     ],
     "recall": 0.0
   },
@@ -123,8 +176,9 @@
       "CD123"
     ],
     "missing": [
-      "CD303"
+      "CD303",
+      "CD304"
     ],
-    "recall": 0.5
+    "recall": 0.3333333333333333
   }
 }
