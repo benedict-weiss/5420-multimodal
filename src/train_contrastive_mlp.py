@@ -16,7 +16,8 @@ import torch.nn.functional as F
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import label_binarize
-from torch.optim import Adam
+from torch.optim import Adam, AdamW, Optimizer
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 
 from src.dataset import CITEseqDataset, get_dataloaders
@@ -118,7 +119,9 @@ def run_contrastive_epoch(
     protein_encoder: MLPEncoder,
     loss_fn: CLIPLoss,
     device: torch.device,
-    optimizer: Adam | None = None,
+    optimizer: Optimizer | None = None,
+    input_dropout: float = 0.0,
+    noise_std: float = 0.0,
 ) -> float:
     train_mode = optimizer is not None
     rna_encoder.train(train_mode)
@@ -130,6 +133,14 @@ def run_contrastive_epoch(
     for batch in loader:
         rna = batch["rna"].to(device)
         protein = batch["protein"].to(device)
+
+        # Regularize Stage A by perturbing inputs only during training.
+        if train_mode and input_dropout > 0.0:
+            rna = F.dropout(rna, p=input_dropout, training=True)
+            protein = F.dropout(protein, p=input_dropout, training=True)
+        if train_mode and noise_std > 0.0:
+            rna = rna + torch.randn_like(rna) * noise_std
+            protein = protein + torch.randn_like(protein) * noise_std
 
         if train_mode:
             optimizer.zero_grad()
@@ -397,10 +408,21 @@ def main(args: argparse.Namespace) -> None:
     clip_loss = CLIPLoss(temperature=args.temperature)
 
     # Stage A: contrastive pretraining with early stopping on validation loss
-    stage_a_optimizer = Adam(
+    # Original behavior used Adam with fixed LR.
+    # stage_a_optimizer = Adam(
+    #     list(rna_encoder.parameters()) + list(protein_encoder.parameters()),
+    #     lr=args.lr,
+    #     weight_decay=args.weight_decay,
+    # )
+    stage_a_optimizer = AdamW(
         list(rna_encoder.parameters()) + list(protein_encoder.parameters()),
         lr=args.lr,
         weight_decay=args.weight_decay,
+    )
+    stage_a_scheduler = CosineAnnealingLR(
+        stage_a_optimizer,
+        T_max=max(1, args.contrastive_epochs),
+        eta_min=args.lr * args.stage_a_min_lr_ratio,
     )
 
     best_val = float("inf")
@@ -419,6 +441,8 @@ def main(args: argparse.Namespace) -> None:
             loss_fn=clip_loss,
             device=device,
             optimizer=stage_a_optimizer,
+            input_dropout=args.stage_a_input_dropout,
+            noise_std=args.stage_a_noise_std,
         )
         with torch.no_grad():
             val_loss = run_contrastive_epoch(
@@ -428,13 +452,19 @@ def main(args: argparse.Namespace) -> None:
                 loss_fn=clip_loss,
                 device=device,
                 optimizer=None,
+                input_dropout=0.0,
+                noise_std=0.0,
             )
+
+        stage_a_scheduler.step()
+        current_lr = float(stage_a_optimizer.param_groups[0]["lr"])
 
         stage_a_history.append(
             {
                 "epoch": epoch,
                 "train_loss": float(train_loss),
                 "val_loss": float(val_loss),
+                "lr": current_lr,
             }
         )
 
@@ -450,7 +480,7 @@ def main(args: argparse.Namespace) -> None:
 
         print(
             f"[Stage A] Epoch {epoch:03d} | train_loss={train_loss:.4f} | "
-            f"val_loss={val_loss:.4f} | best_val={best_val:.4f}"
+            f"val_loss={val_loss:.4f} | best_val={best_val:.4f} | lr={current_lr:.2e}"
         )
 
         if patience_counter >= args.patience:
@@ -674,6 +704,24 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--weight_decay", type=float, default=1e-5)
     parser.add_argument("--temperature", type=float, default=0.07)
+    parser.add_argument(
+        "--stage_a_input_dropout",
+        type=float,
+        default=0.05,
+        help="Input feature dropout applied during Stage A contrastive training",
+    )
+    parser.add_argument(
+        "--stage_a_noise_std",
+        type=float,
+        default=0.01,
+        help="Gaussian noise std added to inputs during Stage A contrastive training",
+    )
+    parser.add_argument(
+        "--stage_a_min_lr_ratio",
+        type=float,
+        default=0.1,
+        help="Cosine LR schedule floor for Stage A as a fraction of --lr",
+    )
 
     parser.add_argument("--contrastive_epochs", type=int, default=150)
     parser.add_argument("--classifier_epochs", type=int, default=50)
