@@ -48,6 +48,12 @@ def find_top_hyperparameters(
         "macro_auroc": "auroc",
         "auroc": "auroc",
     }
+    trial_prefix = {
+        "baseline": "baseline",
+        "mlp": "mlp",
+        "mlp2": "mlp2",
+        "tf": "tf",
+    }.get(model_type, model_type)
     sort_key = metric_aliases.get(metric)
     if sort_key is None:
         allowed = ", ".join(sorted(metric_aliases))
@@ -67,9 +73,12 @@ def find_top_hyperparameters(
         if not trial_dir.is_dir():
             continue
         
-        # Filter by model type if specified
-        if model_type and not trial_dir.name.startswith(model_type):
-            continue
+        # Filter by model type if specified. Match the token before the first underscore
+        # so the secondary sweep (mlp2_...) does not get mixed into the original mlp run.
+        if trial_prefix:
+            trial_bucket = trial_dir.name.split("_", 1)[0]
+            if trial_bucket != trial_prefix:
+                continue
         
         # Tuning outputs are nested as:
         # tune/<trial_name>/<run_name>/metrics.json

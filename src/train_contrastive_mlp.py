@@ -467,7 +467,13 @@ def main(args: argparse.Namespace) -> None:
     for p in protein_encoder.parameters():
         p.requires_grad = False
 
-    stage_b_optimizer = Adam(classifier.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    # Original behavior used Stage A lr for Stage B as well.
+    # stage_b_optimizer = Adam(classifier.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    stage_b_optimizer = Adam(
+        classifier.parameters(),
+        lr=args.classifier_lr,
+        weight_decay=args.weight_decay,
+    )
 
     best_val_acc = -1.0
     best_classifier_state = clone_state_dict(classifier)
@@ -658,6 +664,14 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--lr", type=float, default=1e-3)
+    # Original behavior reused --lr for both stages.
+    # parser.add_argument("--classifier_lr", type=float, default=1e-3)
+    parser.add_argument(
+        "--classifier_lr",
+        type=float,
+        default=1e-3,
+        help="Learning rate for Stage B classifier training",
+    )
     parser.add_argument("--weight_decay", type=float, default=1e-5)
     parser.add_argument("--temperature", type=float, default=0.07)
 
