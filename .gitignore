@@ -23,3 +23,6 @@ CLAUDE.md
 # Results (large files)
 results/figures/*.png
 results/metrics/*.csv
+
+# Planning
+/docs
