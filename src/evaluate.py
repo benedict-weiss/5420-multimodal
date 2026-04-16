@@ -24,14 +24,20 @@ from sklearn.neighbors import NearestNeighbors
 
 MODEL_COLORS = {
     "baseline": "#4C72B0",
+    "baseline_protein": "#8172B2",
     "mlp": "#DD8452",
     "tf": "#55A868",
 }
 MODEL_DISPLAY_NAMES = {
     "baseline": "RNA Baseline",
+    "baseline_protein": "Protein Baseline",
     "mlp": "Contrastive MLP",
     "tf": "Contrastive TF",
 }
+# Single-stage models (for training-curve branching)
+SINGLE_STAGE_MODELS = {"baseline", "baseline_protein"}
+# Canonical display order
+ALL_MODEL_KEYS = ["baseline", "baseline_protein", "mlp", "tf"]
 
 # ── Metric Functions ──────────────────────────────────────────────────────────
 
@@ -217,10 +223,10 @@ def _int_labels_to_strings(label_ints: np.ndarray, label_mapping: dict) -> np.nd
 def _fig_model_comparison(runs: dict, output_dir: Path) -> None:
     metric_keys = ["final_accuracy", "final_macro_auroc"]
     metric_labels = ["Accuracy", "Macro AUROC"]
-    model_keys = [k for k in ["baseline", "mlp", "tf"] if k in runs]
+    model_keys = [k for k in ALL_MODEL_KEYS if k in runs]
 
     x = np.arange(len(metric_keys))
-    width = 0.25
+    width = 0.8 / max(len(model_keys), 1)
     fig, ax = plt.subplots(figsize=(8, 5))
 
     for i, mkey in enumerate(model_keys):
@@ -253,7 +259,7 @@ def _fig_model_comparison(runs: dict, output_dir: Path) -> None:
 
 
 def _fig_phate(runs: dict, output_dir: Path) -> None:
-    for mkey in ["baseline", "mlp", "tf"]:
+    for mkey in ALL_MODEL_KEYS:
         if mkey not in runs:
             continue
         run = runs[mkey]
@@ -272,20 +278,24 @@ def _fig_phate(runs: dict, output_dir: Path) -> None:
 
 
 def _fig_training_curves(runs: dict, output_dir: Path) -> None:
-    model_keys = [k for k in ["baseline", "mlp", "tf"] if k in runs]
+    model_keys = [k for k in ALL_MODEL_KEYS if k in runs]
     n_models = len(model_keys)
     fig, axes = plt.subplots(n_models, 1, figsize=(10, 4 * n_models), squeeze=False)
 
     for row, mkey in enumerate(model_keys):
         ax = axes[row][0]
         metrics = runs[mkey].get("metrics", {})
+        final_test_loss = metrics.get("final_test_loss")
 
-        if mkey == "baseline":
+        if mkey in SINGLE_STAGE_MODELS:
             history = metrics.get("history", [])
             if history:
                 epochs = [h["epoch"] for h in history]
                 ax.plot(epochs, [h["train_loss"] for h in history], label="train", color="tab:blue")
                 ax.plot(epochs, [h["val_loss"] for h in history], label="val", color="tab:orange")
+                if final_test_loss is not None:
+                    ax.scatter([epochs[-1]], [final_test_loss], color="tab:red", zorder=5,
+                               marker="*", s=120, label=f"test (final={final_test_loss:.4f})")
         else:
             stage_a = metrics.get("stage_a_history", [])
             stage_b = metrics.get("stage_b_history", [])
@@ -302,6 +312,9 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
                         color="tab:orange", linestyle="--")
                 if stage_a:
                     ax.axvline(offset, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
+                if final_test_loss is not None:
+                    ax.scatter([eb[-1]], [final_test_loss], color="tab:red", zorder=5,
+                               marker="*", s=120, label=f"test (final={final_test_loss:.4f})")
 
         ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Training Curves")
         ax.set_xlabel("Epoch")
@@ -310,6 +323,59 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
 
     plt.tight_layout()
     save_path = output_dir / "fig_training_curves.png"
+    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {save_path}")
+
+
+# ── Figure F: accuracy curves ─────────────────────────────────────────────────
+
+
+def _fig_accuracy_curves(runs: dict, output_dir: Path) -> None:
+    model_keys = [k for k in ALL_MODEL_KEYS if k in runs]
+    n_models = len(model_keys)
+    fig, axes = plt.subplots(n_models, 1, figsize=(10, 4 * n_models), squeeze=False)
+
+    for row, mkey in enumerate(model_keys):
+        ax = axes[row][0]
+        metrics = runs[mkey].get("metrics", {})
+        final_accuracy = metrics.get("final_accuracy")
+
+        if mkey in SINGLE_STAGE_MODELS:
+            history = metrics.get("history", [])
+            if history:
+                epochs = [h["epoch"] for h in history]
+                if "train_accuracy" in history[0]:
+                    ax.plot(epochs, [h["train_accuracy"] for h in history],
+                            label="train", color="tab:blue")
+                ax.plot(epochs, [h["val_accuracy"] for h in history],
+                        label="val", color="tab:orange", linestyle="--")
+                if final_accuracy is not None:
+                    ax.axhline(final_accuracy, color="tab:red", linestyle=":",
+                               label=f"test ({final_accuracy:.4f})")
+        else:
+            stage_b = metrics.get("stage_b_history", [])
+            stage_a = metrics.get("stage_a_history", [])
+            if stage_b:
+                offset = stage_a[-1]["epoch"] if stage_a else 0
+                eb = [offset + h["epoch"] for h in stage_b]
+                if "train_accuracy" in stage_b[0]:
+                    ax.plot(eb, [h["train_accuracy"] for h in stage_b],
+                            label="Stage B train", color="tab:blue")
+                ax.plot(eb, [h["val_accuracy"] for h in stage_b],
+                        label="Stage B val", color="tab:orange", linestyle="--")
+                if final_accuracy is not None:
+                    ax.axhline(final_accuracy, color="tab:red", linestyle=":",
+                               label=f"test ({final_accuracy:.4f})")
+
+        ax.set_ylim(0, 1.05)
+        ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Accuracy Curves")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Accuracy")
+        ax.legend(fontsize=8)
+
+    plt.tight_layout()
+    save_path = output_dir / "fig_accuracy_curves.png"
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {save_path}")
@@ -361,7 +427,7 @@ def _fig_recall_at_k(runs: dict, output_dir: Path) -> None:
 
 def _fig_asw(runs: dict, output_dir: Path) -> None:
     asw_scores: dict[str, float] = {}
-    for mkey in ["baseline", "mlp", "tf"]:
+    for mkey in ALL_MODEL_KEYS:
         if mkey not in runs:
             continue
         run = runs[mkey]
@@ -412,7 +478,9 @@ def main(argv: list[str] | None = None) -> None:
         help="Directory to write output figures",
     )
     parser.add_argument("--baseline_dir", type=str, default=None,
-                        help="Pin a specific baseline run directory (overrides auto-discovery)")
+                        help="Pin a specific RNA baseline run directory (overrides auto-discovery)")
+    parser.add_argument("--protein_baseline_dir", type=str, default=None,
+                        help="Pin a specific protein baseline run directory")
     parser.add_argument("--mlp_dir", type=str, default=None,
                         help="Pin a specific contrastive_mlp run directory")
     parser.add_argument("--tf_dir", type=str, default=None,
@@ -423,9 +491,15 @@ def main(argv: list[str] | None = None) -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    overrides = {"baseline": args.baseline_dir, "mlp": args.mlp_dir, "tf": args.tf_dir}
+    overrides = {
+        "baseline": args.baseline_dir,
+        "baseline_protein": args.protein_baseline_dir,
+        "mlp": args.mlp_dir,
+        "tf": args.tf_dir,
+    }
     prefixes = {
         "baseline": "baseline_rna_",
+        "baseline_protein": "baseline_protein_",
         "mlp": "contrastive_mlp_",
         "tf": "contrastive_tf_",
     }
@@ -457,6 +531,7 @@ def main(argv: list[str] | None = None) -> None:
     print("\n=== Generating figures ===")
     _fig_model_comparison(runs, output_dir)
     _fig_training_curves(runs, output_dir)
+    _fig_accuracy_curves(runs, output_dir)
     _fig_phate(runs, output_dir)
     _fig_recall_at_k(runs, output_dir)
     _fig_asw(runs, output_dir)
