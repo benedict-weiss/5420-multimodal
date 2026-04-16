@@ -279,6 +279,7 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
     for row, mkey in enumerate(model_keys):
         ax = axes[row][0]
         metrics = runs[mkey].get("metrics", {})
+        final_test_loss = metrics.get("final_test_loss")
 
         if mkey == "baseline":
             history = metrics.get("history", [])
@@ -286,6 +287,9 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
                 epochs = [h["epoch"] for h in history]
                 ax.plot(epochs, [h["train_loss"] for h in history], label="train", color="tab:blue")
                 ax.plot(epochs, [h["val_loss"] for h in history], label="val", color="tab:orange")
+                if final_test_loss is not None:
+                    ax.scatter([epochs[-1]], [final_test_loss], color="tab:red", zorder=5,
+                               marker="*", s=120, label=f"test (final={final_test_loss:.4f})")
         else:
             stage_a = metrics.get("stage_a_history", [])
             stage_b = metrics.get("stage_b_history", [])
@@ -302,6 +306,9 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
                         color="tab:orange", linestyle="--")
                 if stage_a:
                     ax.axvline(offset, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
+                if final_test_loss is not None:
+                    ax.scatter([eb[-1]], [final_test_loss], color="tab:red", zorder=5,
+                               marker="*", s=120, label=f"test (final={final_test_loss:.4f})")
 
         ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Training Curves")
         ax.set_xlabel("Epoch")
@@ -310,6 +317,59 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
 
     plt.tight_layout()
     save_path = output_dir / "fig_training_curves.png"
+    plt.savefig(save_path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {save_path}")
+
+
+# ── Figure F: accuracy curves ─────────────────────────────────────────────────
+
+
+def _fig_accuracy_curves(runs: dict, output_dir: Path) -> None:
+    model_keys = [k for k in ["baseline", "mlp", "tf"] if k in runs]
+    n_models = len(model_keys)
+    fig, axes = plt.subplots(n_models, 1, figsize=(10, 4 * n_models), squeeze=False)
+
+    for row, mkey in enumerate(model_keys):
+        ax = axes[row][0]
+        metrics = runs[mkey].get("metrics", {})
+        final_accuracy = metrics.get("final_accuracy")
+
+        if mkey == "baseline":
+            history = metrics.get("history", [])
+            if history:
+                epochs = [h["epoch"] for h in history]
+                if "train_accuracy" in history[0]:
+                    ax.plot(epochs, [h["train_accuracy"] for h in history],
+                            label="train", color="tab:blue")
+                ax.plot(epochs, [h["val_accuracy"] for h in history],
+                        label="val", color="tab:orange", linestyle="--")
+                if final_accuracy is not None:
+                    ax.axhline(final_accuracy, color="tab:red", linestyle=":",
+                               label=f"test ({final_accuracy:.4f})")
+        else:
+            stage_b = metrics.get("stage_b_history", [])
+            stage_a = metrics.get("stage_a_history", [])
+            if stage_b:
+                offset = stage_a[-1]["epoch"] if stage_a else 0
+                eb = [offset + h["epoch"] for h in stage_b]
+                if "train_accuracy" in stage_b[0]:
+                    ax.plot(eb, [h["train_accuracy"] for h in stage_b],
+                            label="Stage B train", color="tab:blue")
+                ax.plot(eb, [h["val_accuracy"] for h in stage_b],
+                        label="Stage B val", color="tab:orange", linestyle="--")
+                if final_accuracy is not None:
+                    ax.axhline(final_accuracy, color="tab:red", linestyle=":",
+                               label=f"test ({final_accuracy:.4f})")
+
+        ax.set_ylim(0, 1.05)
+        ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Accuracy Curves")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Accuracy")
+        ax.legend(fontsize=8)
+
+    plt.tight_layout()
+    save_path = output_dir / "fig_accuracy_curves.png"
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {save_path}")
@@ -457,6 +517,7 @@ def main(argv: list[str] | None = None) -> None:
     print("\n=== Generating figures ===")
     _fig_model_comparison(runs, output_dir)
     _fig_training_curves(runs, output_dir)
+    _fig_accuracy_curves(runs, output_dir)
     _fig_phate(runs, output_dir)
     _fig_recall_at_k(runs, output_dir)
     _fig_asw(runs, output_dir)
