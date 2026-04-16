@@ -21,6 +21,7 @@ Thumbs.db
 # Claude Code
 CLAUDE.md
 tasks/
+.claude
 
 # Results (large files)
 results/figures/*.png
