@@ -95,6 +95,7 @@ export TEST_SIZE="${TEST_SIZE:-0.2}"
 
 python - <<'PY'
 import os
+from pathlib import Path
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -192,7 +193,22 @@ def build_train_val_indices(labels, val_ratio, seed):
             train_idx, val_idx = train_test_split(idx, test_size=val_ratio, random_state=seed, stratify=None)
     return np.asarray(train_idx), np.asarray(val_idx)
 
-data_path = os.environ["DATA_PATH"]
+def resolve_data_file(data_path: str) -> str:
+    p = Path(data_path)
+    if p.is_file():
+        return str(p)
+    if not p.exists() or not p.is_dir():
+        raise FileNotFoundError(f"data_path does not exist: {data_path}")
+
+    candidates = sorted(list(p.glob("*.h5ad")) + list(p.glob("*.h5ad.gz")))
+    if not candidates:
+        raise FileNotFoundError(f"No .h5ad or .h5ad.gz files found under {data_path}")
+    if len(candidates) > 1:
+        print(f"[warn] Multiple dataset files found, using: {candidates[0]}")
+    return str(candidates[0])
+
+
+data_path = resolve_data_file(os.environ["DATA_PATH"])
 split_col = os.environ.get("SPLIT_COL", "is_train")
 split_test_values = os.environ.get("SPLIT_TEST_VALUES", "iid_holdout").split()
 split_val_values = os.environ.get("SPLIT_VAL_VALUES", "").split()
