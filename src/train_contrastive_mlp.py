@@ -104,6 +104,12 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray, y_proba: np.ndarray,
         else:
             # Remap present global labels to contiguous [0..k-1] for multiclass AUROC.
             proba_present = y_proba[:, present]
+            # roc_auc_score(multi_class='ovr') expects class probabilities to
+            # sum to 1 across provided classes. If some global classes are
+            # absent in the current split, renormalize after subsetting.
+            proba_row_sum = np.sum(proba_present, axis=1, keepdims=True)
+            proba_row_sum = np.where(proba_row_sum > 0, proba_row_sum, 1.0)
+            proba_present = proba_present / proba_row_sum
             remap = {c: i for i, c in enumerate(present.tolist())}
             y_true_remap = np.array([remap[int(c)] for c in y_true], dtype=int)
             auroc = float(
