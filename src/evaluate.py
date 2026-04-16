@@ -24,14 +24,20 @@ from sklearn.neighbors import NearestNeighbors
 
 MODEL_COLORS = {
     "baseline": "#4C72B0",
+    "baseline_protein": "#8172B2",
     "mlp": "#DD8452",
     "tf": "#55A868",
 }
 MODEL_DISPLAY_NAMES = {
     "baseline": "RNA Baseline",
+    "baseline_protein": "Protein Baseline",
     "mlp": "Contrastive MLP",
     "tf": "Contrastive TF",
 }
+# Single-stage models (for training-curve branching)
+SINGLE_STAGE_MODELS = {"baseline", "baseline_protein"}
+# Canonical display order
+ALL_MODEL_KEYS = ["baseline", "baseline_protein", "mlp", "tf"]
 
 # ── Metric Functions ──────────────────────────────────────────────────────────
 
@@ -217,10 +223,10 @@ def _int_labels_to_strings(label_ints: np.ndarray, label_mapping: dict) -> np.nd
 def _fig_model_comparison(runs: dict, output_dir: Path) -> None:
     metric_keys = ["final_accuracy", "final_macro_auroc"]
     metric_labels = ["Accuracy", "Macro AUROC"]
-    model_keys = [k for k in ["baseline", "mlp", "tf"] if k in runs]
+    model_keys = [k for k in ALL_MODEL_KEYS if k in runs]
 
     x = np.arange(len(metric_keys))
-    width = 0.25
+    width = 0.8 / max(len(model_keys), 1)
     fig, ax = plt.subplots(figsize=(8, 5))
 
     for i, mkey in enumerate(model_keys):
@@ -253,7 +259,7 @@ def _fig_model_comparison(runs: dict, output_dir: Path) -> None:
 
 
 def _fig_phate(runs: dict, output_dir: Path) -> None:
-    for mkey in ["baseline", "mlp", "tf"]:
+    for mkey in ALL_MODEL_KEYS:
         if mkey not in runs:
             continue
         run = runs[mkey]
@@ -272,7 +278,7 @@ def _fig_phate(runs: dict, output_dir: Path) -> None:
 
 
 def _fig_training_curves(runs: dict, output_dir: Path) -> None:
-    model_keys = [k for k in ["baseline", "mlp", "tf"] if k in runs]
+    model_keys = [k for k in ALL_MODEL_KEYS if k in runs]
     n_models = len(model_keys)
     fig, axes = plt.subplots(n_models, 1, figsize=(10, 4 * n_models), squeeze=False)
 
@@ -281,7 +287,7 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
         metrics = runs[mkey].get("metrics", {})
         final_test_loss = metrics.get("final_test_loss")
 
-        if mkey == "baseline":
+        if mkey in SINGLE_STAGE_MODELS:
             history = metrics.get("history", [])
             if history:
                 epochs = [h["epoch"] for h in history]
@@ -326,7 +332,7 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
 
 
 def _fig_accuracy_curves(runs: dict, output_dir: Path) -> None:
-    model_keys = [k for k in ["baseline", "mlp", "tf"] if k in runs]
+    model_keys = [k for k in ALL_MODEL_KEYS if k in runs]
     n_models = len(model_keys)
     fig, axes = plt.subplots(n_models, 1, figsize=(10, 4 * n_models), squeeze=False)
 
@@ -335,7 +341,7 @@ def _fig_accuracy_curves(runs: dict, output_dir: Path) -> None:
         metrics = runs[mkey].get("metrics", {})
         final_accuracy = metrics.get("final_accuracy")
 
-        if mkey == "baseline":
+        if mkey in SINGLE_STAGE_MODELS:
             history = metrics.get("history", [])
             if history:
                 epochs = [h["epoch"] for h in history]
@@ -421,7 +427,7 @@ def _fig_recall_at_k(runs: dict, output_dir: Path) -> None:
 
 def _fig_asw(runs: dict, output_dir: Path) -> None:
     asw_scores: dict[str, float] = {}
-    for mkey in ["baseline", "mlp", "tf"]:
+    for mkey in ALL_MODEL_KEYS:
         if mkey not in runs:
             continue
         run = runs[mkey]
@@ -472,7 +478,9 @@ def main(argv: list[str] | None = None) -> None:
         help="Directory to write output figures",
     )
     parser.add_argument("--baseline_dir", type=str, default=None,
-                        help="Pin a specific baseline run directory (overrides auto-discovery)")
+                        help="Pin a specific RNA baseline run directory (overrides auto-discovery)")
+    parser.add_argument("--protein_baseline_dir", type=str, default=None,
+                        help="Pin a specific protein baseline run directory")
     parser.add_argument("--mlp_dir", type=str, default=None,
                         help="Pin a specific contrastive_mlp run directory")
     parser.add_argument("--tf_dir", type=str, default=None,
@@ -483,9 +491,15 @@ def main(argv: list[str] | None = None) -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    overrides = {"baseline": args.baseline_dir, "mlp": args.mlp_dir, "tf": args.tf_dir}
+    overrides = {
+        "baseline": args.baseline_dir,
+        "baseline_protein": args.protein_baseline_dir,
+        "mlp": args.mlp_dir,
+        "tf": args.tf_dir,
+    }
     prefixes = {
         "baseline": "baseline_rna_",
+        "baseline_protein": "baseline_protein_",
         "mlp": "contrastive_mlp_",
         "tf": "contrastive_tf_",
     }
