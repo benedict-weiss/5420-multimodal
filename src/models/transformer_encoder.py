@@ -52,9 +52,7 @@ class AttentionTransformerEncoderLayer(nn.TransformerEncoderLayer):
             is_causal=is_causal,
         )
         if self._retain_attn_grad:
-            self._last_attn_weights = attn_weights  # keep in graph
-            if attn_weights.requires_grad:
-                attn_weights.retain_grad()
+            self._last_attn_weights = attn_weights  # keep in graph (no detach, hooks fire on backward)
         else:
             self._last_attn_weights = attn_weights.detach()  # (batch, nhead, seq_len, seq_len)
         return self.dropout1(x)

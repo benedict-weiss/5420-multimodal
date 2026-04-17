@@ -627,6 +627,9 @@ def extract_gradient_attention_attributions(
     w.r.t. that attention map), then composes across layers. More reliable than
     raw attention because it reflects causal influence on the prediction.
 
+    Uses register_hook (not retain_grad) because attention weights are non-leaf
+    intermediate tensors — retain_grad() is unreliable for these in PyTorch.
+
     Returns (N, n_proteins) attribution array.
     """
     protein_encoder.eval()
@@ -635,10 +638,11 @@ def extract_gradient_attention_attributions(
 
     all_grad_attn: list[np.ndarray] = []
     N = protein_data.shape[0]
+    n_grad_captured = 0
 
     for start in range(0, N, batch_size):
         end = min(start + batch_size, N)
-        # requires_grad=True on input creates computation graph through frozen encoder
+        # requires_grad=True creates computation graph through frozen encoder
         p = torch.tensor(
             protein_data[start:end], dtype=torch.float32, device=device, requires_grad=True
         )
@@ -646,14 +650,32 @@ def extract_gradient_attention_attributions(
         y = torch.tensor(labels[start:end], dtype=torch.long, device=device)
 
         z_p = protein_encoder(p)
+
+        # Register hooks AFTER forward (attention tensors now exist) but BEFORE backward.
+        # register_hook fires during backward for any tensor with a grad_fn,
+        # unlike retain_grad() which fails silently for non-leaf tensors.
+        full_attn = protein_encoder.get_full_attention_per_layer()
+        if full_attn is None:
+            all_grad_attn.append(np.zeros((end - start, protein_data.shape[1])))
+            classifier(torch.cat([r, z_p], dim=1))  # consume graph
+            continue
+
+        captured_grads: dict[str, torch.Tensor] = {}
+        hooks = []
+        for l_name, A in full_attn.items():
+            if A.grad_fn is not None:
+                def _hook(grad, name=l_name):
+                    captured_grads[name] = grad.detach()
+                hooks.append(A.register_hook(_hook))
+
         logits = classifier(torch.cat([r, z_p], dim=1))
         target_logits = logits[torch.arange(end - start, device=device), y]
         target_logits.sum().backward()
 
-        full_attn = protein_encoder.get_full_attention_per_layer()
-        if full_attn is None:
-            all_grad_attn.append(np.zeros((end - start, protein_data.shape[1])))
-            continue
+        for h in hooks:
+            h.remove()
+
+        n_grad_captured += len(captured_grads)
 
         layers = sorted(full_attn, key=lambda k: int(k.removeprefix("layer")))
         b = end - start
@@ -662,10 +684,14 @@ def extract_gradient_attention_attributions(
         I = np.eye(S)
 
         for l in layers:
-            A = full_attn[l]  # (b, nhead, S, S) — in computation graph
-            G = A.grad if A.grad is not None else torch.zeros_like(A)
-            # Head-averaged ReLU(grad) * attention
-            weighted = (F.relu(G) * A).detach().cpu().float().numpy().mean(axis=1)  # (b, S, S)
+            A_np = full_attn[l].detach().cpu().float().numpy()  # (b, nhead, S, S)
+            G = captured_grads.get(l)
+            if G is not None:
+                G_np = G.cpu().float().numpy()
+                weighted = (np.maximum(G_np, 0) * A_np).mean(axis=1)  # (b, S, S)
+            else:
+                # Gradient not captured: fall back to plain attention for this layer
+                weighted = A_np.mean(axis=1)
             A_hat = weighted + I
             A_hat = A_hat / A_hat.sum(-1, keepdims=True).clip(1e-8)
             rollout = np.einsum("bij,bjk->bik", A_hat, rollout)
@@ -673,6 +699,14 @@ def extract_gradient_attention_attributions(
         all_grad_attn.append(rollout[:, 0, 1:])  # (b, n_tokens)
 
     protein_encoder.set_retain_attn_grad(False)
+    if N > 0:
+        expected = (N // batch_size + (1 if N % batch_size else 0)) * len(
+            protein_encoder.get_full_attention_per_layer() or {}
+        )
+        print(
+            f"[grad-attn] Captured gradients for {n_grad_captured} / {expected} "
+            "layer×batch combinations."
+        )
     return np.concatenate(all_grad_attn, axis=0) if all_grad_attn else np.array([])
 
 
