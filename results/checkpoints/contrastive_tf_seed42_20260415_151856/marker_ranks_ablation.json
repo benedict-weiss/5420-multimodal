@@ -1,0 +1,394 @@
+{
+  "CD14+ Mono": {
+    "CD14": {
+      "resolved": "CD14-1",
+      "rank": 97,
+      "n_tokens": 134,
+      "percentile": 0.2835820895522388
+    },
+    "HLA-DR": {
+      "resolved": "HLA-DR",
+      "rank": 49,
+      "n_tokens": 134,
+      "percentile": 0.6417910447761194
+    },
+    "CD11b": {
+      "resolved": "CD11b",
+      "rank": 124,
+      "n_tokens": 134,
+      "percentile": 0.08208955223880597
+    },
+    "CD64": {
+      "resolved": "CD64",
+      "rank": 53,
+      "n_tokens": 134,
+      "percentile": 0.6119402985074627
+    }
+  },
+  "CD16+ Mono": {
+    "CD16": {
+      "resolved": "CD16",
+      "rank": 9,
+      "n_tokens": 134,
+      "percentile": 0.9402985074626866
+    },
+    "CX3CR1": {
+      "resolved": "CX3CR1-1",
+      "rank": 131,
+      "n_tokens": 134,
+      "percentile": 0.029850746268656716
+    },
+    "HLA-DR": {
+      "resolved": "HLA-DR",
+      "rank": 73,
+      "n_tokens": 134,
+      "percentile": 0.4626865671641791
+    }
+  },
+  "CD4+ T activated": {
+    "CD3": {
+      "resolved": "CD3",
+      "rank": 104,
+      "n_tokens": 134,
+      "percentile": 0.23134328358208955
+    },
+    "CD4": {
+      "resolved": "CD4-1",
+      "rank": 34,
+      "n_tokens": 134,
+      "percentile": 0.753731343283582
+    },
+    "CD45RO": {
+      "resolved": "CD45RO",
+      "rank": 114,
+      "n_tokens": 134,
+      "percentile": 0.15671641791044777
+    },
+    "CD69": {
+      "resolved": "CD69-1",
+      "rank": 19,
+      "n_tokens": 134,
+      "percentile": 0.8656716417910447
+    }
+  },
+  "CD4+ T naive": {
+    "CD3": {
+      "resolved": "CD3",
+      "rank": 127,
+      "n_tokens": 134,
+      "percentile": 0.05970149253731343
+    },
+    "CD4": {
+      "resolved": "CD4-1",
+      "rank": 22,
+      "n_tokens": 134,
+      "percentile": 0.8432835820895522
+    },
+    "CD45RA": {
+      "resolved": "CD45RA",
+      "rank": 5,
+      "n_tokens": 134,
+      "percentile": 0.9701492537313433
+    },
+    "CD62L": {
+      "resolved": "CD62L",
+      "rank": 131,
+      "n_tokens": 134,
+      "percentile": 0.029850746268656716
+    }
+  },
+  "CD8+ T naive": {
+    "CD3": {
+      "resolved": "CD3",
+      "rank": 61,
+      "n_tokens": 134,
+      "percentile": 0.5522388059701493
+    },
+    "CD8": {
+      "resolved": "CD8",
+      "rank": 1,
+      "n_tokens": 134,
+      "percentile": 1.0
+    },
+    "CD45RA": {
+      "resolved": "CD45RA",
+      "rank": 134,
+      "n_tokens": 134,
+      "percentile": 0.007462686567164179
+    },
+    "CD62L": {
+      "resolved": "CD62L",
+      "rank": 6,
+      "n_tokens": 134,
+      "percentile": 0.9626865671641791
+    }
+  },
+  "Erythroblast": {
+    "CD71": {
+      "resolved": "CD71",
+      "rank": 134,
+      "n_tokens": 134,
+      "percentile": 0.007462686567164179
+    }
+  },
+  "HSC": {
+    "CD38": {
+      "resolved": "CD38-1",
+      "rank": 7,
+      "n_tokens": 134,
+      "percentile": 0.9552238805970149
+    },
+    "CD45RA": {
+      "resolved": "CD45RA",
+      "rank": 12,
+      "n_tokens": 134,
+      "percentile": 0.917910447761194
+    }
+  },
+  "MAIT": {
+    "CD3": {
+      "resolved": "CD3",
+      "rank": 112,
+      "n_tokens": 134,
+      "percentile": 0.17164179104477612
+    },
+    "CD8": {
+      "resolved": "CD8",
+      "rank": 16,
+      "n_tokens": 134,
+      "percentile": 0.8880597014925373
+    },
+    "CD161": {
+      "resolved": "CD161",
+      "rank": 78,
+      "n_tokens": 134,
+      "percentile": 0.4253731343283582
+    },
+    "TCRVa7.2": {
+      "resolved": "TCRVa7.2",
+      "rank": 49,
+      "n_tokens": 134,
+      "percentile": 0.6417910447761194
+    }
+  },
+  "NK": {
+    "CD56": {
+      "resolved": "CD56",
+      "rank": 116,
+      "n_tokens": 134,
+      "percentile": 0.1417910447761194
+    },
+    "CD16": {
+      "resolved": "CD16",
+      "rank": 4,
+      "n_tokens": 134,
+      "percentile": 0.9776119402985075
+    },
+    "CD335": {
+      "resolved": "CD335",
+      "rank": 102,
+      "n_tokens": 134,
+      "percentile": 0.2462686567164179
+    }
+  },
+  "Naive CD20+ B IGKC+": {
+    "CD19": {
+      "resolved": "CD19-1",
+      "rank": 26,
+      "n_tokens": 134,
+      "percentile": 0.8134328358208955
+    },
+    "CD20": {
+      "resolved": "CD20",
+      "rank": 19,
+      "n_tokens": 134,
+      "percentile": 0.8656716417910447
+    },
+    "IgM": {
+      "resolved": "IgM",
+      "rank": 8,
+      "n_tokens": 134,
+      "percentile": 0.9477611940298507
+    },
+    "IgD": {
+      "resolved": "IgD",
+      "rank": 2,
+      "n_tokens": 134,
+      "percentile": 0.9925373134328358
+    },
+    "CD21": {
+      "resolved": "CD21",
+      "rank": 41,
+      "n_tokens": 134,
+      "percentile": 0.7014925373134329
+    }
+  },
+  "Naive CD20+ B IGKC-": {
+    "CD19": {
+      "resolved": "CD19-1",
+      "rank": 19,
+      "n_tokens": 134,
+      "percentile": 0.8656716417910447
+    },
+    "CD20": {
+      "resolved": "CD20",
+      "rank": 18,
+      "n_tokens": 134,
+      "percentile": 0.8731343283582089
+    },
+    "IgM": {
+      "resolved": "IgM",
+      "rank": 6,
+      "n_tokens": 134,
+      "percentile": 0.9626865671641791
+    },
+    "IgD": {
+      "resolved": "IgD",
+      "rank": 3,
+      "n_tokens": 134,
+      "percentile": 0.9850746268656716
+    },
+    "CD21": {
+      "resolved": "CD21",
+      "rank": 32,
+      "n_tokens": 134,
+      "percentile": 0.7686567164179104
+    }
+  },
+  "Normoblast": {
+    "CD71": {
+      "resolved": "CD71",
+      "rank": 134,
+      "n_tokens": 134,
+      "percentile": 0.007462686567164179
+    }
+  },
+  "Plasma cell IGKC+": {
+    "CD38": {
+      "resolved": "CD38-1",
+      "rank": 1,
+      "n_tokens": 134,
+      "percentile": 1.0
+    },
+    "CD27": {
+      "resolved": "CD27-1",
+      "rank": 111,
+      "n_tokens": 134,
+      "percentile": 0.1791044776119403
+    }
+  },
+  "Plasma cell IGKC-": {
+    "CD38": {
+      "resolved": "CD38-1",
+      "rank": 1,
+      "n_tokens": 134,
+      "percentile": 1.0
+    },
+    "CD27": {
+      "resolved": "CD27-1",
+      "rank": 66,
+      "n_tokens": 134,
+      "percentile": 0.5149253731343284
+    }
+  },
+  "Reticulocyte": {
+    "CD71": {
+      "resolved": "CD71",
+      "rank": 134,
+      "n_tokens": 134,
+      "percentile": 0.007462686567164179
+    }
+  },
+  "T reg": {
+    "CD3": {
+      "resolved": "CD3",
+      "rank": 21,
+      "n_tokens": 134,
+      "percentile": 0.8507462686567164
+    },
+    "CD4": {
+      "resolved": "CD4-1",
+      "rank": 18,
+      "n_tokens": 134,
+      "percentile": 0.8731343283582089
+    },
+    "CD25": {
+      "resolved": "CD25",
+      "rank": 47,
+      "n_tokens": 134,
+      "percentile": 0.6567164179104478
+    },
+    "CD127": {
+      "resolved": "CD127",
+      "rank": 40,
+      "n_tokens": 134,
+      "percentile": 0.7089552238805971
+    }
+  },
+  "Transitional B": {
+    "CD24": {
+      "resolved": "CD24-1",
+      "rank": 7,
+      "n_tokens": 134,
+      "percentile": 0.9552238805970149
+    },
+    "CD38": {
+      "resolved": "CD38-1",
+      "rank": 3,
+      "n_tokens": 134,
+      "percentile": 0.9850746268656716
+    },
+    "IgM": {
+      "resolved": "IgM",
+      "rank": 12,
+      "n_tokens": 134,
+      "percentile": 0.917910447761194
+    },
+    "CD19": {
+      "resolved": "CD19-1",
+      "rank": 10,
+      "n_tokens": 134,
+      "percentile": 0.9328358208955224
+    }
+  },
+  "cDC2": {
+    "CD11c": {
+      "resolved": "CD11c",
+      "rank": 81,
+      "n_tokens": 134,
+      "percentile": 0.40298507462686567
+    },
+    "HLA-DR": {
+      "resolved": "HLA-DR",
+      "rank": 6,
+      "n_tokens": 134,
+      "percentile": 0.9626865671641791
+    },
+    "CD1c": {
+      "resolved": "CD1c",
+      "rank": 18,
+      "n_tokens": 134,
+      "percentile": 0.8731343283582089
+    }
+  },
+  "pDC": {
+    "CD123": {
+      "resolved": "CD123",
+      "rank": 2,
+      "n_tokens": 134,
+      "percentile": 0.9925373134328358
+    },
+    "CD303": {
+      "resolved": "CD303",
+      "rank": 28,
+      "n_tokens": 134,
+      "percentile": 0.7985074626865671
+    },
+    "CD304": {
+      "resolved": "CD304",
+      "rank": 114,
+      "n_tokens": 134,
+      "percentile": 0.15671641791044777
+    }
+  }
+}

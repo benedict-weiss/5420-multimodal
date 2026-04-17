@@ -168,6 +168,8 @@ def run_significance_test(
 
 
 def _find_latest_run(checkpoint_dir: Path, prefix: str) -> Path | None:
+    if not checkpoint_dir.is_dir():
+        return None
     candidates = [d for d in checkpoint_dir.iterdir() if d.is_dir() and d.name.startswith(prefix)]
     return max(candidates, key=lambda d: d.stat().st_mtime) if candidates else None
 
@@ -357,10 +359,6 @@ def _fig_accuracy_curves(runs: dict, output_dir: Path) -> None:
             stage_b = metrics.get("stage_b_history", [])
             stage_a = metrics.get("stage_a_history", [])
             offset = stage_a[-1]["epoch"] if stage_a else 0
-            if stage_a and offset > 0:
-                ax.axvspan(stage_a[0]["epoch"], offset, alpha=0.08, color="tab:gray",
-                           label="Pretraining (Stage A)")
-                ax.axvline(offset, color="gray", linestyle=":", alpha=0.7)
             if stage_b:
                 eb = [offset + h["epoch"] for h in stage_b]
                 if "train_accuracy" in stage_b[0]:

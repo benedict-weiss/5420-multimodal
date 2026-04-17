@@ -125,7 +125,7 @@ def run_ablation(
     classifier = ClassificationHead(
         input_dim=2 * args["embedding_dim"],
         n_classes=stage_b["n_classes"],
-        hidden_dim=args.get("classifier_hidden", 64),
+        hidden_dim=args.get("classifier_hidden_dim", 64),
         dropout=args.get("classifier_dropout", 0.2),
     ).to(device).eval()
     classifier.load_state_dict(stage_b["classifier_state_dict"])
@@ -147,11 +147,14 @@ def run_ablation(
 
     drops = np.zeros((N, P), dtype=np.float32)
     correct_logit_baseline = baseline_logits[np.arange(N), test_labels]
+    # Column means: replacing a token with its mean is a neutral ablation in CLR space
+    # (zeroing sets it to the geometric mean, which is non-neutral)
+    col_means = test_protein.mean(axis=0)  # (P,)
 
     with torch.no_grad():
         for tok in range(P):
             ablated = test_protein.copy()
-            ablated[:, tok] = 0.0
+            ablated[:, tok] = col_means[tok]
             for start in range(0, N, batch_size):
                 end = min(start + batch_size, N)
                 p = torch.tensor(ablated[start:end], dtype=torch.float32, device=device)

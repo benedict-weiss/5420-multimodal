@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import torch
+import torch.nn.functional as F
 
 try:
     import pandas as pd
@@ -99,8 +100,9 @@ def _extract_protein_attention_per_head_from_checkpoint(
     if test_idx.size == 0:
         raise ValueError("Checkpoint test split resolved to zero cells during per-head extraction.")
 
+    from src.preprocessing import preprocess_protein
     protein_adata = adata[:, adata.var["feature_types"] == "ADT"].copy()
-    test_protein = _clr_normalize(protein_adata[test_idx].X)
+    test_protein = preprocess_protein(protein_adata[test_idx].copy())
 
     protein_encoder = TransformerEncoder(
         n_tokens=stage_a["n_proteins"],
@@ -558,6 +560,207 @@ def plot_token_attention_per_cell_type(
     plt.close(fig)
 
 
+def _compose_rollout(attn_layers: list) -> np.ndarray:
+    """
+    Attention rollout (Abnar & Zuidema 2020) across layers.
+
+    attn_layers: list of (batch, seq_len, seq_len) head-averaged attention per layer,
+                 in forward order (layer 0 first).
+    Returns (batch, seq_len, seq_len) rollout matrix.
+    """
+    batch, S, _ = attn_layers[0].shape
+    rollout = np.broadcast_to(np.eye(S), (batch, S, S)).copy()
+    I = np.eye(S)
+    for A in attn_layers:
+        A_hat = 0.5 * A + 0.5 * I
+        A_hat = A_hat / A_hat.sum(-1, keepdims=True).clip(1e-8)
+        rollout = np.einsum("bij,bjk->bik", A_hat, rollout)
+    return rollout
+
+
+def extract_rollout_attributions(
+    encoder,
+    data: np.ndarray,
+    device: torch.device,
+    batch_size: int = 256,
+) -> np.ndarray:
+    """
+    Run encoder over data and return CLS attention rollout attribution.
+
+    Returns (N, n_tokens) array — each row is the rollout importance score
+    of each input token for that cell's CLS representation.
+    """
+    encoder.eval()
+    all_rollout: list[np.ndarray] = []
+    with torch.no_grad():
+        for start in range(0, data.shape[0], batch_size):
+            batch = torch.tensor(
+                data[start : start + batch_size], dtype=torch.float32, device=device
+            )
+            _ = encoder(batch)
+            full_attn = encoder.get_full_attention_per_layer()
+            if full_attn is None:
+                continue
+            layers = sorted(full_attn, key=lambda k: int(k.removeprefix("layer")))
+            attn_layers = [
+                full_attn[l].detach().cpu().float().numpy().mean(axis=1)  # (b, S, S)
+                for l in layers
+            ]
+            rollout = _compose_rollout(attn_layers)  # (b, S, S)
+            all_rollout.append(rollout[:, 0, 1:])    # CLS row, drop CLS-to-CLS
+    return np.concatenate(all_rollout, axis=0) if all_rollout else np.array([])
+
+
+def extract_gradient_attention_attributions(
+    protein_encoder,
+    classifier,
+    protein_data: np.ndarray,
+    rna_embeddings: np.ndarray,
+    labels: np.ndarray,
+    device: torch.device,
+    batch_size: int = 64,
+) -> np.ndarray:
+    """
+    Chefer et al. (CVPR 2021) gradient-weighted attention rollout.
+
+    Weights each layer's attention map by ReLU(gradient of correct-class logit
+    w.r.t. that attention map), then composes across layers. More reliable than
+    raw attention because it reflects causal influence on the prediction.
+
+    Returns (N, n_proteins) attribution array.
+    """
+    protein_encoder.eval()
+    classifier.eval()
+    protein_encoder.set_retain_attn_grad(True)
+
+    all_grad_attn: list[np.ndarray] = []
+    N = protein_data.shape[0]
+
+    for start in range(0, N, batch_size):
+        end = min(start + batch_size, N)
+        # requires_grad=True on input creates computation graph through frozen encoder
+        p = torch.tensor(
+            protein_data[start:end], dtype=torch.float32, device=device, requires_grad=True
+        )
+        r = torch.tensor(rna_embeddings[start:end], dtype=torch.float32, device=device)
+        y = torch.tensor(labels[start:end], dtype=torch.long, device=device)
+
+        z_p = protein_encoder(p)
+        logits = classifier(torch.cat([r, z_p], dim=1))
+        target_logits = logits[torch.arange(end - start, device=device), y]
+        target_logits.sum().backward()
+
+        full_attn = protein_encoder.get_full_attention_per_layer()
+        if full_attn is None:
+            all_grad_attn.append(np.zeros((end - start, protein_data.shape[1])))
+            continue
+
+        layers = sorted(full_attn, key=lambda k: int(k.removeprefix("layer")))
+        b = end - start
+        S = full_attn[layers[0]].shape[-1]
+        rollout = np.broadcast_to(np.eye(S), (b, S, S)).copy()
+        I = np.eye(S)
+
+        for l in layers:
+            A = full_attn[l]  # (b, nhead, S, S) — in computation graph
+            G = A.grad if A.grad is not None else torch.zeros_like(A)
+            # Head-averaged ReLU(grad) * attention
+            weighted = (F.relu(G) * A).detach().cpu().float().numpy().mean(axis=1)  # (b, S, S)
+            A_hat = weighted + I
+            A_hat = A_hat / A_hat.sum(-1, keepdims=True).clip(1e-8)
+            rollout = np.einsum("bij,bjk->bik", A_hat, rollout)
+
+        all_grad_attn.append(rollout[:, 0, 1:])  # (b, n_tokens)
+
+    protein_encoder.set_retain_attn_grad(False)
+    return np.concatenate(all_grad_attn, axis=0) if all_grad_attn else np.array([])
+
+
+def _extract_advanced_attributions_from_checkpoint(
+    checkpoint_dir: Path,
+    data_path: str,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Load the contrastive_tf model from a checkpoint, reconstruct the test split,
+    and return (rollout, grad_attn) arrays of shape (N, n_proteins).
+    Both are aligned with tf_attention_labels.npy in the same checkpoint directory.
+    """
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import LabelEncoder
+
+    from src.models.classifier import ClassificationHead
+    from src.models.transformer_encoder import TransformerEncoder
+
+    stage_a = torch.load(checkpoint_dir / "stage_a_best.pt", map_location="cpu")
+    stage_b = torch.load(checkpoint_dir / "stage_b_best.pt", map_location="cpu")
+    args = stage_a["args"]
+
+    adata = _load_anndata(data_path)
+    if not adata.var_names.is_unique:
+        adata.var_names_make_unique()
+    if args.get("max_cells") is not None and args["max_cells"] < adata.shape[0]:
+        rng = np.random.default_rng(args["seed"])
+        idx = np.sort(rng.choice(adata.shape[0], size=args["max_cells"], replace=False))
+        adata = adata[idx].copy()
+
+    label_encoder = LabelEncoder()
+    labels_all = label_encoder.fit_transform(adata.obs[args["label_col"]].values)
+
+    if args.get("test_donors"):
+        donors = adata.obs[args["donor_col"]].values
+        test_idx = np.flatnonzero(np.isin(donors, args["test_donors"]))
+    else:
+        _, test_idx = train_test_split(
+            np.arange(adata.shape[0]),
+            test_size=args["test_size"],
+            random_state=args["seed"],
+            stratify=None if args.get("max_cells") is not None else labels_all,
+        )
+    test_idx = np.asarray(test_idx)
+
+    from src.preprocessing import preprocess_protein
+    protein_adata = adata[:, adata.var["feature_types"] == "ADT"].copy()
+    test_protein = preprocess_protein(protein_adata[test_idx].copy())
+
+    # Use saved labels (from training) to ensure correct-class gradient direction
+    test_labels = np.load(checkpoint_dir / "tf_attention_labels.npy")
+    assert test_labels.shape[0] == test_protein.shape[0], (
+        f"Saved labels N={test_labels.shape[0]} vs reconstructed protein N={test_protein.shape[0]}. "
+        "Test split mismatch — verify --data_path matches the training run."
+    )
+
+    n_classes = stage_b.get("n_classes") or stage_b["classifier_state_dict"]["net.3.weight"].shape[0]
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    protein_encoder = TransformerEncoder(
+        n_tokens=stage_a["n_proteins"],
+        d_model=args["d_model"], nhead=args["nhead"],
+        num_layers=args["num_layers"], dim_feedforward=args["dim_feedforward"],
+        dropout=args["dropout"], output_dim=args["embedding_dim"],
+    ).to(device).eval()
+    protein_encoder.load_state_dict(stage_a["protein_encoder_state_dict"])
+
+    classifier = ClassificationHead(
+        input_dim=2 * args["embedding_dim"],
+        n_classes=n_classes,
+        hidden_dim=args.get("classifier_hidden_dim", 64),
+        dropout=args.get("classifier_dropout", 0.2),
+    ).to(device).eval()
+    classifier.load_state_dict(stage_b["classifier_state_dict"])
+
+    rna_emb = np.load(checkpoint_dir / "test_rna_embeddings.npy")
+
+    print("Computing attention rollout (protein)...")
+    rollout = extract_rollout_attributions(protein_encoder, test_protein, device)
+
+    print("Computing gradient × attention (protein)...")
+    grad_attn = extract_gradient_attention_attributions(
+        protein_encoder, classifier, test_protein, rna_emb, test_labels, device
+    )
+
+    return rollout, grad_attn
+
+
 # Known biological markers for validation. Keys must match BMMC cell_type labels
 # in adata.obs['cell_type']. Markers must exist in the ADT panel (134 proteins;
 # CD34 is notably absent, so HSC is validated via CD38 only).
@@ -694,6 +897,22 @@ def main(argv: list[str] | None = None) -> None:
     )
     print(f"Saved: {out / 'attention_heatmap_rna.png'}")
 
+    specificity_rna = compute_specificity_scores(attn_by_type_rna)
+    plot_per_celltype_top_heatmap(
+        specificity_rna, pathway_names,
+        title="RNA pathway attention SPECIFICITY (z-scored across cell types, per-row top-K)",
+        save_path=str(out / "attention_heatmap_rna_specificity.png"),
+        top_k_per_row=args.top_k_per_row,
+    )
+    print(f"Saved: {out / 'attention_heatmap_rna_specificity.png'}")
+    plot_per_celltype_top_heatmap(
+        attn_by_type_rna, pathway_names,
+        title=f"RNA pathway attention by cell type (per-row top-{args.top_k_per_row}, union)",
+        save_path=str(out / "attention_heatmap_rna_per_row.png"),
+        top_k_per_row=args.top_k_per_row,
+    )
+    print(f"Saved: {out / 'attention_heatmap_rna_per_row.png'}")
+
     specificity = compute_specificity_scores(attn_by_type_prot)
     plot_per_celltype_top_heatmap(
         specificity, protein_names,
@@ -727,7 +946,6 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  {ct}: recall={res['recall']:.2f}  found={res['found']}  missing={res['missing']}")
 
     ranks = compute_marker_ranks(attn_by_type_prot, _DEFAULT_MARKERS, protein_names)
-    specificity = compute_specificity_scores(attn_by_type_prot)
     top_tokens_spec = get_top_tokens(specificity, protein_names, top_k=args.top_k)
     validation_spec = validate_against_markers(
         top_tokens_spec, _DEFAULT_MARKERS, token_names=protein_names
@@ -801,6 +1019,68 @@ def main(argv: list[str] | None = None) -> None:
         print(
             "[warn] Per-head protein attention unavailable; skipping per-head-aware "
             "heatmap and marker validation."
+        )
+
+    # Advanced attribution methods: rollout + gradient×attention
+    if args.data_path is not None:
+        print("\n=== Advanced attribution methods ===")
+        try:
+            rollout, grad_attn = _extract_advanced_attributions_from_checkpoint(
+                ckpt, args.data_path
+            )
+            np.save(ckpt / "tf_attention_protein_rollout.npy", rollout)
+            np.save(ckpt / "tf_attention_protein_grad_attn.npy", grad_attn)
+
+            attn_by_type_rollout = aggregate_attention_by_cell_type(rollout, labels, label_names)
+            attn_by_type_grad = aggregate_attention_by_cell_type(grad_attn, labels, label_names)
+
+            for method_name, attn_by_type in [
+                ("rollout", attn_by_type_rollout),
+                ("grad_attn", attn_by_type_grad),
+            ]:
+                spec = compute_specificity_scores(attn_by_type)
+
+                plot_per_celltype_top_heatmap(
+                    spec, protein_names,
+                    title=f"Protein {method_name} SPECIFICITY (z-scored across cell types)",
+                    save_path=str(out / f"attention_heatmap_protein_{method_name}_specificity.png"),
+                    top_k_per_row=args.top_k_per_row,
+                )
+                print(f"Saved: {out / f'attention_heatmap_protein_{method_name}_specificity.png'}")
+
+                top_t = get_top_tokens(attn_by_type, protein_names, top_k=args.top_k)
+                val = validate_against_markers(top_t, _DEFAULT_MARKERS, token_names=protein_names)
+                rnks = compute_marker_ranks(attn_by_type, _DEFAULT_MARKERS, protein_names)
+
+                print(f"\n=== Marker validation ({method_name}) ===")
+                for ct, res in val.items():
+                    print(
+                        f"  {ct}: recall={res['recall']:.2f}  "
+                        f"found={res['found']}  missing={res['missing']}"
+                    )
+
+                val_path = out / f"marker_validation_{method_name}.json"
+                with open(val_path, "w", encoding="utf-8") as f:
+                    json.dump(
+                        {
+                            ct: {
+                                "top_k_recall": val.get(ct, {}).get("recall"),
+                                "found": val.get(ct, {}).get("found"),
+                                "missing": val.get(ct, {}).get("missing"),
+                                "marker_ranks": rnks.get(ct, {}),
+                            }
+                            for ct in _DEFAULT_MARKERS
+                        },
+                        f, indent=2,
+                    )
+                print(f"Saved: {val_path}")
+        except Exception as exc:
+            import traceback
+            print(f"[warn] Advanced attribution failed: {exc}")
+            traceback.print_exc()
+    else:
+        print(
+            "\n[info] Skipping rollout + gradient×attention (pass --data_path to enable)."
         )
 
     ablation_path = ckpt / "ablation_logit_drop_per_type.npy"
