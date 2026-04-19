@@ -321,6 +321,7 @@ def main(args: argparse.Namespace) -> None:
         hidden_dim=args.hidden_dim,
         output_dim=args.embedding_dim,
         normalize_output=False,
+        dropout=args.encoder_dropout,
     ).to(device)
     classifier = ClassificationHead(
         input_dim=args.embedding_dim,
@@ -475,6 +476,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--embedding_dim", type=int, default=128)
     parser.add_argument("--classifier_hidden_dim", type=int, default=64)
     parser.add_argument("--classifier_dropout", type=float, default=0.2)
+    parser.add_argument("--encoder_dropout", type=float, default=0.4)
 
     # Hyperparameters: lr: 1e-3, weight_decay: 1e-5, batch_size: 256
     parser.add_argument("--batch_size", type=int, default=256)
