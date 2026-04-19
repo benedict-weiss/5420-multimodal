@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import warnings
 from pathlib import Path
 
 import matplotlib
@@ -12,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import entropy as _scipy_entropy
 from scipy.stats import ranksums
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -43,13 +45,35 @@ ALL_MODEL_KEYS = ["baseline", "baseline_protein", "mlp", "tf"]
 
 
 def compute_auroc(y_true: np.ndarray, y_pred_proba: np.ndarray, n_classes: int) -> float:
-    """Macro-averaged AUC-ROC (one-vs-rest). n_classes kept for API compatibility."""
+    """Macro-averaged AUC-ROC (one-vs-rest).
+
+    Computes per-class OvR AUROC with ``labels=np.arange(n_classes)`` so the
+    column layout of ``y_pred_proba`` is interpreted correctly, then macro-
+    averages with ``nanmean`` so classes absent from ``y_true`` (e.g., rare
+    cell types missing from a donor-held-out test split) are skipped instead
+    of propagating NaN through the mean.
+    """
     n_unique = len(np.unique(y_true))
+    if n_unique < 2:
+        return float("nan")
     if n_unique == 2:
         # Binary case: roc_auc_score expects 1-D scores (positive class proba)
         scores = y_pred_proba[:, 1] if y_pred_proba.ndim == 2 else y_pred_proba
         return float(roc_auc_score(y_true, scores))
-    return float(roc_auc_score(y_true, y_pred_proba, average="macro", multi_class="ovr"))
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+        per_class = roc_auc_score(
+            y_true,
+            y_pred_proba,
+            average=None,
+            multi_class="ovr",
+            labels=np.arange(n_classes),
+        )
+    per_class = np.asarray(per_class, dtype=float)
+    if not np.isfinite(per_class).any():
+        return float("nan")
+    return float(np.nanmean(per_class))
 
 
 def compute_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> tuple[float, dict]:
