@@ -69,6 +69,7 @@ SPLIT_VAL_VALUES="${SPLIT_VAL_VALUES:-}"
 
 # Optional Stage A checkpoint criterion.
 STAGE_A_SELECT_METRIC="${STAGE_A_SELECT_METRIC:-val_loss}"
+STAGE_A_INPUT_DROPOUT="${STAGE_A_INPUT_DROPOUT:-0.15}"
 STAGE_A_PROBE_EVERY="${STAGE_A_PROBE_EVERY:-3}"
 STAGE_A_PROBE_EPOCHS="${STAGE_A_PROBE_EPOCHS:-5}"
 STAGE_A_PROBE_LR="${STAGE_A_PROBE_LR:-1e-3}"
@@ -129,6 +130,7 @@ run_one() {
     --patience "$run_patience" \
     --min_delta "$MIN_DELTA" \
     --stage_a_select_metric "$STAGE_A_SELECT_METRIC" \
+    --stage_a_input_dropout "$STAGE_A_INPUT_DROPOUT" \
     --stage_a_probe_every "$STAGE_A_PROBE_EVERY" \
     --stage_a_probe_epochs "$STAGE_A_PROBE_EPOCHS" \
     --stage_a_probe_lr "$STAGE_A_PROBE_LR" \
