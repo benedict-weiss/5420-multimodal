@@ -1,0 +1,21 @@
+{
+  "final_test_loss": 1.3553898535983664,
+  "final_accuracy": 0.5748075112169723,
+  "final_macro_auroc": 0.9517165503312435,
+  "stage_a_history": [
+    {
+      "epoch": 1,
+      "train_loss": 4.772080837031127,
+      "val_loss": 3.8528359676229544
+    }
+  ],
+  "stage_b_history": [
+    {
+      "epoch": 1,
+      "train_loss": 2.0426396586763578,
+      "val_loss": 1.3508443174691036,
+      "val_accuracy": 0.5748511286525412,
+      "val_macro_auroc": 0.9582778441993257
+    }
+  ]
+}

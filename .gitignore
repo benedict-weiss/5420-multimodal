@@ -2,6 +2,7 @@
 data/
 *.h5ad
 *.h5ad.gz
+*.npy
 
 # Python
 __pycache__/
@@ -19,7 +20,12 @@ Thumbs.db
 
 # Claude Code
 CLAUDE.md
+tasks/
+.claude
 
 # Results (large files)
 results/figures/*.png
 results/metrics/*.csv
+
+# Planning
+/docs

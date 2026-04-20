@@ -117,6 +117,22 @@ python -m src.attention_analysis \
 
 Produces attention heatmaps (RNA pathways and protein markers per cell type) and a `marker_validation.json` reporting recall of known markers (CD3→T, CD19→B, CD34→HSC, etc.).
 
+## Ablation Visualization
+
+```bash
+# Plot protein ablation summaries from a checkpoint with ablation artifacts
+python -m src.ablation_visualization \
+  --checkpoint_dir results/checkpoints/contrastive_tf_seed42_<timestamp>
+```
+
+Produces:
+
+| File | Description |
+|------|-------------|
+| `ablation_heatmap_top_proteins.png` | Row-normalized heatmap of the top ablation proteins across cell types |
+| `ablation_top_bars_selected_cell_types.png` | Small-multiple bar charts of top-k protein drivers for representative cell types |
+| `ablation_visualization_summary.json` | Metadata for the generated figure set |
+
 ## Testing
 
 ```bash

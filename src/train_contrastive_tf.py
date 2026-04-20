@@ -191,20 +191,23 @@ def extract_attention(
     rna_encoder: TransformerEncoder,
     protein_encoder: TransformerEncoder,
     device: torch.device,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Collect CLS attention weights from both encoders over the full loader.
 
     Returns:
-        (attn_rna, attn_protein, labels)
+        (attn_rna, attn_protein, labels, attn_rna_per_head, attn_protein_per_head)
         attn_rna:    (n_cells, n_pathway_tokens)
         attn_protein:(n_cells, n_protein_tokens)
         labels:      (n_cells,) integer labels
+        attn_rna_per_head:     (n_cells, n_layers, n_heads, n_pathway_tokens)
+        attn_protein_per_head: (n_cells, n_layers, n_heads, n_protein_tokens)
     """
     rna_encoder.train(False)
     protein_encoder.train(False)
 
     attn_rna_all, attn_protein_all, labels_all = [], [], []
+    attn_rna_per_head_all, attn_protein_per_head_all = [], []
 
     for batch in loader:
         rna = batch["rna"].to(device)
@@ -215,17 +218,47 @@ def extract_attention(
 
         a_rna = rna_encoder.get_attention_weights()
         a_protein = protein_encoder.get_attention_weights()
+        a_rna_per_head = rna_encoder.get_attention_weights_per_head()
+        a_protein_per_head = protein_encoder.get_attention_weights_per_head()
 
         if a_rna is not None:
             attn_rna_all.append(a_rna.detach().cpu().numpy())
         if a_protein is not None:
             attn_protein_all.append(a_protein.detach().cpu().numpy())
+        if a_rna_per_head is not None:
+            attn_rna_per_head_all.append(
+                np.stack(
+                    [
+                        a_rna_per_head[layer_name].cpu().numpy()
+                        for layer_name in sorted(
+                            a_rna_per_head,
+                            key=lambda name: int(name.removeprefix("layer")),
+                        )
+                    ],
+                    axis=1,
+                )
+            )
+        if a_protein_per_head is not None:
+            attn_protein_per_head_all.append(
+                np.stack(
+                    [
+                        a_protein_per_head[layer_name].cpu().numpy()
+                        for layer_name in sorted(
+                            a_protein_per_head,
+                            key=lambda name: int(name.removeprefix("layer")),
+                        )
+                    ],
+                    axis=1,
+                )
+            )
         labels_all.append(batch["label"].numpy())
 
     return (
         np.concatenate(attn_rna_all) if attn_rna_all else np.array([]),
         np.concatenate(attn_protein_all) if attn_protein_all else np.array([]),
         np.concatenate(labels_all),
+        np.concatenate(attn_rna_per_head_all) if attn_rna_per_head_all else np.array([]),
+        np.concatenate(attn_protein_per_head_all) if attn_protein_per_head_all else np.array([]),
     )
 
 
@@ -458,6 +491,8 @@ def main(args: argparse.Namespace) -> None:
 
         total_train_loss = 0.0
         n_train_batches = 0
+        n_train_correct = 0
+        n_train_total = 0
         for batch in classifier_train_loader:
             rna = batch["rna"].to(device)
             protein = batch["protein"].to(device)
@@ -475,8 +510,11 @@ def main(args: argparse.Namespace) -> None:
 
             total_train_loss += loss.item()
             n_train_batches += 1
+            n_train_correct += (logits.argmax(dim=1) == y).sum().item()
+            n_train_total += y.size(0)
 
         train_loss = total_train_loss / max(1, n_train_batches)
+        train_accuracy = n_train_correct / max(1, n_train_total)
         val_loss, y_val_true, y_val_pred, y_val_proba = evaluate_classifier_epoch(
             classifier_val_loader, rna_encoder, protein_encoder, classifier, device
         )
@@ -484,6 +522,7 @@ def main(args: argparse.Namespace) -> None:
         stage_b_history.append({
             "epoch": epoch,
             "train_loss": float(train_loss),
+            "train_accuracy": float(train_accuracy),
             "val_loss": float(val_loss),
             "val_accuracy": float(val_metrics["accuracy"]),
             "val_macro_auroc": float(val_metrics["macro_auroc"]),
@@ -507,12 +546,23 @@ def main(args: argparse.Namespace) -> None:
 
     # Attention extraction
     attn_rna, attn_protein, attn_labels = None, None, None
+    attn_rna_per_head, attn_protein_per_head = None, None
     if args.save_attention:
         print("\nExtracting attention weights from test set...")
-        attn_rna, attn_protein, attn_labels = extract_attention(
+        (
+            attn_rna,
+            attn_protein,
+            attn_labels,
+            attn_rna_per_head,
+            attn_protein_per_head,
+        ) = extract_attention(
             classifier_test_loader, rna_encoder, protein_encoder, device
         )
         print(f"  RNA attention: {attn_rna.shape}, Protein attention: {attn_protein.shape}")
+        print(
+            "  RNA per-head attention: "
+            f"{attn_rna_per_head.shape}, Protein per-head attention: {attn_protein_per_head.shape}"
+        )
 
     # Save artifacts
     run_ts = time.strftime("%Y%m%d_%H%M%S")
@@ -555,6 +605,8 @@ def main(args: argparse.Namespace) -> None:
         json.dump({int(v): str(k) for k, v in label_mapping.items()}, f, indent=2)
     with open(run_dir / "pathway_names.json", "w", encoding="utf-8") as f:
         json.dump(pathway_names, f, indent=2)
+    with open(run_dir / "protein_names.json", "w", encoding="utf-8") as f:
+        json.dump([str(n) for n in protein_adata.var_names], f, indent=2)
     with open(run_dir / "metrics.json", "w", encoding="utf-8") as f:
         json.dump(
             _sanitize_json({
@@ -571,6 +623,8 @@ def main(args: argparse.Namespace) -> None:
         np.save(run_dir / "tf_attention_rna.npy", attn_rna)
         np.save(run_dir / "tf_attention_protein.npy", attn_protein)
         np.save(run_dir / "tf_attention_labels.npy", attn_labels)
+        np.save(run_dir / "tf_attention_rna_per_head.npy", attn_rna_per_head)
+        np.save(run_dir / "tf_attention_protein_per_head.npy", attn_protein_per_head)
         print(f"Attention weights saved to {run_dir}/")
 
     # Save test embeddings for evaluate.py (Option B)

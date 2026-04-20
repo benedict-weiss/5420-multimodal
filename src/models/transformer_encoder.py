@@ -19,6 +19,10 @@ class AttentionTransformerEncoderLayer(nn.TransformerEncoderLayer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._last_attn_weights: Optional[torch.Tensor] = None
+        self._retain_attn_grad: bool = False
+
+    def set_retain_attn_grad(self, value: bool) -> None:
+        self._retain_attn_grad = value
 
     def forward(self, src, src_mask=None, src_key_padding_mask=None, is_causal=False):
         # Temporarily set training=True to prevent PyTorch's per-layer C++ fast path
@@ -47,7 +51,10 @@ class AttentionTransformerEncoderLayer(nn.TransformerEncoderLayer):
             average_attn_weights=False,
             is_causal=is_causal,
         )
-        self._last_attn_weights = attn_weights.detach()  # (batch, nhead, seq_len, seq_len)
+        if self._retain_attn_grad:
+            self._last_attn_weights = attn_weights  # keep in graph (no detach, hooks fire on backward)
+        else:
+            self._last_attn_weights = attn_weights.detach()  # (batch, nhead, seq_len, seq_len)
         return self.dropout1(x)
 
 
@@ -120,6 +127,23 @@ class TransformerEncoder(nn.Module):
         cls_out = x[:, 0, :]
         return F.normalize(self.output_proj(cls_out), p=2, dim=1)
 
+    def set_retain_attn_grad(self, value: bool) -> None:
+        for layer in self.encoder.layers:
+            if isinstance(layer, AttentionTransformerEncoderLayer):
+                layer.set_retain_attn_grad(value)
+
+    def get_full_attention_per_layer(self) -> Optional[dict[str, torch.Tensor]]:
+        """
+        Full (batch, nhead, seq_len, seq_len) attention maps per layer.
+        When set_retain_attn_grad(True) was called before the forward pass,
+        tensors remain in the computation graph so .grad is populated after backward().
+        """
+        result: dict[str, torch.Tensor] = {}
+        for layer_idx, layer in enumerate(self.encoder.layers):
+            if layer._last_attn_weights is not None:
+                result[f"layer{layer_idx}"] = layer._last_attn_weights
+        return result or None
+
     def get_attention_weights(self) -> Optional[torch.Tensor]:
         """
         CLS-to-token attention from the last encoder layer, averaged over heads.
@@ -133,3 +157,18 @@ class TransformerEncoder(nn.Module):
         # (batch, nhead, seq_len, seq_len) -> mean over heads -> CLS row, skip CLS-to-CLS
         attn_avg = last_layer._last_attn_weights.mean(dim=1)  # (batch, seq_len, seq_len)
         return attn_avg[:, 0, 1:]  # (batch, n_tokens)
+
+    def get_attention_weights_per_head(self) -> Optional[dict[str, torch.Tensor]]:
+        """
+        CLS-to-token attention from every encoder layer, preserving individual heads.
+
+        Returns:
+            Dict like {"layer0": (batch, nhead, n_tokens), ...}, or None if no
+            layer has cached attention weights from a forward pass yet.
+        """
+        result: dict[str, torch.Tensor] = {}
+        for layer_idx, layer in enumerate(self.encoder.layers):
+            if layer._last_attn_weights is None:
+                continue
+            result[f"layer{layer_idx}"] = layer._last_attn_weights[:, :, 0, 1:].detach()
+        return result or None

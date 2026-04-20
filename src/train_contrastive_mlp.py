@@ -792,6 +792,8 @@ def main(args: argparse.Namespace) -> None:
 
         total_train_loss = 0.0
         n_train_batches = 0
+        n_train_correct = 0
+        n_train_total = 0
 
         for batch in classifier_train_loader:
             rna = batch["rna"].to(device)
@@ -810,8 +812,11 @@ def main(args: argparse.Namespace) -> None:
 
             total_train_loss += loss.item()
             n_train_batches += 1
+            n_train_correct += (logits.argmax(dim=1) == y).sum().item()
+            n_train_total += y.size(0)
 
         train_loss = total_train_loss / max(1, n_train_batches)
+        train_accuracy = n_train_correct / max(1, n_train_total)
 
         # Checkpoint selection uses val split (not test) to avoid leakage
         val_loss, y_val_true, y_val_pred, y_val_proba = evaluate_classifier_epoch(
@@ -827,6 +832,7 @@ def main(args: argparse.Namespace) -> None:
             {
                 "epoch": epoch,
                 "train_loss": float(train_loss),
+                "train_accuracy": float(train_accuracy),
                 "val_loss": float(val_loss),
                 "val_accuracy": float(val_metrics["accuracy"]),
                 "val_macro_auroc": float(val_metrics["macro_auroc"]),
