@@ -296,8 +296,8 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
                 ax.plot(epochs, [h["train_loss"] for h in history], label="train", color="tab:blue")
                 ax.plot(epochs, [h["val_loss"] for h in history], label="val", color="tab:orange")
                 if final_test_loss is not None:
-                    ax.axhline(final_test_loss, color="tab:red", linestyle=":",
-                               label=f"test ({final_test_loss:.4f})")
+                    ax.scatter([epochs[-1]], [final_test_loss], color="tab:red", zorder=5,
+                               marker="*", s=120, label=f"test (final={final_test_loss:.4f})")
         else:
             stage_a = metrics.get("stage_a_history", [])
             stage_b = metrics.get("stage_b_history", [])
@@ -315,8 +315,8 @@ def _fig_training_curves(runs: dict, output_dir: Path) -> None:
                 if stage_a:
                     ax.axvline(offset, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
                 if final_test_loss is not None:
-                    ax.axhline(final_test_loss, color="tab:red", linestyle=":",
-                               label=f"test ({final_test_loss:.4f})")
+                    ax.scatter([eb[-1]], [final_test_loss], color="tab:red", zorder=5,
+                               marker="*", s=120, label=f"test (final={final_test_loss:.4f})")
 
         ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Training Curves")
         ax.set_xlabel("Epoch")

@@ -3,6 +3,8 @@ numpy<2                  # muon transitive dep chain breaks on numpy 2.x
 scipy>=1.10              # used in tests (scipy.sparse) and by scanpy/anndata
 pandas>=2.0              # used directly in preprocessing.py
 anndata>=0.9
+# anndata/mudata import path requires zarr at runtime
+zarr<3
 scanpy>=1.9,<2
 muon>=0.1,<1
 scikit-learn>=1.3
@@ -21,5 +23,8 @@ matplotlib>=3.7
 seaborn>=0.13
 phate>=1.0
 
-# Model training (needed for dataset.py, train_*.py, models/ — not yet implemented)
-torch>=2.0
+# Model training
+# Keep a conservative torch range in base requirements; HPC installs should use a
+# CUDA-matched wheel index explicitly (example for CUDA 12.8 clusters):
+#   pip install --index-url https://download.pytorch.org/whl/cu128 torch torchvision torchaudio
+torch>=2.0,<2.12
