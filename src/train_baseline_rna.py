@@ -447,6 +447,15 @@ def main(args: argparse.Namespace) -> None:
         json.dump(hvg_genes, f)
     torch.save(pca_model, run_dir / "rna_pca_model.pt")
 
+    # Save test-set encoder embeddings for downstream PHATE / ASW figures
+    encoder.eval()
+    test_embeddings: list[np.ndarray] = []
+    with torch.no_grad():
+        for rna, _ in test_loader:
+            test_embeddings.append(encoder(rna.to(device)).cpu().numpy())
+    np.save(run_dir / "test_embeddings.npy", np.concatenate(test_embeddings, axis=0))
+    np.save(run_dir / "test_labels.npy", test_labels)
+
     print("\n=== Training complete ===")
     print(f"Run directory: {run_dir}")
     print(f"Final test loss:     {final_test_loss:.4f}")

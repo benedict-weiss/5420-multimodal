@@ -434,6 +434,15 @@ def main(args: argparse.Namespace) -> None:
     with open(run_dir / "protein_markers.json", "w", encoding="utf-8") as f:
         json.dump(protein_marker_names, f)
 
+    # Save test-set encoder embeddings for downstream PHATE / ASW figures
+    encoder.eval()
+    test_embeddings: list[np.ndarray] = []
+    with torch.no_grad():
+        for protein, _ in test_loader:
+            test_embeddings.append(encoder(protein.to(device)).cpu().numpy())
+    np.save(run_dir / "test_embeddings.npy", np.concatenate(test_embeddings, axis=0))
+    np.save(run_dir / "test_labels.npy", test_labels)
+
     print("\n=== Training complete ===")
     print(f"Run directory: {run_dir}")
     print(f"Final test loss:     {final_test_loss:.4f}")
