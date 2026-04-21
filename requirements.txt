@@ -23,6 +23,11 @@ matplotlib>=3.7
 seaborn>=0.13
 phate>=1.0
 
+# Graph clustering for attention_graph.py (optional — pipeline falls back to
+# sklearn spectral clustering when these are not importable)
+leidenalg>=0.10
+python-igraph>=0.10
+
 # Model training
 # Keep a conservative torch range in base requirements; HPC installs should use a
 # CUDA-matched wheel index explicitly (example for CUDA 12.8 clusters):

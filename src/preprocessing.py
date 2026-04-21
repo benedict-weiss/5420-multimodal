@@ -7,6 +7,7 @@ Functions:
   preprocess_rna(rna_adata: AnnData, n_comps=256, pca_model=None, return_pca_model=False) -> np.ndarray | tuple
   preprocess_protein(protein_adata: AnnData) -> np.ndarray
   build_pathway_tokens(rna_adata: AnnData, min_genes=5, gene_sets=None) -> tuple[np.ndarray, list[str]]
+  build_gene_tokens(rna_adata: AnnData, n_hvgs=512, hvg_genes=None) -> tuple[np.ndarray, list[str]]
   get_labels(adata: AnnData, label_col: str = "cell_type") -> tuple[np.ndarray, dict]
   split_by_donor(adata: AnnData, test_donors: list[str], donor_col: str = "DonorNumber") -> tuple[np.ndarray, np.ndarray]
 """
@@ -275,6 +276,68 @@ def build_pathway_tokens(
     print(f"  {len(pathway_names)} pathways included (>= {min_genes} genes)")
 
     return X_pathways, pathway_names
+
+
+def build_gene_tokens(
+    rna_adata: anndata.AnnData,
+    n_hvgs: int = 512,
+    hvg_genes: list = None,
+) -> tuple[np.ndarray, list]:
+    """
+    Build per-gene scalar tokens from the top-N HVGs for direct gene×gene attention.
+
+    IMPORTANT: Call AFTER normalize_total + log1p. Output is the log-normalized
+    expression matrix subset to selected HVGs (no PCA, no rescale), so each token
+    carries a direct gene identity.
+
+    Args:
+        rna_adata: RNA AnnData with log-normalized counts (post normalize_total + log1p).
+        n_hvgs:    Number of top highly-variable genes to retain as tokens. Used only
+                   when hvg_genes is None (training path).
+        hvg_genes: Ordered gene list from training. When provided, skip HVG selection
+                   and subset to these genes — use on inference paths to match the
+                   training feature set.
+
+    Returns:
+        (gene_matrix, gene_names) where gene_matrix is (n_cells, n_genes_kept) float32.
+    """
+    import warnings
+
+    adata = rna_adata.copy()
+
+    if not adata.var_names.is_unique:
+        warnings.warn(
+            "rna_adata.var_names are not unique. Making them unique before gene tokenization. "
+            "Call .var_names_make_unique() on your AnnData before preprocessing to avoid this.",
+            UserWarning,
+        )
+        adata.var_names_make_unique()
+
+    x_max = adata.X.max()
+    if hasattr(x_max, "item"):
+        x_max = x_max.item()
+    if x_max > 20:
+        raise ValueError(
+            f"Input data max value is {x_max:.1f}, which suggests raw or un-logged counts. "
+            "build_gene_tokens must be called AFTER normalize_total + log1p."
+        )
+
+    if hvg_genes is not None:
+        genes_present = [g for g in hvg_genes if g in adata.var_names]
+        adata = adata[:, genes_present]
+    else:
+        scanpy.pp.highly_variable_genes(adata, n_top_genes=n_hvgs)
+        adata = adata[:, adata.var.highly_variable]
+
+    selected_genes = list(adata.var_names)
+
+    X = adata.X.toarray() if hasattr(adata.X, "toarray") else adata.X
+    X = np.asarray(X, dtype=np.float32)
+
+    print(f"Gene tokens output shape: {X.shape}")
+    print(f"  {len(selected_genes)} HVG tokens retained")
+
+    return X, selected_genes
 
 
 def get_labels(
