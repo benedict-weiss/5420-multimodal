@@ -2,7 +2,7 @@
 #SBATCH --job-name=train_tf_full_pipeline
 #SBATCH --gres=gpu:1
 #SBATCH --mem=32G
-#SBATCH --time=3:00:00
+#SBATCH --time=5:00:00
 #SBATCH --partition=education_gpu
 #SBATCH --output=logs/%x-%j.out
 
@@ -35,6 +35,9 @@ VAL_RATIO="${VAL_RATIO:-0.1}"
 DATA_PATH="${DATA_PATH:-data/}"
 GENE_SETS_PATH="${GENE_SETS_PATH:-data/kegg_2021_human.json}"
 OUTPUT_DIR="${OUTPUT_DIR:-results/checkpoints}"
+
+N_HVGS="${N_HVGS:-512}"
+GENE_OUTPUT_DIR="${GENE_OUTPUT_DIR:-results}"
 
 python -m src.train_contrastive_tf \
   --data_path "$DATA_PATH" \
@@ -79,4 +82,40 @@ python -m src.attention_graph \
   --modalities rna,protein \
   --batch_size "$BATCH_SIZE"
 
-echo "Pipeline complete. Outputs in $CHECKPOINT_DIR"
+python -m src.train_contrastive_tf_gene \
+  --data_path "$DATA_PATH" \
+  --output_dir "$GENE_OUTPUT_DIR" \
+  --seed "$SEED" \
+  --batch_size "$BATCH_SIZE" \
+  --n_hvgs "$N_HVGS" \
+  --lr "$LR" \
+  --temperature "$TEMPERATURE" \
+  --weight_decay "$WEIGHT_DECAY" \
+  --dim_feedforward "$HIDDEN_DIM" \
+  --embedding_dim "$EMBED_DIM" \
+  --classifier_hidden_dim "$CLASSIFIER_HIDDEN_DIM" \
+  --classifier_dropout "$CLASSIFIER_DROPOUT" \
+  --contrastive_epochs "$CONTRASTIVE_EPOCHS" \
+  --classifier_epochs "$CLASSIFIER_EPOCHS" \
+  --patience "$PATIENCE" \
+  --min_delta "$MIN_DELTA" \
+  --val_ratio "$VAL_RATIO"
+
+GENE_CHECKPOINT_DIR=$(ls -td "$GENE_OUTPUT_DIR"/contrastive_tf_gene_seed${SEED}_* 2>/dev/null | head -n 1)
+if [[ -z "$GENE_CHECKPOINT_DIR" ]]; then
+  echo "No gene-token checkpoint found under $GENE_OUTPUT_DIR matching seed${SEED}_*" >&2
+  exit 1
+fi
+echo "Using gene-token checkpoint: $GENE_CHECKPOINT_DIR"
+
+python -m src.attention_graph \
+  --checkpoint_dir "$GENE_CHECKPOINT_DIR" \
+  --data_path "$DATA_PATH" \
+  --methods raw,rollout,grad_attn \
+  --scopes global,per_cell_type \
+  --modalities rna,protein \
+  --batch_size "$BATCH_SIZE"
+
+echo "Pipeline complete."
+echo "  Pathway outputs: $CHECKPOINT_DIR"
+echo "  Gene outputs:    $GENE_CHECKPOINT_DIR"
