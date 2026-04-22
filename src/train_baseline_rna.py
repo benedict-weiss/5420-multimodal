@@ -498,14 +498,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val_ratio", type=float, default=0.1)
 
     parser.add_argument("--rna_pca_dim", type=int, default=256)
-    parser.add_argument("--hidden_dim", type=int, default=256)
+    parser.add_argument("--hidden_dim", type=int, default=512)
     parser.add_argument("--embedding_dim", type=int, default=128)
     parser.add_argument("--classifier_hidden_dim", type=int, default=64)
-    parser.add_argument("--classifier_dropout", type=float, default=0.2)
+    parser.add_argument("--classifier_dropout", type=float, default=0.3)
     parser.add_argument("--encoder_dropout", type=float, default=0.5)
 
-    # Hyperparameters: lr: 1e-3, weight_decay: 1e-5, batch_size: 256
-    parser.add_argument("--batch_size", type=int, default=256)
+    # Shared hyperparameters (matches contrastive model defaults where applicable)
+    parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight_decay", type=float, default=1e-5)
     parser.add_argument("--epochs", type=int, default=50)
