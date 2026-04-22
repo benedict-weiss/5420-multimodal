@@ -467,6 +467,15 @@ def enrichment_per_cluster(
     if token_kind == "pathway" and gene_sets is None:
         raise ValueError("token_kind='pathway' requires gene_sets for expansion")
 
+    # gseapy 0.10.x calls DataFrame.append() which was removed in pandas 2.0.
+    # Restore it as a pd.concat shim before importing gseapy so the internal call succeeds.
+    import pandas as _pd
+    if not hasattr(_pd.DataFrame, "append"):
+        def _df_append_compat(self, other, ignore_index=False, verify_integrity=False, sort=False):
+            frames = [self, other if isinstance(other, _pd.DataFrame) else _pd.DataFrame([other])]
+            return _pd.concat(frames, ignore_index=ignore_index, sort=sort)
+        _pd.DataFrame.append = _df_append_compat  # type: ignore[attr-defined]
+
     import gseapy
 
     result: dict = {}
