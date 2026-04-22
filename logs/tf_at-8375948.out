@@ -1,0 +1,514 @@
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Cell type labels: 45 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'CD8+ T naive CD127+ CD26- CD101-': 16, 'Erythroblast': 17, 'G/M prog': 18, 'HSC': 19, 'ILC': 20, 'ILC1': 21, 'Lymph prog': 22, 'MAIT': 23, 'MK/E prog': 24, 'NK': 25, 'NK CD158e1+': 26, 'Naive CD20+ B IGKC+': 27, 'Naive CD20+ B IGKC-': 28, 'Normoblast': 29, 'Plasma cell IGKC+': 30, 'Plasma cell IGKC-': 31, 'Plasmablast IGKC+': 32, 'Plasmablast IGKC-': 33, 'Proerythroblast': 34, 'Reticulocyte': 35, 'T prog cycling': 36, 'T reg': 37, 'Transitional B': 38, 'cDC1': 39, 'cDC2': 40, 'dnT': 41, 'gdT CD158b+': 42, 'gdT TCRVD2+': 43, 'pDC': 44}
+Split modalities: RNA (90261, 13953), Protein (90261, 134)
+Loading gene sets from data/kegg_2021_human.json...
+Building pathway tokens (KEGG_2021_Human)...
+Pathway tokens output shape: (90261, 313)
+  313 pathways included (>= 5 genes)
+  Pathway matrix shape: (90261, 313)
+Protein CLR output shape: (72208, 134)
+Protein CLR output shape: (18053, 134)
+Prepared: train pathway (72208, 313), train protein (72208, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.7721 | val=3.8528 | best=3.8528
+[Stage A] Epoch 002 | train=3.8099 | val=3.4156 | best=3.4156
+[Stage A] Epoch 003 | train=3.5106 | val=3.1681 | best=3.1681
+[Stage A] Epoch 004 | train=3.3047 | val=2.9666 | best=2.9666
+[Stage A] Epoch 005 | train=3.1356 | val=2.8371 | best=2.8371
+[Stage A] Epoch 006 | train=2.9936 | val=2.6939 | best=2.6939
+[Stage A] Epoch 007 | train=2.8650 | val=2.5624 | best=2.5624
+[Stage A] Epoch 008 | train=2.7724 | val=2.4969 | best=2.4969
+[Stage A] Epoch 009 | train=2.6839 | val=2.4139 | best=2.4139
+[Stage A] Epoch 010 | train=2.6146 | val=2.3664 | best=2.3664
+[Stage A] Epoch 011 | train=2.5640 | val=2.2987 | best=2.2987
+[Stage A] Epoch 012 | train=2.5134 | val=2.3185 | best=2.2987
+[Stage A] Epoch 013 | train=2.4716 | val=2.2233 | best=2.2233
+[Stage A] Epoch 014 | train=2.4353 | val=2.2122 | best=2.2122
+[Stage A] Epoch 015 | train=2.3986 | val=2.1879 | best=2.1879
+[Stage A] Epoch 016 | train=2.3601 | val=2.1254 | best=2.1254
+[Stage A] Epoch 017 | train=2.3346 | val=2.1114 | best=2.1114
+[Stage A] Epoch 018 | train=2.3044 | val=2.0837 | best=2.0837
+[Stage A] Epoch 019 | train=2.2785 | val=2.0912 | best=2.0837
+[Stage A] Epoch 020 | train=2.2574 | val=2.0339 | best=2.0339
+[Stage A] Epoch 021 | train=2.2352 | val=2.0172 | best=2.0172
+[Stage A] Epoch 022 | train=2.2136 | val=2.0643 | best=2.0172
+[Stage A] Epoch 023 | train=2.1910 | val=1.9779 | best=1.9779
+[Stage A] Epoch 024 | train=2.1701 | val=1.9391 | best=1.9391
+[Stage A] Epoch 025 | train=2.1544 | val=1.9438 | best=1.9391
+[Stage A] Epoch 026 | train=2.1266 | val=1.9102 | best=1.9102
+[Stage A] Epoch 027 | train=2.1286 | val=1.9637 | best=1.9102
+[Stage A] Epoch 028 | train=2.1014 | val=1.9078 | best=1.9078
+[Stage A] Epoch 029 | train=2.0916 | val=1.8683 | best=1.8683
+[Stage A] Epoch 030 | train=2.0653 | val=1.9118 | best=1.8683
+[Stage A] Epoch 031 | train=2.0568 | val=1.8772 | best=1.8683
+[Stage A] Epoch 032 | train=2.0432 | val=1.8584 | best=1.8584
+[Stage A] Epoch 033 | train=2.0359 | val=1.8905 | best=1.8584
+[Stage A] Epoch 034 | train=2.0156 | val=1.8504 | best=1.8504
+[Stage A] Epoch 035 | train=2.0041 | val=1.8696 | best=1.8504
+[Stage A] Epoch 036 | train=1.9960 | val=1.8680 | best=1.8504
+[Stage A] Epoch 037 | train=1.9893 | val=1.8079 | best=1.8079
+[Stage A] Epoch 038 | train=1.9698 | val=1.8359 | best=1.8079
+[Stage A] Epoch 039 | train=1.9584 | val=1.8216 | best=1.8079
+[Stage A] Epoch 040 | train=1.9555 | val=1.7890 | best=1.7890
+[Stage A] Epoch 041 | train=1.9422 | val=1.7846 | best=1.7846
+[Stage A] Epoch 042 | train=1.9398 | val=1.8075 | best=1.7846
+[Stage A] Epoch 043 | train=1.9290 | val=1.7577 | best=1.7577
+[Stage A] Epoch 044 | train=1.9090 | val=1.8075 | best=1.7577
+[Stage A] Epoch 045 | train=1.9060 | val=1.7850 | best=1.7577
+[Stage A] Epoch 046 | train=1.8981 | val=1.7609 | best=1.7577
+[Stage A] Epoch 047 | train=1.8881 | val=1.7524 | best=1.7524
+[Stage A] Epoch 048 | train=1.8838 | val=1.7655 | best=1.7524
+[Stage A] Epoch 049 | train=1.8682 | val=1.7173 | best=1.7173
+[Stage A] Epoch 050 | train=1.8674 | val=1.7260 | best=1.7173
+[Stage A] Epoch 051 | train=1.8615 | val=1.7359 | best=1.7173
+[Stage A] Epoch 052 | train=1.8499 | val=1.7455 | best=1.7173
+[Stage A] Epoch 053 | train=1.8434 | val=1.7202 | best=1.7173
+[Stage A] Epoch 054 | train=1.8330 | val=1.7329 | best=1.7173
+[Stage A] Epoch 055 | train=1.8304 | val=1.7229 | best=1.7173
+[Stage A] Epoch 056 | train=1.8231 | val=1.7048 | best=1.7048
+[Stage A] Epoch 057 | train=1.8167 | val=1.6628 | best=1.6628
+[Stage A] Epoch 058 | train=1.8140 | val=1.6818 | best=1.6628
+[Stage A] Epoch 059 | train=1.7984 | val=1.6885 | best=1.6628
+[Stage A] Epoch 060 | train=1.7945 | val=1.6707 | best=1.6628
+[Stage A] Epoch 061 | train=1.7896 | val=1.6964 | best=1.6628
+[Stage A] Epoch 062 | train=1.7807 | val=1.6403 | best=1.6403
+[Stage A] Epoch 063 | train=1.7799 | val=1.6454 | best=1.6403
+[Stage A] Epoch 064 | train=1.7725 | val=1.6609 | best=1.6403
+[Stage A] Epoch 065 | train=1.7635 | val=1.6292 | best=1.6292
+[Stage A] Epoch 066 | train=1.7661 | val=1.6461 | best=1.6292
+[Stage A] Epoch 067 | train=1.7626 | val=1.6479 | best=1.6292
+[Stage A] Epoch 068 | train=1.7530 | val=1.6927 | best=1.6292
+[Stage A] Epoch 069 | train=1.7456 | val=1.6230 | best=1.6230
+[Stage A] Epoch 070 | train=1.7430 | val=1.6049 | best=1.6049
+[Stage A] Epoch 071 | train=1.7369 | val=1.6254 | best=1.6049
+[Stage A] Epoch 072 | train=1.7297 | val=1.6219 | best=1.6049
+[Stage A] Epoch 073 | train=1.7267 | val=1.6238 | best=1.6049
+[Stage A] Epoch 074 | train=1.7240 | val=1.6509 | best=1.6049
+[Stage A] Epoch 075 | train=1.7178 | val=1.6346 | best=1.6049
+[Stage A] Epoch 076 | train=1.7187 | val=1.6143 | best=1.6049
+[Stage A] Epoch 077 | train=1.7135 | val=1.6053 | best=1.6049
+[Stage A] Epoch 078 | train=1.7022 | val=1.6084 | best=1.6049
+[Stage A] Epoch 079 | train=1.7017 | val=1.5842 | best=1.5842
+[Stage A] Epoch 080 | train=1.6995 | val=1.5921 | best=1.5842
+[Stage A] Epoch 081 | train=1.6944 | val=1.6138 | best=1.5842
+[Stage A] Epoch 082 | train=1.6881 | val=1.6199 | best=1.5842
+[Stage A] Epoch 083 | train=1.6799 | val=1.5829 | best=1.5829
+[Stage A] Epoch 084 | train=1.6672 | val=1.6127 | best=1.5829
+[Stage A] Epoch 085 | train=1.6751 | val=1.5978 | best=1.5829
+[Stage A] Epoch 086 | train=1.6693 | val=1.5801 | best=1.5801
+[Stage A] Epoch 087 | train=1.6615 | val=1.5950 | best=1.5801
+[Stage A] Epoch 088 | train=1.6591 | val=1.5817 | best=1.5801
+[Stage A] Epoch 089 | train=1.6571 | val=1.5875 | best=1.5801
+[Stage A] Epoch 090 | train=1.6580 | val=1.6153 | best=1.5801
+[Stage A] Epoch 091 | train=1.6409 | val=1.5856 | best=1.5801
+[Stage A] Epoch 092 | train=1.6479 | val=1.5618 | best=1.5618
+[Stage A] Epoch 093 | train=1.6442 | val=1.5774 | best=1.5618
+[Stage A] Epoch 094 | train=1.6368 | val=1.5924 | best=1.5618
+[Stage A] Epoch 095 | train=1.6391 | val=1.5577 | best=1.5577
+[Stage A] Epoch 096 | train=1.6353 | val=1.5473 | best=1.5473
+[Stage A] Epoch 097 | train=1.6322 | val=1.5528 | best=1.5473
+[Stage A] Epoch 098 | train=1.6296 | val=1.5786 | best=1.5473
+[Stage A] Epoch 099 | train=1.6292 | val=1.5699 | best=1.5473
+[Stage A] Epoch 100 | train=1.6214 | val=1.5500 | best=1.5473
+[Stage A] Epoch 101 | train=1.6206 | val=1.5235 | best=1.5235
+[Stage A] Epoch 102 | train=1.6164 | val=1.5642 | best=1.5235
+[Stage A] Epoch 103 | train=1.6090 | val=1.5797 | best=1.5235
+[Stage A] Epoch 104 | train=1.6083 | val=1.5482 | best=1.5235
+[Stage A] Epoch 105 | train=1.6084 | val=1.5965 | best=1.5235
+[Stage A] Epoch 106 | train=1.6043 | val=1.5500 | best=1.5235
+[Stage A] Epoch 107 | train=1.6027 | val=1.5364 | best=1.5235
+[Stage A] Epoch 108 | train=1.6065 | val=1.5441 | best=1.5235
+[Stage A] Epoch 109 | train=1.5944 | val=1.5316 | best=1.5235
+[Stage A] Epoch 110 | train=1.5889 | val=1.5331 | best=1.5235
+[Stage A] Epoch 111 | train=1.5883 | val=1.5427 | best=1.5235
+Early stopping at epoch 111.
+Loaded best Stage A weights from epoch 101.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=1.7834 | val_acc=0.7619
+[Stage B] Epoch 002 | train=0.6884 | val_acc=0.8011
+[Stage B] Epoch 003 | train=0.5756 | val_acc=0.8111
+[Stage B] Epoch 004 | train=0.5334 | val_acc=0.8232
+[Stage B] Epoch 005 | train=0.5083 | val_acc=0.8240
+[Stage B] Epoch 006 | train=0.4914 | val_acc=0.8261
+[Stage B] Epoch 007 | train=0.4779 | val_acc=0.8328
+[Stage B] Epoch 008 | train=0.4667 | val_acc=0.8324
+[Stage B] Epoch 009 | train=0.4569 | val_acc=0.8342
+[Stage B] Epoch 010 | train=0.4503 | val_acc=0.8377
+[Stage B] Epoch 011 | train=0.4432 | val_acc=0.8376
+[Stage B] Epoch 012 | train=0.4386 | val_acc=0.8381
+[Stage B] Epoch 013 | train=0.4342 | val_acc=0.8387
+[Stage B] Epoch 014 | train=0.4307 | val_acc=0.8414
+[Stage B] Epoch 015 | train=0.4257 | val_acc=0.8420
+[Stage B] Epoch 016 | train=0.4224 | val_acc=0.8443
+[Stage B] Epoch 017 | train=0.4189 | val_acc=0.8446
+[Stage B] Epoch 018 | train=0.4163 | val_acc=0.8441
+[Stage B] Epoch 019 | train=0.4126 | val_acc=0.8460
+[Stage B] Epoch 020 | train=0.4124 | val_acc=0.8455
+[Stage B] Epoch 021 | train=0.4095 | val_acc=0.8479
+[Stage B] Epoch 022 | train=0.4068 | val_acc=0.8475
+[Stage B] Epoch 023 | train=0.4050 | val_acc=0.8468
+[Stage B] Epoch 024 | train=0.4021 | val_acc=0.8486
+[Stage B] Epoch 025 | train=0.4023 | val_acc=0.8511
+[Stage B] Epoch 026 | train=0.4006 | val_acc=0.8496
+[Stage B] Epoch 027 | train=0.4006 | val_acc=0.8489
+[Stage B] Epoch 028 | train=0.3955 | val_acc=0.8482
+[Stage B] Epoch 029 | train=0.3989 | val_acc=0.8499
+[Stage B] Epoch 030 | train=0.3956 | val_acc=0.8502
+[Stage B] Epoch 031 | train=0.3936 | val_acc=0.8520
+[Stage B] Epoch 032 | train=0.3923 | val_acc=0.8524
+[Stage B] Epoch 033 | train=0.3910 | val_acc=0.8510
+[Stage B] Epoch 034 | train=0.3914 | val_acc=0.8518
+[Stage B] Epoch 035 | train=0.3886 | val_acc=0.8506
+[Stage B] Epoch 036 | train=0.3869 | val_acc=0.8496
+[Stage B] Epoch 037 | train=0.3870 | val_acc=0.8533
+[Stage B] Epoch 038 | train=0.3868 | val_acc=0.8521
+[Stage B] Epoch 039 | train=0.3862 | val_acc=0.8545
+[Stage B] Epoch 040 | train=0.3858 | val_acc=0.8525
+[Stage B] Epoch 041 | train=0.3843 | val_acc=0.8549
+[Stage B] Epoch 042 | train=0.3843 | val_acc=0.8539
+[Stage B] Epoch 043 | train=0.3814 | val_acc=0.8553
+[Stage B] Epoch 044 | train=0.3819 | val_acc=0.8546
+[Stage B] Epoch 045 | train=0.3822 | val_acc=0.8535
+[Stage B] Epoch 046 | train=0.3807 | val_acc=0.8542
+[Stage B] Epoch 047 | train=0.3807 | val_acc=0.8536
+[Stage B] Epoch 048 | train=0.3787 | val_acc=0.8572
+[Stage B] Epoch 049 | train=0.3792 | val_acc=0.8529
+[Stage B] Epoch 050 | train=0.3784 | val_acc=0.8571
+
+Extracting attention weights from test set...
+  RNA attention: (18053, 313), Protein attention: (18053, 134)
+  RNA per-head attention: (18053, 2, 4, 313), Protein per-head attention: (18053, 2, 4, 134)
+Attention weights saved to results/checkpoints/contrastive_tf_seed42_20260415_231920/
+Test embeddings saved: rna (18053, 128), protein (18053, 128)
+
+=== Training complete ===
+Run directory: results/checkpoints/contrastive_tf_seed42_20260415_231920
+Final test accuracy: 0.8560
+Final macro AUROC:   0.9967
+
+=== Selected run directories ===
+  Contrastive TF: results/checkpoints/contrastive_tf_seed42_20260415_231920
+
+=== Generating figures ===
+Saved: results/figures/fig_model_comparison.png
+Saved: results/figures/fig_training_curves.png
+Saved: results/figures/fig_accuracy_curves.png
+    SGD-MDS may not have converged: stress changed by -3.2% in final iterations. Consider increasing n_iter or adjusting learning_rate.
+Saved: results/figures/fig_phate_tf.png
+Saved: results/figures/fig_recall_at_k.png
+  ASW (Contrastive TF): 0.5154
+Saved: results/figures/fig_asw.png
+
+All figures saved to results/figures/
+Loaded: 18053 cells, 313 pathways, 134 proteins, 45 cell types
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/attention_heatmap_rna.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/attention_heatmap_protein_specificity.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/attention_heatmap_protein.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/attention_heatmap_protein_per_row.png
+
+=== Marker validation (protein) ===
+  CD14+ Mono: recall=0.25  found=['HLA-DR']  missing=['CD14', 'CD11b', 'CD64']
+  CD16+ Mono: recall=0.33  found=['HLA-DR']  missing=['CD16', 'CX3CR1']
+  CD4+ T activated: recall=0.25  found=['CD45RO']  missing=['CD3', 'CD4', 'CD69']
+  CD4+ T naive: recall=0.50  found=['CD3', 'CD45RA']  missing=['CD4', 'CD62L']
+  CD8+ T naive: recall=0.50  found=['CD8', 'CD45RA']  missing=['CD3', 'CD62L']
+  Erythroblast: recall=0.00  found=[]  missing=['CD71']
+  HSC: recall=0.50  found=['CD45RA']  missing=['CD38']
+  MAIT: recall=0.25  found=['CD161']  missing=['CD3', 'CD8', 'TCRVa7.2']
+  NK: recall=0.33  found=['CD335']  missing=['CD56', 'CD16']
+  Naive CD20+ B IGKC+: recall=0.00  found=[]  missing=['CD19', 'CD20', 'IgM', 'IgD', 'CD21']
+  Naive CD20+ B IGKC-: recall=0.00  found=[]  missing=['CD19', 'CD20', 'IgM', 'IgD', 'CD21']
+  Normoblast: recall=0.00  found=[]  missing=['CD71']
+  Plasma cell IGKC+: recall=0.00  found=[]  missing=['CD38', 'CD27']
+  Plasma cell IGKC-: recall=0.00  found=[]  missing=['CD38', 'CD27']
+  Reticulocyte: recall=0.00  found=[]  missing=['CD71']
+  T reg: recall=0.25  found=['CD25']  missing=['CD3', 'CD4', 'CD127']
+  Transitional B: recall=0.25  found=['IgM']  missing=['CD24', 'CD38', 'CD19']
+  cDC2: recall=0.33  found=['CD11c']  missing=['HLA-DR', 'CD1c']
+  pDC: recall=0.67  found=['CD123', 'CD304']  missing=['CD303']
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/marker_validation.json
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/attention_heatmap_protein_per_head_max.png
+
+=== Marker validation (protein, max over per-head) ===
+  CD14+ Mono: recall=0.25  found=['HLA-DR']  missing=['CD14', 'CD11b', 'CD64']
+  CD16+ Mono: recall=0.33  found=['CD16']  missing=['CX3CR1', 'HLA-DR']
+  CD4+ T activated: recall=0.00  found=[]  missing=['CD3', 'CD4', 'CD45RO', 'CD69']
+  CD4+ T naive: recall=0.25  found=['CD45RA']  missing=['CD3', 'CD4', 'CD62L']
+  CD8+ T naive: recall=0.50  found=['CD8', 'CD45RA']  missing=['CD3', 'CD62L']
+  Erythroblast: recall=1.00  found=['CD71']  missing=[]
+  HSC: recall=1.00  found=['CD38', 'CD45RA']  missing=[]
+  MAIT: recall=0.25  found=['CD8']  missing=['CD3', 'CD161', 'TCRVa7.2']
+  NK: recall=0.33  found=['CD16']  missing=['CD56', 'CD335']
+  Naive CD20+ B IGKC+: recall=0.20  found=['IgD']  missing=['CD19', 'CD20', 'IgM', 'CD21']
+  Naive CD20+ B IGKC-: recall=0.20  found=['IgD']  missing=['CD19', 'CD20', 'IgM', 'CD21']
+  Normoblast: recall=1.00  found=['CD71']  missing=[]
+  Plasma cell IGKC+: recall=0.50  found=['CD38']  missing=['CD27']
+  Plasma cell IGKC-: recall=0.50  found=['CD38']  missing=['CD27']
+  Reticulocyte: recall=1.00  found=['CD71']  missing=[]
+  T reg: recall=0.00  found=[]  missing=['CD3', 'CD4', 'CD25', 'CD127']
+  Transitional B: recall=0.25  found=['CD38']  missing=['CD24', 'IgM', 'CD19']
+  cDC2: recall=0.00  found=[]  missing=['CD11c', 'HLA-DR', 'CD1c']
+  pDC: recall=0.33  found=['CD123']  missing=['CD303', 'CD304']
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/marker_validation_per_head_max.json
+Saved: results/checkpoints/contrastive_tf_seed42_20260415_231920/marker_best_rank_per_head.json
+
+=== Best (layer, head) per marker ===
+  CD14+ Mono / CD14 (CD14-1): rank=9/134 @layer1 head0
+  CD14+ Mono / HLA-DR (HLA-DR): rank=1/134 @layer1 head1
+  CD14+ Mono / CD11b (CD11b): rank=9/134 @layer1 head3
+  CD14+ Mono / CD64 (CD64): rank=11/134 @layer1 head0
+  CD16+ Mono / CD16 (CD16): rank=2/134 @layer0 head0
+  CD16+ Mono / CX3CR1 (CX3CR1-1): rank=4/134 @layer1 head3
+  CD16+ Mono / HLA-DR (HLA-DR): rank=2/134 @layer1 head1
+  CD4+ T activated / CD3 (CD3): rank=7/134 @layer1 head3
+  CD4+ T activated / CD4 (CD4-1): rank=9/134 @layer1 head0
+  CD4+ T activated / CD45RO (CD45RO): rank=8/134 @layer1 head3
+  CD4+ T activated / CD69 (CD69-1): rank=27/134 @layer1 head0
+  CD4+ T naive / CD3 (CD3): rank=4/134 @layer1 head0
+  CD4+ T naive / CD4 (CD4-1): rank=3/134 @layer1 head0
+  CD4+ T naive / CD45RA (CD45RA): rank=2/134 @layer1 head3
+  CD4+ T naive / CD62L (CD62L): rank=5/134 @layer0 head1
+  CD8+ T naive / CD3 (CD3): rank=16/134 @layer0 head2
+  CD8+ T naive / CD8 (CD8): rank=1/134 @layer0 head0
+  CD8+ T naive / CD45RA (CD45RA): rank=2/134 @layer0 head2
+  CD8+ T naive / CD62L (CD62L): rank=5/134 @layer0 head1
+  Erythroblast / CD71 (CD71): rank=1/134 @layer0 head0
+  HSC / CD38 (CD38-1): rank=3/134 @layer0 head0
+  HSC / CD45RA (CD45RA): rank=3/134 @layer0 head2
+  MAIT / CD3 (CD3): rank=6/134 @layer1 head3
+  MAIT / CD8 (CD8): rank=2/134 @layer0 head0
+  MAIT / CD161 (CD161): rank=2/134 @layer1 head3
+  MAIT / TCRVa7.2 (TCRVa7.2): rank=17/134 @layer0 head3
+  NK / CD56 (CD56): rank=5/134 @layer1 head0
+  NK / CD16 (CD16): rank=1/134 @layer0 head0
+  NK / CD335 (CD335): rank=1/134 @layer1 head0
+  Naive CD20+ B IGKC+ / CD19 (CD19-1): rank=14/134 @layer0 head3
+  Naive CD20+ B IGKC+ / CD20 (CD20): rank=10/134 @layer1 head3
+  Naive CD20+ B IGKC+ / IgM (IgM): rank=12/134 @layer1 head0
+  Naive CD20+ B IGKC+ / IgD (IgD): rank=1/134 @layer0 head0
+  Naive CD20+ B IGKC+ / CD21 (CD21): rank=6/134 @layer0 head2
+  Naive CD20+ B IGKC- / CD19 (CD19-1): rank=13/134 @layer0 head3
+  Naive CD20+ B IGKC- / CD20 (CD20): rank=10/134 @layer1 head3
+  Naive CD20+ B IGKC- / IgM (IgM): rank=13/134 @layer1 head0
+  Naive CD20+ B IGKC- / IgD (IgD): rank=1/134 @layer0 head0
+  Naive CD20+ B IGKC- / CD21 (CD21): rank=6/134 @layer0 head2
+  Normoblast / CD71 (CD71): rank=1/134 @layer0 head0
+  Plasma cell IGKC+ / CD38 (CD38-1): rank=1/134 @layer0 head0
+  Plasma cell IGKC+ / CD27 (CD27-1): rank=12/134 @layer0 head1
+  Plasma cell IGKC- / CD38 (CD38-1): rank=1/134 @layer0 head0
+  Plasma cell IGKC- / CD27 (CD27-1): rank=11/134 @layer0 head1
+  Reticulocyte / CD71 (CD71): rank=1/134 @layer0 head0
+  T reg / CD3 (CD3): rank=7/134 @layer1 head3
+  T reg / CD4 (CD4-1): rank=15/134 @layer0 head3
+  T reg / CD25 (CD25): rank=1/134 @layer1 head0
+  T reg / CD127 (CD127): rank=30/134 @layer1 head0
+  Transitional B / CD24 (CD24-1): rank=3/134 @layer1 head0
+  Transitional B / CD38 (CD38-1): rank=1/134 @layer0 head0
+  Transitional B / IgM (IgM): rank=4/134 @layer1 head0
+  Transitional B / CD19 (CD19-1): rank=7/134 @layer0 head3
+  cDC2 / CD11c (CD11c): rank=5/134 @layer1 head3
+  cDC2 / HLA-DR (HLA-DR): rank=8/134 @layer1 head0
+  cDC2 / CD1c (CD1c): rank=2/134 @layer1 head0
+  pDC / CD123 (CD123): rank=1/134 @layer0 head0
+  pDC / CD303 (CD303): rank=3/134 @layer1 head0
+  pDC / CD304 (CD304): rank=3/134 @layer1 head3
+[ablation] device=cuda
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+[ablation] N_test=18053  n_proteins=134  n_classes=45
+[ablation] baseline pass done in 0.3s
+  ablated token 1/134  elapsed=1s  eta=74s
+  ablated token 2/134  elapsed=1s  eta=52s
+  ablated token 3/134  elapsed=1s  eta=44s
+  ablated token 4/134  elapsed=1s  eta=40s
+  ablated token 5/134  elapsed=1s  eta=37s
+  ablated token 6/134  elapsed=2s  eta=36s
+  ablated token 7/134  elapsed=2s  eta=34s
+  ablated token 8/134  elapsed=2s  eta=33s
+  ablated token 9/134  elapsed=2s  eta=32s
+  ablated token 10/134  elapsed=3s  eta=32s
+  ablated token 11/134  elapsed=3s  eta=31s
+  ablated token 12/134  elapsed=3s  eta=30s
+  ablated token 13/134  elapsed=3s  eta=30s
+  ablated token 14/134  elapsed=3s  eta=29s
+  ablated token 15/134  elapsed=4s  eta=29s
+  ablated token 16/134  elapsed=4s  eta=29s
+  ablated token 17/134  elapsed=4s  eta=28s
+  ablated token 18/134  elapsed=4s  eta=28s
+  ablated token 19/134  elapsed=5s  eta=28s
+  ablated token 20/134  elapsed=5s  eta=27s
+  ablated token 21/134  elapsed=5s  eta=27s
+  ablated token 22/134  elapsed=5s  eta=27s
+  ablated token 23/134  elapsed=5s  eta=26s
+  ablated token 24/134  elapsed=6s  eta=26s
+  ablated token 25/134  elapsed=6s  eta=26s
+  ablated token 26/134  elapsed=6s  eta=25s
+  ablated token 27/134  elapsed=6s  eta=25s
+  ablated token 28/134  elapsed=7s  eta=25s
+  ablated token 29/134  elapsed=7s  eta=25s
+  ablated token 30/134  elapsed=7s  eta=24s
+  ablated token 31/134  elapsed=7s  eta=24s
+  ablated token 32/134  elapsed=7s  eta=24s
+  ablated token 33/134  elapsed=8s  eta=23s
+  ablated token 34/134  elapsed=8s  eta=23s
+  ablated token 35/134  elapsed=8s  eta=23s
+  ablated token 36/134  elapsed=8s  eta=23s
+  ablated token 37/134  elapsed=9s  eta=22s
+  ablated token 38/134  elapsed=9s  eta=22s
+  ablated token 39/134  elapsed=9s  eta=22s
+  ablated token 40/134  elapsed=9s  eta=22s
+  ablated token 41/134  elapsed=9s  eta=21s
+  ablated token 42/134  elapsed=10s  eta=21s
+  ablated token 43/134  elapsed=10s  eta=21s
+  ablated token 44/134  elapsed=10s  eta=21s
+  ablated token 45/134  elapsed=10s  eta=20s
+  ablated token 46/134  elapsed=11s  eta=20s
+  ablated token 47/134  elapsed=11s  eta=20s
+  ablated token 48/134  elapsed=11s  eta=20s
+  ablated token 49/134  elapsed=11s  eta=19s
+  ablated token 50/134  elapsed=11s  eta=19s
+  ablated token 51/134  elapsed=12s  eta=19s
+  ablated token 52/134  elapsed=12s  eta=19s
+  ablated token 53/134  elapsed=12s  eta=19s
+  ablated token 54/134  elapsed=12s  eta=18s
+  ablated token 55/134  elapsed=13s  eta=18s
+  ablated token 56/134  elapsed=13s  eta=18s
+  ablated token 57/134  elapsed=13s  eta=18s
+  ablated token 58/134  elapsed=13s  eta=17s
+  ablated token 59/134  elapsed=13s  eta=17s
+  ablated token 60/134  elapsed=14s  eta=17s
+  ablated token 61/134  elapsed=14s  eta=17s
+  ablated token 62/134  elapsed=14s  eta=16s
+  ablated token 63/134  elapsed=14s  eta=16s
+  ablated token 64/134  elapsed=15s  eta=16s
+  ablated token 65/134  elapsed=15s  eta=16s
+  ablated token 66/134  elapsed=15s  eta=15s
+  ablated token 67/134  elapsed=15s  eta=15s
+  ablated token 68/134  elapsed=15s  eta=15s
+  ablated token 69/134  elapsed=16s  eta=15s
+  ablated token 70/134  elapsed=16s  eta=15s
+  ablated token 71/134  elapsed=16s  eta=14s
+  ablated token 72/134  elapsed=16s  eta=14s
+  ablated token 73/134  elapsed=17s  eta=14s
+  ablated token 74/134  elapsed=17s  eta=14s
+  ablated token 75/134  elapsed=17s  eta=13s
+  ablated token 76/134  elapsed=17s  eta=13s
+  ablated token 77/134  elapsed=17s  eta=13s
+  ablated token 78/134  elapsed=18s  eta=13s
+  ablated token 79/134  elapsed=18s  eta=12s
+  ablated token 80/134  elapsed=18s  eta=12s
+  ablated token 81/134  elapsed=18s  eta=12s
+  ablated token 82/134  elapsed=19s  eta=12s
+  ablated token 83/134  elapsed=19s  eta=12s
+  ablated token 84/134  elapsed=19s  eta=11s
+  ablated token 85/134  elapsed=19s  eta=11s
+  ablated token 86/134  elapsed=19s  eta=11s
+  ablated token 87/134  elapsed=20s  eta=11s
+  ablated token 88/134  elapsed=20s  eta=10s
+  ablated token 89/134  elapsed=20s  eta=10s
+  ablated token 90/134  elapsed=20s  eta=10s
+  ablated token 91/134  elapsed=21s  eta=10s
+  ablated token 92/134  elapsed=21s  eta=9s
+  ablated token 93/134  elapsed=21s  eta=9s
+  ablated token 94/134  elapsed=21s  eta=9s
+  ablated token 95/134  elapsed=21s  eta=9s
+  ablated token 96/134  elapsed=22s  eta=9s
+  ablated token 97/134  elapsed=22s  eta=8s
+  ablated token 98/134  elapsed=22s  eta=8s
+  ablated token 99/134  elapsed=22s  eta=8s
+  ablated token 100/134  elapsed=23s  eta=8s
+  ablated token 101/134  elapsed=23s  eta=7s
+  ablated token 102/134  elapsed=23s  eta=7s
+  ablated token 103/134  elapsed=23s  eta=7s
+  ablated token 104/134  elapsed=23s  eta=7s
+  ablated token 105/134  elapsed=24s  eta=7s
+  ablated token 106/134  elapsed=24s  eta=6s
+  ablated token 107/134  elapsed=24s  eta=6s
+  ablated token 108/134  elapsed=24s  eta=6s
+  ablated token 109/134  elapsed=25s  eta=6s
+  ablated token 110/134  elapsed=25s  eta=5s
+  ablated token 111/134  elapsed=25s  eta=5s
+  ablated token 112/134  elapsed=25s  eta=5s
+  ablated token 113/134  elapsed=25s  eta=5s
+  ablated token 114/134  elapsed=26s  eta=5s
+  ablated token 115/134  elapsed=26s  eta=4s
+  ablated token 116/134  elapsed=26s  eta=4s
+  ablated token 117/134  elapsed=26s  eta=4s
+  ablated token 118/134  elapsed=27s  eta=4s
+  ablated token 119/134  elapsed=27s  eta=3s
+  ablated token 120/134  elapsed=27s  eta=3s
+  ablated token 121/134  elapsed=27s  eta=3s
+  ablated token 122/134  elapsed=27s  eta=3s
+  ablated token 123/134  elapsed=28s  eta=2s
+  ablated token 124/134  elapsed=28s  eta=2s
+  ablated token 125/134  elapsed=28s  eta=2s
+  ablated token 126/134  elapsed=28s  eta=2s
+  ablated token 127/134  elapsed=29s  eta=2s
+  ablated token 128/134  elapsed=29s  eta=1s
+  ablated token 129/134  elapsed=29s  eta=1s
+  ablated token 130/134  elapsed=29s  eta=1s
+  ablated token 131/134  elapsed=29s  eta=1s
+  ablated token 132/134  elapsed=30s  eta=0s
+  ablated token 133/134  elapsed=30s  eta=0s
+  ablated token 134/134  elapsed=30s  eta=0s
+Saved: ablation_logit_drop_per_cell.npy  shape=(18053, 134)
+Saved: ablation_logit_drop_per_type.npy  shape=(45, 134)
+
+=== Top markers by logit drop (ablation) ===
+  B1 B IGKC+: ['CD45RA(+1.339)', 'CD36-1(+0.705)', 'CD82-1(+0.575)', 'CD48-1(+0.362)', 'CD35(+0.199)', 'CD40-1(+0.186)', 'CD44-1(+0.135)', 'CD14-1(+0.096)', 'CD95(+0.096)', 'CD45(+0.083)']
+  B1 B IGKC-: ['CD36-1(+1.037)', 'CD45RA(+0.853)', 'CD48-1(+0.381)', 'CD82-1(+0.304)', 'CD40-1(+0.202)', 'CD35(+0.200)', 'CD44-1(+0.178)', 'CD95(+0.153)', 'CD14-1(+0.132)', 'CD39(+0.117)']
+  CD14+ Mono: ['CD95(+0.521)', 'CD27-1(+0.480)', 'CD41(+0.307)', 'CD35(+0.245)', 'CD2-1(+0.210)', 'CD32(+0.159)', 'CD31(+0.127)', 'CD48-1(+0.093)', 'CD36-1(+0.092)', 'CD33-1(+0.078)']
+  CD16+ Mono: ['CD11a(+1.193)', 'CD172a(+0.296)', 'CD48-1(+0.228)', 'CD45RA(+0.174)', 'CD162(+0.142)', 'CD36-1(+0.080)', 'CD31(+0.066)', 'CD124(+0.054)', 'CD16(+0.041)', 'CD14-1(+0.038)']
+  CD4+ T CD314+ CD45RA+: ['CD2-1(+1.565)', 'CD11a(+0.655)', 'CD35(+0.487)', 'CD48-1(+0.363)', 'TCR(+0.266)', 'CD31(+0.208)', 'CD14-1(+0.089)', 'CD36-1(+0.078)', 'CD5-1(+0.065)', 'CD155(+0.056)']
+  CD4+ T activated: ['CD48-1(+1.203)', 'CD31(+0.495)', 'CD5-1(+0.371)', 'CD2-1(+0.302)', 'CD35(+0.088)', 'CD95(+0.083)', 'CD162(+0.080)', 'CD36-1(+0.064)', 'CD82-1(+0.058)', 'HLA-DR(+0.030)']
+  CD4+ T activated integrinB7+: ['CD5-1(+0.575)', 'integrinB7(+0.442)', 'CD31(+0.395)', 'CD2-1(+0.364)', 'CD48-1(+0.107)', 'CD7-1(+0.062)', 'CD95(+0.058)', 'CD44-1(+0.048)', 'CX3CR1-1(+0.044)', 'TCRVd2(+0.038)']
+  CD4+ T naive: ['CD5-1(+1.006)', 'CD48-1(+0.761)', 'CX3CR1-1(+0.272)', 'CD7-1(+0.180)', 'CD45RA(+0.165)', 'CD31(+0.135)', 'integrinB7(+0.091)', 'CD36-1(+0.078)', 'CD162(+0.072)', 'HLA-DR(+0.042)']
+  CD8+ T CD49f+: ['CD8(+0.660)', 'CD2-1(+0.245)', 'CD48-1(+0.228)', 'CD31(+0.223)', 'CD5-1(+0.210)', 'CD35(+0.208)', 'CD7-1(+0.155)', 'CD81-1(+0.100)', 'CD49f(+0.100)', 'CD36-1(+0.050)']
+  CD8+ T CD57+ CD45RA+: ['CD8(+1.151)', 'CD35(+0.539)', 'CD94(+0.191)', 'CD81-1(+0.190)', 'CX3CR1-1(+0.127)', 'CD57(+0.112)', 'CD14-1(+0.089)', 'CD328(+0.074)', 'CD86-1(+0.041)', 'CD24-1(+0.037)']
+  CD8+ T CD57+ CD45RO+: ['CD8(+1.356)', 'CD35(+0.642)', 'CD11a(+0.504)', 'CD48-1(+0.396)', 'CD81-1(+0.186)', 'CD57(+0.109)', 'TCR(+0.061)', 'CD328(+0.046)', 'CD24-1(+0.042)', 'CD44-1(+0.040)']
+  CD8+ T CD69+ CD45RA+: ['CD81-1(+1.220)', 'CD8(+0.827)', 'CD35(+0.225)', 'CD7-1(+0.113)', 'CD328(+0.070)', 'CD33-1(+0.064)', 'CD14-1(+0.061)', 'CD244-1(+0.053)', 'CD24-1(+0.047)', 'CD85j(+0.034)']
+  CD8+ T CD69+ CD45RO+: ['CD81-1(+1.182)', 'CD11a(+0.950)', 'CD8(+0.860)', 'CD328(+0.088)', 'CD7-1(+0.084)', 'CD24-1(+0.082)', 'CD33-1(+0.076)', 'CD85j(+0.067)', 'CD14-1(+0.065)', 'TCR(+0.054)']
+  CD8+ T TIGIT+ CD45RA+: ['CD8(+1.814)', 'CD81-1(+0.773)', 'CD35(+0.340)', 'CD328(+0.103)', 'CD24-1(+0.095)', 'CD7-1(+0.093)', 'CD14-1(+0.091)', 'TCR(+0.083)', 'CD85j(+0.082)', 'CD141(+0.058)']
+  CD8+ T TIGIT+ CD45RO+: ['CD8(+1.215)', 'CD81-1(+0.451)', 'CD11a(+0.382)', 'CD7-1(+0.152)', 'CD44-1(+0.104)', 'CD49f(+0.103)', 'CD35(+0.101)', 'CD85j(+0.055)', 'CD328(+0.047)', 'CD47-1(+0.046)']
+  CD8+ T naive: ['CD8(+2.380)', 'CD48-1(+1.173)', 'CD7-1(+0.628)', 'CX3CR1-1(+0.384)', 'CD35(+0.358)', 'CD62L(+0.187)', 'CD81-1(+0.133)', 'CD9-1(+0.102)', 'CD328(+0.091)', 'CD14-1(+0.090)']
+  CD8+ T naive CD127+ CD26- CD101-: ['CD48-1(+1.998)', 'CD8(+0.578)', 'CD81-1(+0.496)', 'CD5-1(+0.387)', 'CD14-1(+0.216)', 'CD36-1(+0.173)', 'CD7-1(+0.160)', 'CD82-1(+0.123)', 'CD27-1(+0.096)', 'CD47-1(+0.063)']
+  Erythroblast: ['CD31(+0.250)', 'CX3CR1-1(+0.192)', 'CD36-1(+0.186)', 'CD54(+0.056)', 'CD49f(+0.041)', 'CD18(+0.039)', 'Podoplanin(+0.033)', 'CD24-1(+0.029)', 'CD95(+0.027)', 'HLA-E-1(+0.022)']
+  G/M prog: ['CD31(+0.561)', 'CD11a(+0.250)', 'CD162(+0.109)', 'CD35(+0.103)', 'CD63-1(+0.091)', 'CD244-1(+0.075)', 'CD33-1(+0.074)', 'CD95(+0.061)', 'CD2-1(+0.034)', 'CD14-1(+0.026)']
+  HSC: ['CD31(+0.777)', 'CD244-1(+0.213)', 'CD2-1(+0.116)', 'CD44-1(+0.105)', 'CX3CR1-1(+0.104)', 'CD36-1(+0.099)', 'CD38-1(+0.058)', 'CD14-1(+0.048)', 'CD63-1(+0.032)', 'CD81-1(+0.030)']
+  ILC: ['CD45RA(+4.280)', 'CD35(+0.667)', 'CD94(+0.295)', 'CD244-1(+0.244)', 'CD16(+0.182)', 'HLA-A-B-C(+0.141)', 'CD14-1(+0.099)', 'CD36-1(+0.083)', 'FceRIa(+0.037)', 'CD270(+0.021)']
+  ILC1: ['CD8(+2.762)', 'CD7-1(+1.069)', 'integrinB7(+0.252)', 'CD62L(+0.205)', 'CX3CR1-1(+0.132)', 'CD81-1(+0.111)', 'CD44-1(+0.106)', 'CD31(+0.070)', 'CD47-1(+0.070)', 'CD85j(+0.070)']
+  Lymph prog: ['CD9-1(+1.023)', 'CD45RA(+0.363)', 'CD38-1(+0.304)', 'CD31(+0.280)', 'CD81-1(+0.147)', 'CX3CR1-1(+0.134)', 'CD62L(+0.122)', 'CD24-1(+0.114)', 'CD14-1(+0.104)', 'HLA-DR(+0.087)']
+  MAIT: ['CD48-1(+1.866)', 'CD2-1(+0.252)', 'CD26(+0.183)', 'CD35(+0.158)', 'CD31(+0.150)', 'CD123(+0.115)', 'CD45(+0.082)', 'CD81-1(+0.079)', 'HLA-A-B-C(+0.056)', 'CD352(+0.049)']
+  MK/E prog: ['CD31(+0.302)', 'CD2-1(+0.143)', 'CD82-1(+0.096)', 'CX3CR1-1(+0.055)', 'CD38-1(+0.053)', 'CD244-1(+0.051)', 'CD44-1(+0.046)', 'CD63-1(+0.044)', 'CD81-1(+0.043)', 'CD62L(+0.030)']
+  NK: ['CD45RA(+3.947)', 'CD35(+0.599)', 'CD94(+0.345)', 'CD16(+0.309)', 'CD57(+0.171)', 'CD244-1(+0.149)', 'CX3CR1-1(+0.098)', 'CD14-1(+0.054)', 'CD158b(+0.036)', 'HLA-A-B-C(+0.035)']
+  NK CD158e1+: ['CD45RA(+3.277)', 'CD35(+0.863)', 'CD16(+0.714)', 'CX3CR1-1(+0.504)', 'CD57(+0.309)', 'CD94(+0.063)', 'CD123(+0.021)', 'CD2-1(+0.021)', 'CD32(+0.014)', 'CD39(+0.014)']
+  Naive CD20+ B IGKC+: ['CD45RA(+1.336)', 'IgD(+0.284)', 'CD36-1(+0.271)', 'CD9-1(+0.266)', 'CD40-1(+0.241)', 'CX3CR1-1(+0.173)', 'CD49b(+0.112)', 'IgM(+0.112)', 'integrinB7(+0.103)', 'CD13(+0.086)']
+  Naive CD20+ B IGKC-: ['CD45RA(+1.307)', 'CD36-1(+0.429)', 'IgD(+0.309)', 'CD40-1(+0.308)', 'CD49b(+0.155)', 'IgM(+0.133)', 'CD13(+0.109)', 'integrinB7(+0.100)', 'CD35(+0.085)', 'CD72-1(+0.078)']
+  Normoblast: ['CD31(+0.158)', 'CX3CR1-1(+0.133)', 'CD14-1(+0.037)', 'CD54(+0.031)', 'CD18(+0.024)', 'CD69-1(+0.022)', 'CD7-1(+0.012)', 'CD11a(+0.011)', 'CD1c(+0.011)', 'HLA-DR(+0.010)']
+  Plasma cell IGKC+: ['CD38-1(+0.617)', 'CD63-1(+0.283)', 'CD2-1(+0.127)', 'CD48-1(+0.106)', 'CD123(+0.062)', 'CD71(+0.034)', 'CD54(+0.027)', 'HLA-A-B-C(+0.023)', 'integrinB7(+0.021)', 'CD32(+0.021)']
+  Plasma cell IGKC-: ['CD38-1(+0.689)', 'CD63-1(+0.223)', 'CD2-1(+0.127)', 'CD48-1(+0.096)', 'CD36-1(+0.054)', 'CD39(+0.053)', 'HLA-A-B-C(+0.044)', 'CD71(+0.042)', 'CD54(+0.035)', 'CD49d(+0.014)']
+  Plasmablast IGKC+: ['CD38-1(+0.601)', 'CD2-1(+0.286)', 'CD36-1(+0.187)', 'HLA-A-B-C(+0.137)', 'CD45RA(+0.116)', 'CD49f(+0.107)', 'CD48-1(+0.072)', 'CD39(+0.039)', 'CD29(+0.035)', 'CD32(+0.030)']
+  Plasmablast IGKC-: ['CD38-1(+0.981)', 'CD45RA(+0.448)', 'CD48-1(+0.135)', 'CD2-1(+0.128)', 'HLA-A-B-C(+0.126)', 'CD36-1(+0.102)', 'integrinB7(+0.095)', 'CD29(+0.058)', 'CD32(+0.048)', 'CD71(+0.022)']
+  Proerythroblast: ['CD71(+1.082)', 'CD82-1(+0.246)', 'CD35(+0.062)', 'CD54(+0.049)', 'CD45RA(+0.035)', 'CX3CR1-1(+0.022)', 'CD18(+0.017)', 'CD33-1(+0.015)', 'CD63-1(+0.015)', 'CD14-1(+0.014)']
+  Reticulocyte: ['CD31(+0.441)', 'CX3CR1-1(+0.205)', 'CD36-1(+0.137)', 'CD29(+0.085)', 'CD95(+0.079)', 'CD54(+0.056)', 'CD45RA(+0.046)', 'IgM(+0.035)', 'CD49b(+0.031)', 'HLA-DR(+0.019)']
+  T prog cycling: ['CD11a(+0.498)', 'CD5-1(+0.303)', 'CD31(+0.273)', 'CD45(+0.198)', 'CD49f(+0.145)', 'CD49d(+0.117)', 'CD36-1(+0.110)', 'CD2-1(+0.075)', 'CD122(+0.075)', 'CD35(+0.075)']
+  T reg: ['CD11a(+0.759)', 'CD5-1(+0.547)', 'CD162(+0.457)', 'CD95(+0.448)', 'CD35(+0.270)', 'CD48-1(+0.253)', 'CD49f(+0.197)', 'CD31(+0.174)', 'CD194(+0.152)', 'CD82-1(+0.112)']
+  Transitional B: ['CD9-1(+1.100)', 'CD45RA(+1.013)', 'CD38-1(+0.903)', 'CX3CR1-1(+0.107)', 'CD18(+0.103)', 'CD62L(+0.099)', 'CD24-1(+0.089)', 'CD36-1(+0.088)', 'CD14-1(+0.064)', 'CD19-1(+0.060)']
+  cDC1: ['CD48-1(+0.299)', 'CD45RA(+0.249)', 'CD11a(+0.205)', 'CD35(+0.204)', 'CX3CR1-1(+0.199)', 'CD95(+0.166)', 'CD81-1(+0.142)', 'CD303(+0.130)', 'CD14-1(+0.113)', 'CD122(+0.090)']
+  cDC2: ['CD48-1(+0.534)', 'CD35(+0.468)', 'FceRIa(+0.243)', 'CD63-1(+0.119)', 'CD36-1(+0.091)', 'HLA-DR(+0.077)', 'CD122(+0.070)', 'CD14-1(+0.068)', 'CD71(+0.060)', 'CD172a(+0.053)']
+  dnT: ['CD8(+0.474)', 'CD7-1(+0.359)', 'CD48-1(+0.244)', 'CD62L(+0.239)', 'CD45(+0.203)', 'CD81-1(+0.168)', 'CD35(+0.086)', 'CD5-1(+0.064)', 'CD31(+0.062)', 'KLRG1-1(+0.047)']
+  gdT CD158b+: ['CD45RA(+1.921)', 'CD35(+0.957)', 'CD14-1(+0.408)', 'CD36-1(+0.220)', 'CD244-1(+0.196)', 'CD81-1(+0.148)', 'CD274(+0.124)', 'CD328(+0.078)', 'CD16(+0.075)', 'CD33-1(+0.062)']
+  gdT TCRVD2+: ['CD94(+0.574)', 'CD2-1(+0.465)', 'CD48-1(+0.454)', 'CD35(+0.212)', 'CD45(+0.164)', 'CD81-1(+0.066)', 'CD274(+0.050)', 'CD36-1(+0.030)', 'CD86-1(+0.029)', 'CD85j(+0.024)']
+  pDC: ['CD45RA(+1.658)', 'CD123(+0.803)', 'CD35(+0.604)', 'CD162(+0.304)', 'CX3CR1-1(+0.248)', 'CD14-1(+0.118)', 'CD11a(+0.098)', 'CD122(+0.079)', 'CD69-1(+0.069)', 'HLA-DR(+0.034)']

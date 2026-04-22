@@ -26,7 +26,6 @@ tasks/
 # Results (large files)
 results/figures/*.png
 results/metrics/*.csv
-results/checkpoints/
 
 # Planning
 /docs
