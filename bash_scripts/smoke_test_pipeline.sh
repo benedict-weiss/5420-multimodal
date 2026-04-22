@@ -1,17 +1,22 @@
 #!/bin/bash
+#SBATCH --job-name=smoke_test_pipeline
+#SBATCH --gres=gpu:1
+#SBATCH --mem=16G
+#SBATCH --time=0:30:00
+#SBATCH --partition=education_gpu
+#SBATCH --output=logs/%x-%j.out
 # Smoke test: runs the full pipeline end-to-end with tiny settings to catch import
 # errors, shape mismatches, and checkpoint compatibility issues before submitting
-# a full cluster job. Completes in ~5 minutes on CPU.
-#
-# Usage:
-#   bash bash_scripts/smoke_test_pipeline.sh
-#   DATA_PATH=data/ bash bash_scripts/smoke_test_pipeline.sh
-#
-# Not intended for SLURM — run locally or in an interactive session.
+# a full cluster job. Completes in ~10 minutes on GPU.
 
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd ~/project_cpsc4520/cpsc4520_bcw45/5420-multimodal/
+
+module load miniconda
+source activate multimodal_env
+
+mkdir -p logs
 export PYTHONPATH="$PWD:${PYTHONPATH:-}"
 
 DATA_PATH="${DATA_PATH:-data/}"
@@ -46,8 +51,7 @@ python -m src.train_contrastive_tf \
   --classifier_epochs  $CLASSIFIER_EPOCHS \
   --patience        $PATIENCE \
   --val_ratio       $VAL_RATIO \
-  --gene_sets_path  "$GENE_SETS_PATH" \
-  --cpu
+  --gene_sets_path  "$GENE_SETS_PATH"
 
 CHECKPOINT_DIR=$(ls -td "$OUTPUT_DIR"/contrastive_tf_seed${SEED}_* 2>/dev/null | head -n 1)
 [[ -z "$CHECKPOINT_DIR" ]] && { echo "ERROR: no pathway-tf checkpoint found"; exit 1; }
@@ -72,8 +76,7 @@ python -m src.attention_graph \
   --methods        raw \
   --scopes         global \
   --modalities     rna,protein \
-  --batch_size     $BATCH_SIZE \
-  --cpu
+  --batch_size     $BATCH_SIZE
 
 # ── Stage 5: gene-token transformer ──────────────────────────────────────────
 echo ""
@@ -88,8 +91,7 @@ python -m src.train_contrastive_tf_gene \
   --contrastive_epochs $CONTRASTIVE_EPOCHS \
   --classifier_epochs  $CLASSIFIER_EPOCHS \
   --patience       $PATIENCE \
-  --val_ratio      $VAL_RATIO \
-  --cpu
+  --val_ratio      $VAL_RATIO
 
 GENE_CHECKPOINT_DIR=$(ls -td "$GENE_OUTPUT_DIR"/contrastive_tf_gene_seed${SEED}_* 2>/dev/null | head -n 1)
 [[ -z "$GENE_CHECKPOINT_DIR" ]] && { echo "ERROR: no gene-tf checkpoint found"; exit 1; }
@@ -104,8 +106,7 @@ python -m src.attention_graph \
   --methods        raw \
   --scopes         global \
   --modalities     rna,protein \
-  --batch_size     $BATCH_SIZE \
-  --cpu
+  --batch_size     $BATCH_SIZE
 
 echo ""
 echo "=== Smoke test passed ==="
