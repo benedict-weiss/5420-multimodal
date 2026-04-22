@@ -1,0 +1,580 @@
+{
+  "HSC": {
+    "top_k_recall": 1.0,
+    "found": [
+      "CD38",
+      "CD45RA"
+    ],
+    "missing": [],
+    "marker_ranks": {
+      "CD38": {
+        "resolved": "CD38-1",
+        "rank": 6,
+        "n_tokens": 134,
+        "percentile": 0.9626865671641791
+      },
+      "CD45RA": {
+        "resolved": "CD45RA",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      }
+    }
+  },
+  "NK": {
+    "top_k_recall": 0.3333333333333333,
+    "found": [
+      "CD16"
+    ],
+    "missing": [
+      "CD56",
+      "CD335"
+    ],
+    "marker_ranks": {
+      "CD56": {
+        "resolved": "CD56",
+        "rank": 13,
+        "n_tokens": 134,
+        "percentile": 0.9104477611940298
+      },
+      "CD16": {
+        "resolved": "CD16",
+        "rank": 2,
+        "n_tokens": 134,
+        "percentile": 0.9925373134328358
+      },
+      "CD335": {
+        "resolved": "CD335",
+        "rank": 36,
+        "n_tokens": 134,
+        "percentile": 0.7388059701492538
+      }
+    }
+  },
+  "Transitional B": {
+    "top_k_recall": 0.5,
+    "found": [
+      "CD38",
+      "CD19"
+    ],
+    "missing": [
+      "CD24",
+      "IgM"
+    ],
+    "marker_ranks": {
+      "CD24": {
+        "resolved": "CD24-1",
+        "rank": 28,
+        "n_tokens": 134,
+        "percentile": 0.7985074626865671
+      },
+      "CD38": {
+        "resolved": "CD38-1",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      },
+      "IgM": {
+        "resolved": "IgM",
+        "rank": 15,
+        "n_tokens": 134,
+        "percentile": 0.8955223880597015
+      },
+      "CD19": {
+        "resolved": "CD19-1",
+        "rank": 9,
+        "n_tokens": 134,
+        "percentile": 0.9402985074626866
+      }
+    }
+  },
+  "pDC": {
+    "top_k_recall": 0.3333333333333333,
+    "found": [
+      "CD123"
+    ],
+    "missing": [
+      "CD303",
+      "CD304"
+    ],
+    "marker_ranks": {
+      "CD123": {
+        "resolved": "CD123",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      },
+      "CD303": {
+        "resolved": "CD303",
+        "rank": 44,
+        "n_tokens": 134,
+        "percentile": 0.6791044776119403
+      },
+      "CD304": {
+        "resolved": "CD304",
+        "rank": 20,
+        "n_tokens": 134,
+        "percentile": 0.8582089552238806
+      }
+    }
+  },
+  "CD14+ Mono": {
+    "top_k_recall": 0.25,
+    "found": [
+      "HLA-DR"
+    ],
+    "missing": [
+      "CD14",
+      "CD11b",
+      "CD64"
+    ],
+    "marker_ranks": {
+      "CD14": {
+        "resolved": "CD14-1",
+        "rank": 38,
+        "n_tokens": 134,
+        "percentile": 0.7238805970149254
+      },
+      "HLA-DR": {
+        "resolved": "HLA-DR",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      },
+      "CD11b": {
+        "resolved": "CD11b",
+        "rank": 24,
+        "n_tokens": 134,
+        "percentile": 0.8283582089552238
+      },
+      "CD64": {
+        "resolved": "CD64",
+        "rank": 48,
+        "n_tokens": 134,
+        "percentile": 0.6492537313432836
+      }
+    }
+  },
+  "CD16+ Mono": {
+    "top_k_recall": 0.3333333333333333,
+    "found": [
+      "CD16"
+    ],
+    "missing": [
+      "CX3CR1",
+      "HLA-DR"
+    ],
+    "marker_ranks": {
+      "CD16": {
+        "resolved": "CD16",
+        "rank": 5,
+        "n_tokens": 134,
+        "percentile": 0.9701492537313433
+      },
+      "CX3CR1": {
+        "resolved": "CX3CR1-1",
+        "rank": 35,
+        "n_tokens": 134,
+        "percentile": 0.746268656716418
+      },
+      "HLA-DR": {
+        "resolved": "HLA-DR",
+        "rank": 15,
+        "n_tokens": 134,
+        "percentile": 0.8955223880597015
+      }
+    }
+  },
+  "CD4+ T naive": {
+    "top_k_recall": 0.25,
+    "found": [
+      "CD45RA"
+    ],
+    "missing": [
+      "CD3",
+      "CD4",
+      "CD62L"
+    ],
+    "marker_ranks": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 12,
+        "n_tokens": 134,
+        "percentile": 0.917910447761194
+      },
+      "CD4": {
+        "resolved": "CD4-1",
+        "rank": 11,
+        "n_tokens": 134,
+        "percentile": 0.9253731343283582
+      },
+      "CD45RA": {
+        "resolved": "CD45RA",
+        "rank": 6,
+        "n_tokens": 134,
+        "percentile": 0.9626865671641791
+      },
+      "CD62L": {
+        "resolved": "CD62L",
+        "rank": 26,
+        "n_tokens": 134,
+        "percentile": 0.8134328358208955
+      }
+    }
+  },
+  "CD4+ T activated": {
+    "top_k_recall": 0.0,
+    "found": [],
+    "missing": [
+      "CD3",
+      "CD4",
+      "CD45RO",
+      "CD69"
+    ],
+    "marker_ranks": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 33,
+        "n_tokens": 134,
+        "percentile": 0.7611940298507462
+      },
+      "CD4": {
+        "resolved": "CD4-1",
+        "rank": 17,
+        "n_tokens": 134,
+        "percentile": 0.8805970149253731
+      },
+      "CD45RO": {
+        "resolved": "CD45RO",
+        "rank": 36,
+        "n_tokens": 134,
+        "percentile": 0.7388059701492538
+      },
+      "CD69": {
+        "resolved": "CD69-1",
+        "rank": 73,
+        "n_tokens": 134,
+        "percentile": 0.4626865671641791
+      }
+    }
+  },
+  "CD8+ T naive": {
+    "top_k_recall": 0.5,
+    "found": [
+      "CD8",
+      "CD45RA"
+    ],
+    "missing": [
+      "CD3",
+      "CD62L"
+    ],
+    "marker_ranks": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 32,
+        "n_tokens": 134,
+        "percentile": 0.7686567164179104
+      },
+      "CD8": {
+        "resolved": "CD8",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      },
+      "CD45RA": {
+        "resolved": "CD45RA",
+        "rank": 5,
+        "n_tokens": 134,
+        "percentile": 0.9701492537313433
+      },
+      "CD62L": {
+        "resolved": "CD62L",
+        "rank": 25,
+        "n_tokens": 134,
+        "percentile": 0.8208955223880597
+      }
+    }
+  },
+  "Naive CD20+ B IGKC+": {
+    "top_k_recall": 0.2,
+    "found": [
+      "IgD"
+    ],
+    "missing": [
+      "CD19",
+      "CD20",
+      "IgM",
+      "CD21"
+    ],
+    "marker_ranks": {
+      "CD19": {
+        "resolved": "CD19-1",
+        "rank": 23,
+        "n_tokens": 134,
+        "percentile": 0.835820895522388
+      },
+      "CD20": {
+        "resolved": "CD20",
+        "rank": 39,
+        "n_tokens": 134,
+        "percentile": 0.7164179104477612
+      },
+      "IgM": {
+        "resolved": "IgM",
+        "rank": 11,
+        "n_tokens": 134,
+        "percentile": 0.9253731343283582
+      },
+      "IgD": {
+        "resolved": "IgD",
+        "rank": 2,
+        "n_tokens": 134,
+        "percentile": 0.9925373134328358
+      },
+      "CD21": {
+        "resolved": "CD21",
+        "rank": 68,
+        "n_tokens": 134,
+        "percentile": 0.5
+      }
+    }
+  },
+  "Naive CD20+ B IGKC-": {
+    "top_k_recall": 0.4,
+    "found": [
+      "IgM",
+      "IgD"
+    ],
+    "missing": [
+      "CD19",
+      "CD20",
+      "CD21"
+    ],
+    "marker_ranks": {
+      "CD19": {
+        "resolved": "CD19-1",
+        "rank": 25,
+        "n_tokens": 134,
+        "percentile": 0.8208955223880597
+      },
+      "CD20": {
+        "resolved": "CD20",
+        "rank": 41,
+        "n_tokens": 134,
+        "percentile": 0.7014925373134329
+      },
+      "IgM": {
+        "resolved": "IgM",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      },
+      "IgD": {
+        "resolved": "IgD",
+        "rank": 2,
+        "n_tokens": 134,
+        "percentile": 0.9925373134328358
+      },
+      "CD21": {
+        "resolved": "CD21",
+        "rank": 64,
+        "n_tokens": 134,
+        "percentile": 0.5298507462686567
+      }
+    }
+  },
+  "MAIT": {
+    "top_k_recall": 0.5,
+    "found": [
+      "CD8",
+      "CD161"
+    ],
+    "missing": [
+      "CD3",
+      "TCRVa7.2"
+    ],
+    "marker_ranks": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 44,
+        "n_tokens": 134,
+        "percentile": 0.6791044776119403
+      },
+      "CD8": {
+        "resolved": "CD8",
+        "rank": 7,
+        "n_tokens": 134,
+        "percentile": 0.9552238805970149
+      },
+      "CD161": {
+        "resolved": "CD161",
+        "rank": 6,
+        "n_tokens": 134,
+        "percentile": 0.9626865671641791
+      },
+      "TCRVa7.2": {
+        "resolved": "TCRVa7.2",
+        "rank": 18,
+        "n_tokens": 134,
+        "percentile": 0.8731343283582089
+      }
+    }
+  },
+  "T reg": {
+    "top_k_recall": 0.0,
+    "found": [],
+    "missing": [
+      "CD3",
+      "CD4",
+      "CD25",
+      "CD127"
+    ],
+    "marker_ranks": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 40,
+        "n_tokens": 134,
+        "percentile": 0.7089552238805971
+      },
+      "CD4": {
+        "resolved": "CD4-1",
+        "rank": 25,
+        "n_tokens": 134,
+        "percentile": 0.8208955223880597
+      },
+      "CD25": {
+        "resolved": "CD25",
+        "rank": 13,
+        "n_tokens": 134,
+        "percentile": 0.9104477611940298
+      },
+      "CD127": {
+        "resolved": "CD127",
+        "rank": 74,
+        "n_tokens": 134,
+        "percentile": 0.4552238805970149
+      }
+    }
+  },
+  "Plasma cell IGKC+": {
+    "top_k_recall": 0.5,
+    "found": [
+      "CD38"
+    ],
+    "missing": [
+      "CD27"
+    ],
+    "marker_ranks": {
+      "CD38": {
+        "resolved": "CD38-1",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      },
+      "CD27": {
+        "resolved": "CD27-1",
+        "rank": 51,
+        "n_tokens": 134,
+        "percentile": 0.6268656716417911
+      }
+    }
+  },
+  "Plasma cell IGKC-": {
+    "top_k_recall": 0.5,
+    "found": [
+      "CD38"
+    ],
+    "missing": [
+      "CD27"
+    ],
+    "marker_ranks": {
+      "CD38": {
+        "resolved": "CD38-1",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      },
+      "CD27": {
+        "resolved": "CD27-1",
+        "rank": 58,
+        "n_tokens": 134,
+        "percentile": 0.5746268656716418
+      }
+    }
+  },
+  "cDC2": {
+    "top_k_recall": 0.3333333333333333,
+    "found": [
+      "CD1c"
+    ],
+    "missing": [
+      "CD11c",
+      "HLA-DR"
+    ],
+    "marker_ranks": {
+      "CD11c": {
+        "resolved": "CD11c",
+        "rank": 27,
+        "n_tokens": 134,
+        "percentile": 0.8059701492537313
+      },
+      "HLA-DR": {
+        "resolved": "HLA-DR",
+        "rank": 13,
+        "n_tokens": 134,
+        "percentile": 0.9104477611940298
+      },
+      "CD1c": {
+        "resolved": "CD1c",
+        "rank": 7,
+        "n_tokens": 134,
+        "percentile": 0.9552238805970149
+      }
+    }
+  },
+  "Erythroblast": {
+    "top_k_recall": 1.0,
+    "found": [
+      "CD71"
+    ],
+    "missing": [],
+    "marker_ranks": {
+      "CD71": {
+        "resolved": "CD71",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      }
+    }
+  },
+  "Normoblast": {
+    "top_k_recall": 1.0,
+    "found": [
+      "CD71"
+    ],
+    "missing": [],
+    "marker_ranks": {
+      "CD71": {
+        "resolved": "CD71",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      }
+    }
+  },
+  "Reticulocyte": {
+    "top_k_recall": 1.0,
+    "found": [
+      "CD71"
+    ],
+    "missing": [],
+    "marker_ranks": {
+      "CD71": {
+        "resolved": "CD71",
+        "rank": 1,
+        "n_tokens": 134,
+        "percentile": 1.0
+      }
+    }
+  }
+}
