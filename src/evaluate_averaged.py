@@ -10,7 +10,38 @@ from typing import Optional
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
+
+# ── NeurIPS style ──────────────────────────────────────────────────────────────
+# Single column: 3.25 in  |  Double column: 6.75 in
+# Body font: 10 pt → figure labels ≥ 8 pt at final print size
+# Lines ≥ 1.5 pt, DPI 300, no top/right spines, PDF output
+
+NEURIPS_RC = {
+    "font.family": "sans-serif",
+    "font.size": 8,
+    "axes.labelsize": 8,
+    "axes.titlesize": 8,
+    "xtick.labelsize": 7,
+    "ytick.labelsize": 7,
+    "legend.fontsize": 7,
+    "legend.framealpha": 0.7,
+    "legend.edgecolor": "0.8",
+    "lines.linewidth": 1.5,
+    "axes.linewidth": 0.8,
+    "xtick.major.width": 0.8,
+    "ytick.major.width": 0.8,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "figure.dpi": 300,
+    "savefig.dpi": 300,
+    "savefig.bbox": "tight",
+    "savefig.pad_inches": 0.02,
+}
+
+COL1 = 3.25   # single-column width (inches)
+COL2 = 6.75   # double-column width (inches)
 
 from src.evaluate import (
     ALL_MODEL_KEYS,
@@ -52,16 +83,24 @@ def _mean_std(arrays: list[list[float]]) -> tuple[np.ndarray, np.ndarray, np.nda
     return epochs, mean, std
 
 
-def _plot_band(ax, epochs, mean, std, color, label, linestyle="-", alpha=0.2):
+def _plot_band(ax, epochs, mean, std, color, label, linestyle="-", alpha=0.15):
     """Plot mean line with ±1 std shaded band."""
     valid = np.isfinite(mean)
-    ax.plot(epochs[valid], mean[valid], color=color, linestyle=linestyle, label=label)
+    ax.plot(epochs[valid], mean[valid], color=color, linestyle=linestyle,
+            label=label, linewidth=1.5)
     ax.fill_between(
         epochs[valid],
         (mean - std)[valid],
         (mean + std)[valid],
         color=color, alpha=alpha,
     )
+
+
+def _save(fig, path_stem: Path) -> None:
+    """Save as both PDF (vector) and PNG."""
+    for ext in (".pdf", ".png"):
+        fig.savefig(path_stem.with_suffix(ext))
+    print(f"Saved: {path_stem.with_suffix('.pdf')} + .png")
 
 
 # ── Figure: averaged model comparison ─────────────────────────────────────────
@@ -74,41 +113,41 @@ def _fig_model_comparison_avg(all_runs: dict[str, list[dict]], output_dir: Path)
 
     x = np.arange(len(metric_keys))
     width = 0.8 / max(len(model_keys), 1)
-    fig, ax = plt.subplots(figsize=(9, 5))
 
-    for i, mkey in enumerate(model_keys):
-        means, stds = [], []
-        for mk in metric_keys:
-            vals = [
-                float(r["metrics"].get(mk) or 0.0)
-                for r in all_runs[mkey]
-                if "metrics" in r
-            ]
-            means.append(np.mean(vals))
-            stds.append(np.std(vals))
+    with plt.rc_context(NEURIPS_RC):
+        fig, ax = plt.subplots(figsize=(COL2, 2.2))
 
-        bars = ax.bar(
-            x + i * width, means, width, yerr=stds, capsize=4,
-            label=MODEL_DISPLAY_NAMES[mkey], color=MODEL_COLORS[mkey],
-        )
-        for bar, m, s in zip(bars, means, stds):
-            ax.text(
-                bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + s + 0.012,
-                f"{m:.3f}", ha="center", va="bottom", fontsize=8,
+        for i, mkey in enumerate(model_keys):
+            means, stds = [], []
+            for mk in metric_keys:
+                vals = [
+                    float(r["metrics"].get(mk) or 0.0)
+                    for r in all_runs[mkey]
+                    if "metrics" in r
+                ]
+                means.append(np.mean(vals))
+                stds.append(np.std(vals))
+
+            bars = ax.bar(
+                x + i * width, means, width, yerr=stds, capsize=2,
+                label=MODEL_DISPLAY_NAMES[mkey], color=MODEL_COLORS[mkey],
+                error_kw={"linewidth": 0.8},
             )
+            for bar, m, s in zip(bars, means, stds):
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() + s + 0.01,
+                    f"{m:.3f}", ha="center", va="bottom", fontsize=6,
+                )
 
-    ax.set_xticks(x + width * (len(model_keys) - 1) / 2)
-    ax.set_xticklabels(metric_labels, fontsize=12)
-    ax.set_ylim(0, 1.2)
-    ax.set_ylabel("Score")
-    ax.set_title("Model Comparison — Mean ± Std Across Seeds")
-    ax.legend()
-    plt.tight_layout()
-    save_path = output_dir / "fig_model_comparison_avg.png"
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {save_path}")
+        ax.set_xticks(x + width * (len(model_keys) - 1) / 2)
+        ax.set_xticklabels(metric_labels)
+        ax.set_ylim(0, 1.15)
+        ax.set_ylabel("Score")
+        ax.legend(ncol=2, loc="lower right")
+        fig.tight_layout()
+        _save(fig, output_dir / "fig_model_comparison_avg")
+        plt.close(fig)
 
 
 # ── Figure: averaged training curves ──────────────────────────────────────────
@@ -116,89 +155,83 @@ def _fig_model_comparison_avg(all_runs: dict[str, list[dict]], output_dir: Path)
 
 def _fig_training_curves_avg(all_runs: dict[str, list[dict]], output_dir: Path) -> None:
     model_keys = [k for k in ALL_MODEL_KEYS if all_runs[k]]
-    fig, axes = plt.subplots(len(model_keys), 1, figsize=(10, 4 * len(model_keys)), squeeze=False)
+    n = len(model_keys)
 
-    for row, mkey in enumerate(model_keys):
-        ax = axes[row][0]
-        runs = all_runs[mkey]
+    with plt.rc_context(NEURIPS_RC):
+        fig, axes = plt.subplots(n, 1, figsize=(COL2, 2.0 * n), squeeze=False)
 
-        if mkey in SINGLE_STAGE_MODELS:
-            train_lists, val_lists = [], []
-            for r in runs:
-                hist = r.get("metrics", {}).get("history", [])
-                if hist:
-                    train_lists.append([h["train_loss"] for h in hist])
-                    val_lists.append([h["val_loss"] for h in hist])
-            if train_lists:
-                ep, m, s = _mean_std(train_lists)
-                _plot_band(ax, ep, m, s, "tab:blue", "train")
-                ep, m, s = _mean_std(val_lists)
-                _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
-            test_losses = [
-                float(r["metrics"]["final_test_loss"])
-                for r in runs
-                if "metrics" in r and "final_test_loss" in r["metrics"]
-            ]
-            if test_losses:
-                ax.axhline(
-                    np.mean(test_losses), color="tab:red", linestyle=":",
-                    label=f"test mean ({np.mean(test_losses):.4f})",
-                )
-        else:
-            # Stage A
-            sa_train, sa_val, sb_train, sb_val = [], [], [], []
-            a_lengths = []
-            for r in runs:
-                metrics = r.get("metrics", {})
-                sa = metrics.get("stage_a_history", [])
-                sb = metrics.get("stage_b_history", [])
-                if sa:
-                    sa_train.append([h["train_loss"] for h in sa])
-                    sa_val.append([h["val_loss"] for h in sa])
-                    a_lengths.append(len(sa))
-                if sb:
-                    sb_train.append([h["train_loss"] for h in sb])
-                    sb_val.append([h["val_loss"] for h in sb])
+        for row, mkey in enumerate(model_keys):
+            ax = axes[row][0]
+            runs = all_runs[mkey]
 
-            if sa_train:
-                ep, m, s = _mean_std(sa_train)
-                _plot_band(ax, ep, m, s, "tab:blue", "Stage A train")
-                ep, m, s = _mean_std(sa_val)
-                _plot_band(ax, ep, m, s, "tab:blue", "Stage A val", linestyle="--")
-                mean_a_len = int(np.mean(a_lengths))
-                ax.axvline(mean_a_len, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
+            if mkey in SINGLE_STAGE_MODELS:
+                train_lists, val_lists = [], []
+                for r in runs:
+                    hist = r.get("metrics", {}).get("history", [])
+                    if hist:
+                        train_lists.append([h["train_loss"] for h in hist])
+                        val_lists.append([h["val_loss"] for h in hist])
+                if train_lists:
+                    ep, m, s = _mean_std(train_lists)
+                    _plot_band(ax, ep, m, s, "tab:blue", "train")
+                    ep, m, s = _mean_std(val_lists)
+                    _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
+                test_losses = [
+                    float(r["metrics"]["final_test_loss"])
+                    for r in runs
+                    if "metrics" in r and "final_test_loss" in r["metrics"]
+                ]
+                if test_losses:
+                    ax.axhline(np.mean(test_losses), color="tab:red", linestyle=":",
+                               linewidth=1.0, label=f"test ({np.mean(test_losses):.3f})")
+            else:
+                sa_train, sa_val, sb_train, sb_val = [], [], [], []
+                a_lengths = []
+                for r in runs:
+                    metrics = r.get("metrics", {})
+                    sa = metrics.get("stage_a_history", [])
+                    sb = metrics.get("stage_b_history", [])
+                    if sa:
+                        sa_train.append([h["train_loss"] for h in sa])
+                        sa_val.append([h["val_loss"] for h in sa])
+                        a_lengths.append(len(sa))
+                    if sb:
+                        sb_train.append([h["train_loss"] for h in sb])
+                        sb_val.append([h["val_loss"] for h in sb])
 
-            if sb_train:
-                mean_a_len = int(np.mean(a_lengths)) if a_lengths else 0
-                ep_raw, m, s = _mean_std(sb_train)
-                ep = ep_raw + mean_a_len
-                _plot_band(ax, ep, m, s, "tab:orange", "Stage B train")
-                ep_raw, m, s = _mean_std(sb_val)
-                ep = ep_raw + mean_a_len
-                _plot_band(ax, ep, m, s, "tab:orange", "Stage B val", linestyle="--")
+                if sa_train:
+                    ep, m, s = _mean_std(sa_train)
+                    _plot_band(ax, ep, m, s, "tab:blue", "Stage A train")
+                    ep, m, s = _mean_std(sa_val)
+                    _plot_band(ax, ep, m, s, "tab:blue", "Stage A val", linestyle="--")
+                    mean_a_len = int(np.mean(a_lengths))
+                    ax.axvline(mean_a_len, color="gray", linestyle=":", linewidth=0.8,
+                               alpha=0.7, label="A→B")
+                if sb_train:
+                    mean_a_len = int(np.mean(a_lengths)) if a_lengths else 0
+                    ep_raw, m, s = _mean_std(sb_train)
+                    _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B train")
+                    ep_raw, m, s = _mean_std(sb_val)
+                    _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B val",
+                               linestyle="--")
+                test_losses = [
+                    float(r["metrics"]["final_test_loss"])
+                    for r in runs
+                    if "metrics" in r and "final_test_loss" in r["metrics"]
+                ]
+                if test_losses:
+                    ax.axhline(np.mean(test_losses), color="tab:red", linestyle=":",
+                               linewidth=1.0, label=f"test ({np.mean(test_losses):.3f})")
 
-            # test loss hline
-            test_losses = [
-                float(r["metrics"]["final_test_loss"])
-                for r in runs
-                if "metrics" in r and "final_test_loss" in r["metrics"]
-            ]
-            if test_losses:
-                ax.axhline(
-                    np.mean(test_losses), color="tab:red", linestyle=":",
-                    label=f"test mean ({np.mean(test_losses):.4f})",
-                )
+            ax.set_ylabel("Loss")
+            ax.set_title(MODEL_DISPLAY_NAMES[mkey], pad=3)
+            ax.legend(ncol=2)
+            if row == n - 1:
+                ax.set_xlabel("Epoch")
 
-        ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Training Curves (mean ± std)")
-        ax.set_xlabel("Epoch")
-        ax.set_ylabel("Loss")
-        ax.legend(fontsize=8)
-
-    plt.tight_layout()
-    save_path = output_dir / "fig_training_curves_avg.png"
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {save_path}")
+        fig.tight_layout()
+        _save(fig, output_dir / "fig_training_curves_avg")
+        plt.close(fig)
 
 
 # ── Figure: averaged accuracy curves ──────────────────────────────────────────
@@ -206,81 +239,79 @@ def _fig_training_curves_avg(all_runs: dict[str, list[dict]], output_dir: Path) 
 
 def _fig_accuracy_curves_avg(all_runs: dict[str, list[dict]], output_dir: Path) -> None:
     model_keys = [k for k in ALL_MODEL_KEYS if all_runs[k]]
-    fig, axes = plt.subplots(len(model_keys), 1, figsize=(10, 4 * len(model_keys)), squeeze=False)
+    n = len(model_keys)
 
-    for row, mkey in enumerate(model_keys):
-        ax = axes[row][0]
-        runs = all_runs[mkey]
+    with plt.rc_context(NEURIPS_RC):
+        fig, axes = plt.subplots(n, 1, figsize=(COL2, 2.0 * n), squeeze=False)
 
-        if mkey in SINGLE_STAGE_MODELS:
-            val_lists, train_lists = [], []
-            for r in runs:
-                hist = r.get("metrics", {}).get("history", [])
-                if hist:
-                    val_lists.append([h["val_accuracy"] for h in hist])
-                    if "train_accuracy" in hist[0]:
-                        train_lists.append([h["train_accuracy"] for h in hist])
-            if train_lists:
-                ep, m, s = _mean_std(train_lists)
-                _plot_band(ax, ep, m, s, "tab:blue", "train")
-            if val_lists:
-                ep, m, s = _mean_std(val_lists)
-                _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
-            test_accs = [
-                float(r["metrics"]["final_accuracy"])
-                for r in runs
-                if "metrics" in r and "final_accuracy" in r["metrics"]
-            ]
-            if test_accs:
-                ax.axhline(
-                    np.mean(test_accs), color="tab:red", linestyle=":",
-                    label=f"test mean ({np.mean(test_accs):.4f})",
-                )
-        else:
-            sb_val, sb_train = [], []
-            a_lengths = []
-            for r in runs:
-                metrics = r.get("metrics", {})
-                sa = metrics.get("stage_a_history", [])
-                sb = metrics.get("stage_b_history", [])
-                if sa:
-                    a_lengths.append(len(sa))
-                if sb:
-                    sb_val.append([h["val_accuracy"] for h in sb])
-                    if "train_accuracy" in sb[0]:
-                        sb_train.append([h["train_accuracy"] for h in sb])
+        for row, mkey in enumerate(model_keys):
+            ax = axes[row][0]
+            runs = all_runs[mkey]
 
-            mean_a_len = int(np.mean(a_lengths)) if a_lengths else 0
+            if mkey in SINGLE_STAGE_MODELS:
+                val_lists, train_lists = [], []
+                for r in runs:
+                    hist = r.get("metrics", {}).get("history", [])
+                    if hist:
+                        val_lists.append([h["val_accuracy"] for h in hist])
+                        if "train_accuracy" in hist[0]:
+                            train_lists.append([h["train_accuracy"] for h in hist])
+                if train_lists:
+                    ep, m, s = _mean_std(train_lists)
+                    _plot_band(ax, ep, m, s, "tab:blue", "train")
+                if val_lists:
+                    ep, m, s = _mean_std(val_lists)
+                    _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
+                test_accs = [
+                    float(r["metrics"]["final_accuracy"])
+                    for r in runs
+                    if "metrics" in r and "final_accuracy" in r["metrics"]
+                ]
+                if test_accs:
+                    ax.axhline(np.mean(test_accs), color="tab:red", linestyle=":",
+                               linewidth=1.0, label=f"test ({np.mean(test_accs):.3f})")
+            else:
+                sb_val, sb_train = [], []
+                a_lengths = []
+                for r in runs:
+                    metrics = r.get("metrics", {})
+                    sa = metrics.get("stage_a_history", [])
+                    sb = metrics.get("stage_b_history", [])
+                    if sa:
+                        a_lengths.append(len(sa))
+                    if sb:
+                        sb_val.append([h["val_accuracy"] for h in sb])
+                        if "train_accuracy" in sb[0]:
+                            sb_train.append([h["train_accuracy"] for h in sb])
 
-            if sb_train:
-                ep_raw, m, s = _mean_std(sb_train)
-                _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:blue", "Stage B train")
-            if sb_val:
-                ep_raw, m, s = _mean_std(sb_val)
-                _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B val", linestyle="--")
+                mean_a_len = int(np.mean(a_lengths)) if a_lengths else 0
+                if sb_train:
+                    ep_raw, m, s = _mean_std(sb_train)
+                    _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:blue", "Stage B train")
+                if sb_val:
+                    ep_raw, m, s = _mean_std(sb_val)
+                    _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B val",
+                               linestyle="--")
+                test_accs = [
+                    float(r["metrics"]["final_accuracy"])
+                    for r in runs
+                    if "metrics" in r and "final_accuracy" in r["metrics"]
+                ]
+                if test_accs:
+                    ax.axhline(np.mean(test_accs), color="tab:red", linestyle=":",
+                               linewidth=1.0, label=f"test ({np.mean(test_accs):.3f})")
 
-            test_accs = [
-                float(r["metrics"]["final_accuracy"])
-                for r in runs
-                if "metrics" in r and "final_accuracy" in r["metrics"]
-            ]
-            if test_accs:
-                ax.axhline(
-                    np.mean(test_accs), color="tab:red", linestyle=":",
-                    label=f"test mean ({np.mean(test_accs):.4f})",
-                )
+            ax.set_ylim(0, 1.05)
+            ax.yaxis.set_major_locator(ticker.MultipleLocator(0.2))
+            ax.set_ylabel("Accuracy")
+            ax.set_title(MODEL_DISPLAY_NAMES[mkey], pad=3)
+            ax.legend(ncol=2)
+            if row == n - 1:
+                ax.set_xlabel("Epoch")
 
-        ax.set_ylim(0, 1.05)
-        ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Accuracy Curves (mean ± std)")
-        ax.set_xlabel("Epoch")
-        ax.set_ylabel("Accuracy")
-        ax.legend(fontsize=8)
-
-    plt.tight_layout()
-    save_path = output_dir / "fig_accuracy_curves_avg.png"
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {save_path}")
+        fig.tight_layout()
+        _save(fig, output_dir / "fig_accuracy_curves_avg")
+        plt.close(fig)
 
 
 # ── Figure: averaged ASW ───────────────────────────────────────────────────────
@@ -305,30 +336,28 @@ def _fig_asw_avg(all_runs: dict[str, list[dict]], output_dir: Path) -> None:
         print(f"  ASW ({MODEL_DISPLAY_NAMES[mkey]}): {asw_means[mkey]:.4f} ± {asw_stds[mkey]:.4f}")
 
     if not asw_means:
-        print("[warn] No ASW data; skipping fig_asw_avg.png")
+        print("[warn] No ASW data; skipping fig_asw_avg")
         return
 
     sorted_models = sorted(asw_means, key=asw_means.__getitem__, reverse=True)
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.barh(
-        [MODEL_DISPLAY_NAMES[m] for m in sorted_models],
-        [asw_means[m] for m in sorted_models],
-        xerr=[asw_stds[m] for m in sorted_models],
-        color=[MODEL_COLORS[m] for m in sorted_models],
-        capsize=4,
-    )
-    for mkey in sorted_models:
-        m, s = asw_means[mkey], asw_stds[mkey]
-        ax.text(m + s + 0.005, sorted_models.index(mkey),
-                f"{m:.3f}±{s:.3f}", va="center", fontsize=9)
-    ax.set_xlim(0, 1.2)
-    ax.set_xlabel("Normalized ASW")
-    ax.set_title("Average Silhouette Width — Mean ± Std Across Seeds")
-    plt.tight_layout()
-    save_path = output_dir / "fig_asw_avg.png"
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {save_path}")
+
+    with plt.rc_context(NEURIPS_RC):
+        fig, ax = plt.subplots(figsize=(COL1, 0.45 * len(sorted_models) + 0.6))
+        bars = ax.barh(
+            [MODEL_DISPLAY_NAMES[m] for m in sorted_models],
+            [asw_means[m] for m in sorted_models],
+            xerr=[asw_stds[m] for m in sorted_models],
+            color=[MODEL_COLORS[m] for m in sorted_models],
+            capsize=2, error_kw={"linewidth": 0.8}, height=0.55,
+        )
+        for i, mkey in enumerate(sorted_models):
+            m, s = asw_means[mkey], asw_stds[mkey]
+            ax.text(m + s + 0.008, i, f"{m:.3f}", va="center", fontsize=6)
+        ax.set_xlim(0, max(asw_means.values()) * 1.25)
+        ax.set_xlabel("Normalized ASW")
+        fig.tight_layout()
+        _save(fig, output_dir / "fig_asw_avg")
+        plt.close(fig)
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
