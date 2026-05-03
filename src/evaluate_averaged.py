@@ -331,9 +331,9 @@ def main(argv: list[str] | None = None) -> None:
         help="Seed values to aggregate (default: 13 42 77)",
     )
     parser.add_argument(
-        "--exclude", type=str, nargs="*", default=[],
+        "--exclude", type=str, nargs="*", default=["tf_gene:77"],
         metavar="MODEL:SEED",
-        help="Exclude specific model+seed combinations, e.g. --exclude tf_gene:77",
+        help="Exclude specific model+seed combinations (default: tf_gene:77 — failed run)",
     )
     args = parser.parse_args(argv)
 
