@@ -2,183 +2,183 @@
   "CD14+ Mono": {
     "CD14": {
       "resolved": "CD14-1",
-      "best_rank": 2,
-      "best_layer": 0,
-      "best_head": 0,
+      "best_rank": 5,
+      "best_layer": 1,
+      "best_head": 1,
       "n_tokens": 134
     },
     "HLA-DR": {
       "resolved": "HLA-DR",
-      "best_rank": 1,
+      "best_rank": 19,
       "best_layer": 1,
       "best_head": 1,
       "n_tokens": 134
     },
     "CD11b": {
       "resolved": "CD11b",
-      "best_rank": 3,
-      "best_layer": 0,
-      "best_head": 0,
+      "best_rank": 17,
+      "best_layer": 1,
+      "best_head": 2,
       "n_tokens": 134
     },
     "CD64": {
       "resolved": "CD64",
-      "best_rank": 6,
-      "best_layer": 0,
-      "best_head": 2,
+      "best_rank": 3,
+      "best_layer": 1,
+      "best_head": 3,
       "n_tokens": 134
     }
   },
   "CD16+ Mono": {
     "CD16": {
       "resolved": "CD16",
-      "best_rank": 2,
-      "best_layer": 1,
-      "best_head": 0,
+      "best_rank": 14,
+      "best_layer": 0,
+      "best_head": 1,
       "n_tokens": 134
     },
     "CX3CR1": {
       "resolved": "CX3CR1-1",
-      "best_rank": 10,
-      "best_layer": 0,
+      "best_rank": 23,
+      "best_layer": 1,
       "best_head": 1,
       "n_tokens": 134
     },
     "HLA-DR": {
       "resolved": "HLA-DR",
-      "best_rank": 3,
-      "best_layer": 1,
-      "best_head": 1,
+      "best_rank": 15,
+      "best_layer": 0,
+      "best_head": 0,
       "n_tokens": 134
     }
   },
   "CD4+ T activated": {
     "CD3": {
       "resolved": "CD3",
-      "best_rank": 2,
+      "best_rank": 16,
       "best_layer": 0,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     },
     "CD4": {
       "resolved": "CD4-1",
-      "best_rank": 1,
+      "best_rank": 14,
       "best_layer": 0,
-      "best_head": 1,
+      "best_head": 3,
       "n_tokens": 134
     },
     "CD45RO": {
       "resolved": "CD45RO",
-      "best_rank": 1,
+      "best_rank": 3,
       "best_layer": 1,
-      "best_head": 1,
+      "best_head": 2,
       "n_tokens": 134
     },
     "CD69": {
       "resolved": "CD69-1",
-      "best_rank": 18,
+      "best_rank": 27,
       "best_layer": 0,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     }
   },
   "CD4+ T naive": {
     "CD3": {
       "resolved": "CD3",
-      "best_rank": 1,
-      "best_layer": 0,
-      "best_head": 3,
-      "n_tokens": 134
-    },
-    "CD4": {
-      "resolved": "CD4-1",
-      "best_rank": 1,
+      "best_rank": 18,
       "best_layer": 0,
       "best_head": 1,
       "n_tokens": 134
     },
+    "CD4": {
+      "resolved": "CD4-1",
+      "best_rank": 14,
+      "best_layer": 0,
+      "best_head": 3,
+      "n_tokens": 134
+    },
     "CD45RA": {
       "resolved": "CD45RA",
-      "best_rank": 1,
+      "best_rank": 4,
       "best_layer": 1,
       "best_head": 2,
       "n_tokens": 134
     },
     "CD62L": {
       "resolved": "CD62L",
-      "best_rank": 1,
+      "best_rank": 10,
       "best_layer": 1,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     }
   },
   "CD8+ T naive": {
     "CD3": {
       "resolved": "CD3",
-      "best_rank": 2,
+      "best_rank": 16,
       "best_layer": 0,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     },
     "CD8": {
       "resolved": "CD8",
-      "best_rank": 1,
+      "best_rank": 6,
       "best_layer": 1,
       "best_head": 1,
       "n_tokens": 134
     },
     "CD45RA": {
       "resolved": "CD45RA",
-      "best_rank": 1,
-      "best_layer": 1,
+      "best_rank": 4,
+      "best_layer": 0,
       "best_head": 2,
       "n_tokens": 134
     },
     "CD62L": {
       "resolved": "CD62L",
-      "best_rank": 2,
+      "best_rank": 10,
       "best_layer": 1,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     }
   },
   "Erythroblast": {
     "CD71": {
       "resolved": "CD71",
-      "best_rank": 1,
+      "best_rank": 4,
       "best_layer": 0,
-      "best_head": 1,
+      "best_head": 0,
       "n_tokens": 134
     }
   },
   "HSC": {
     "CD38": {
       "resolved": "CD38-1",
-      "best_rank": 1,
+      "best_rank": 51,
       "best_layer": 1,
-      "best_head": 2,
+      "best_head": 3,
       "n_tokens": 134
     },
     "CD45RA": {
       "resolved": "CD45RA",
-      "best_rank": 39,
-      "best_layer": 0,
-      "best_head": 0,
+      "best_rank": 4,
+      "best_layer": 1,
+      "best_head": 2,
       "n_tokens": 134
     }
   },
   "MAIT": {
     "CD3": {
       "resolved": "CD3",
-      "best_rank": 4,
+      "best_rank": 15,
       "best_layer": 0,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     },
     "CD8": {
       "resolved": "CD8",
-      "best_rank": 10,
-      "best_layer": 0,
+      "best_rank": 4,
+      "best_layer": 1,
       "best_head": 1,
       "n_tokens": 134
     },
@@ -186,267 +186,198 @@
       "resolved": "CD161",
       "best_rank": 1,
       "best_layer": 1,
-      "best_head": 1,
+      "best_head": 2,
       "n_tokens": 134
     },
     "TCRVa7.2": {
       "resolved": "TCRVa7.2",
-      "best_rank": 4,
-      "best_layer": 1,
-      "best_head": 0,
+      "best_rank": 3,
+      "best_layer": 0,
+      "best_head": 3,
       "n_tokens": 134
     }
   },
   "NK": {
     "CD56": {
       "resolved": "CD56",
-      "best_rank": 2,
+      "best_rank": 10,
       "best_layer": 1,
-      "best_head": 0,
+      "best_head": 2,
       "n_tokens": 134
     },
     "CD16": {
       "resolved": "CD16",
-      "best_rank": 1,
-      "best_layer": 1,
+      "best_rank": 13,
+      "best_layer": 0,
       "best_head": 1,
       "n_tokens": 134
     },
     "CD335": {
       "resolved": "CD335",
-      "best_rank": 6,
+      "best_rank": 15,
       "best_layer": 1,
-      "best_head": 3,
+      "best_head": 1,
       "n_tokens": 134
     }
   },
   "Naive CD20+ B IGKC+": {
     "CD19": {
       "resolved": "CD19-1",
-      "best_rank": 4,
+      "best_rank": 24,
       "best_layer": 0,
-      "best_head": 3,
+      "best_head": 0,
       "n_tokens": 134
     },
     "CD20": {
       "resolved": "CD20",
-      "best_rank": 2,
-      "best_layer": 1,
-      "best_head": 3,
+      "best_rank": 19,
+      "best_layer": 0,
+      "best_head": 2,
       "n_tokens": 134
     },
     "IgM": {
       "resolved": "IgM",
-      "best_rank": 4,
-      "best_layer": 1,
-      "best_head": 1,
+      "best_rank": 23,
+      "best_layer": 0,
+      "best_head": 3,
       "n_tokens": 134
     },
     "IgD": {
       "resolved": "IgD",
-      "best_rank": 5,
-      "best_layer": 0,
-      "best_head": 1,
-      "n_tokens": 134
-    },
-    "CD21": {
-      "resolved": "CD21",
-      "best_rank": 3,
-      "best_layer": 1,
-      "best_head": 3,
-      "n_tokens": 134
-    }
-  },
-  "Naive CD20+ B IGKC-": {
-    "CD19": {
-      "resolved": "CD19-1",
-      "best_rank": 4,
-      "best_layer": 0,
-      "best_head": 3,
-      "n_tokens": 134
-    },
-    "CD20": {
-      "resolved": "CD20",
       "best_rank": 2,
       "best_layer": 1,
-      "best_head": 3,
-      "n_tokens": 134
-    },
-    "IgM": {
-      "resolved": "IgM",
-      "best_rank": 4,
-      "best_layer": 1,
-      "best_head": 1,
-      "n_tokens": 134
-    },
-    "IgD": {
-      "resolved": "IgD",
-      "best_rank": 5,
-      "best_layer": 0,
-      "best_head": 1,
+      "best_head": 0,
       "n_tokens": 134
     },
     "CD21": {
       "resolved": "CD21",
-      "best_rank": 3,
-      "best_layer": 1,
-      "best_head": 3,
+      "best_rank": 12,
+      "best_layer": 0,
+      "best_head": 1,
       "n_tokens": 134
     }
   },
   "Normoblast": {
     "CD71": {
       "resolved": "CD71",
-      "best_rank": 1,
+      "best_rank": 4,
       "best_layer": 0,
-      "best_head": 1,
-      "n_tokens": 134
-    }
-  },
-  "Plasma cell IGKC+": {
-    "CD38": {
-      "resolved": "CD38-1",
-      "best_rank": 1,
-      "best_layer": 0,
-      "best_head": 3,
-      "n_tokens": 134
-    },
-    "CD27": {
-      "resolved": "CD27-1",
-      "best_rank": 8,
-      "best_layer": 0,
-      "best_head": 3,
-      "n_tokens": 134
-    }
-  },
-  "Plasma cell IGKC-": {
-    "CD38": {
-      "resolved": "CD38-1",
-      "best_rank": 1,
-      "best_layer": 0,
-      "best_head": 3,
-      "n_tokens": 134
-    },
-    "CD27": {
-      "resolved": "CD27-1",
-      "best_rank": 7,
-      "best_layer": 0,
-      "best_head": 3,
+      "best_head": 0,
       "n_tokens": 134
     }
   },
   "Reticulocyte": {
     "CD71": {
       "resolved": "CD71",
-      "best_rank": 1,
+      "best_rank": 4,
       "best_layer": 0,
-      "best_head": 1,
+      "best_head": 0,
       "n_tokens": 134
     }
   },
   "T reg": {
     "CD3": {
       "resolved": "CD3",
-      "best_rank": 4,
-      "best_layer": 1,
-      "best_head": 2,
+      "best_rank": 17,
+      "best_layer": 0,
+      "best_head": 1,
       "n_tokens": 134
     },
     "CD4": {
       "resolved": "CD4-1",
-      "best_rank": 1,
+      "best_rank": 17,
       "best_layer": 0,
-      "best_head": 1,
+      "best_head": 3,
       "n_tokens": 134
     },
     "CD25": {
       "resolved": "CD25",
-      "best_rank": 3,
+      "best_rank": 25,
       "best_layer": 1,
-      "best_head": 1,
+      "best_head": 2,
       "n_tokens": 134
     },
     "CD127": {
       "resolved": "CD127",
-      "best_rank": 28,
-      "best_layer": 0,
-      "best_head": 3,
+      "best_rank": 1,
+      "best_layer": 1,
+      "best_head": 1,
       "n_tokens": 134
     }
   },
   "Transitional B": {
     "CD24": {
       "resolved": "CD24-1",
-      "best_rank": 3,
+      "best_rank": 8,
       "best_layer": 1,
       "best_head": 0,
       "n_tokens": 134
     },
     "CD38": {
       "resolved": "CD38-1",
-      "best_rank": 1,
-      "best_layer": 1,
+      "best_rank": 39,
+      "best_layer": 0,
       "best_head": 3,
       "n_tokens": 134
     },
     "IgM": {
       "resolved": "IgM",
-      "best_rank": 3,
-      "best_layer": 1,
-      "best_head": 1,
+      "best_rank": 42,
+      "best_layer": 0,
+      "best_head": 3,
       "n_tokens": 134
     },
     "CD19": {
       "resolved": "CD19-1",
-      "best_rank": 2,
-      "best_layer": 1,
-      "best_head": 3,
+      "best_rank": 29,
+      "best_layer": 0,
+      "best_head": 0,
       "n_tokens": 134
     }
   },
   "cDC2": {
     "CD11c": {
       "resolved": "CD11c",
-      "best_rank": 3,
-      "best_layer": 0,
-      "best_head": 3,
-      "n_tokens": 134
-    },
-    "HLA-DR": {
-      "resolved": "HLA-DR",
-      "best_rank": 2,
+      "best_rank": 12,
       "best_layer": 1,
       "best_head": 1,
       "n_tokens": 134
     },
+    "HLA-DR": {
+      "resolved": "HLA-DR",
+      "best_rank": 15,
+      "best_layer": 0,
+      "best_head": 0,
+      "n_tokens": 134
+    },
     "CD1c": {
       "resolved": "CD1c",
-      "best_rank": 1,
-      "best_layer": 0,
-      "best_head": 1,
+      "best_rank": 17,
+      "best_layer": 1,
+      "best_head": 0,
       "n_tokens": 134
     }
   },
   "pDC": {
     "CD123": {
       "resolved": "CD123",
-      "best_rank": 1,
-      "best_layer": 0,
-      "best_head": 1,
-      "n_tokens": 134
-    },
-    "CD303": {
-      "resolved": "CD303",
-      "best_rank": 5,
+      "best_rank": 19,
       "best_layer": 1,
       "best_head": 3,
       "n_tokens": 134
     },
-    "CD304": {
-      "resolved": "CD304",
-      "best_rank": 1,
+    "CD303": {
+      "resolved": "CD303",
+      "best_rank": 6,
       "best_layer": 1,
       "best_head": 1,
+      "n_tokens": 134
+    },
+    "CD304": {
+      "resolved": "CD304",
+      "best_rank": 6,
+      "best_layer": 0,
+      "best_head": 3,
       "n_tokens": 134
     }
   }

@@ -1,0 +1,35 @@
+{
+  "final_test_loss": 3.6972656846046448,
+  "final_accuracy": 0.26,
+  "final_macro_auroc": 0.5659070499774567,
+  "stage_a_history": [
+    {
+      "epoch": 1,
+      "train_loss": 4.165268659591675,
+      "val_loss": 4.092071294784546
+    },
+    {
+      "epoch": 2,
+      "train_loss": 4.159302806854248,
+      "val_loss": 4.092084646224976
+    }
+  ],
+  "stage_b_history": [
+    {
+      "epoch": 1,
+      "train_loss": 3.7591590014371006,
+      "train_accuracy": 0.045588235294117645,
+      "val_loss": 3.7021641731262207,
+      "val_accuracy": 0.18333333333333332,
+      "val_macro_auroc": 0.5331963077347408
+    },
+    {
+      "epoch": 2,
+      "train_loss": 3.639954155141657,
+      "train_accuracy": 0.1676470588235294,
+      "val_loss": 3.5579020977020264,
+      "val_accuracy": 0.18333333333333332,
+      "val_macro_auroc": 0.52761277995593
+    }
+  ]
+}

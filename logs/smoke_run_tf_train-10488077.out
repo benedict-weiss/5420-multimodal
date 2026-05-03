@@ -1,0 +1,91 @@
+=== Smoke test: run_tf_train ===
+  SEED:      42
+  MAX_CELLS: 1000
+
+--- [1/2] train_contrastive_tf (pathway tokens) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Subsampled to 1000 cells for smoke test.
+Cell type labels: 44 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'Erythroblast': 16, 'G/M prog': 17, 'HSC': 18, 'ILC': 19, 'ILC1': 20, 'Lymph prog': 21, 'MAIT': 22, 'MK/E prog': 23, 'NK': 24, 'NK CD158e1+': 25, 'Naive CD20+ B IGKC+': 26, 'Naive CD20+ B IGKC-': 27, 'Normoblast': 28, 'Plasma cell IGKC+': 29, 'Plasma cell IGKC-': 30, 'Plasmablast IGKC+': 31, 'Plasmablast IGKC-': 32, 'Proerythroblast': 33, 'Reticulocyte': 34, 'T prog cycling': 35, 'T reg': 36, 'Transitional B': 37, 'cDC1': 38, 'cDC2': 39, 'dnT': 40, 'gdT CD158b+': 41, 'gdT TCRVD2+': 42, 'pDC': 43}
+Split modalities: RNA (1000, 13953), Protein (1000, 134)
+Loading gene sets from data/kegg_2021_human.json...
+Building pathway tokens (KEGG_2021_Human)...
+Pathway tokens output shape: (1000, 313)
+  313 pathways included (>= 5 genes)
+  Pathway matrix shape: (1000, 313)
+Protein CLR output shape: (800, 134)
+Protein CLR output shape: (200, 134)
+Prepared: train pathway (800, 313), train protein (800, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.1653 | val=4.0921 | best=4.0921
+[Stage A] Epoch 002 | train=4.1593 | val=4.0921 | best=4.0921
+Loaded best Stage A weights from epoch 1.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=3.7592 | val_acc=0.1833
+[Stage B] Epoch 002 | train=3.6400 | val_acc=0.1833
+
+Extracting attention weights from test set...
+  RNA attention: (200, 313), Protein attention: (200, 134)
+  RNA per-head attention: (200, 2, 4, 313), Protein per-head attention: (200, 2, 4, 134)
+Attention weights saved to results/smoke/contrastive_tf_seed42_20260502_215816/
+Test embeddings saved: rna (200, 128), protein (200, 128)
+
+=== Training complete ===
+Run directory: results/smoke/contrastive_tf_seed42_20260502_215816
+Final test accuracy: 0.2600
+Final macro AUROC:   0.5659
+  checkpoint: results/smoke/contrastive_tf_seed42_20260502_215816
+
+--- [2/2] train_contrastive_tf_gene (gene tokens) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Subsampled to 1000 cells for smoke test.
+Cell type labels: 44 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'Erythroblast': 16, 'G/M prog': 17, 'HSC': 18, 'ILC': 19, 'ILC1': 20, 'Lymph prog': 21, 'MAIT': 22, 'MK/E prog': 23, 'NK': 24, 'NK CD158e1+': 25, 'Naive CD20+ B IGKC+': 26, 'Naive CD20+ B IGKC-': 27, 'Normoblast': 28, 'Plasma cell IGKC+': 29, 'Plasma cell IGKC-': 30, 'Plasmablast IGKC+': 31, 'Plasmablast IGKC-': 32, 'Proerythroblast': 33, 'Reticulocyte': 34, 'T prog cycling': 35, 'T reg': 36, 'Transitional B': 37, 'cDC1': 38, 'cDC2': 39, 'dnT': 40, 'gdT CD158b+': 41, 'gdT TCRVD2+': 42, 'pDC': 43}
+Split modalities: RNA (1000, 13953), Protein (1000, 134)
+Building gene tokens (top 64 HVGs)...
+Gene tokens output shape: (1000, 64)
+  64 HVG tokens retained
+  Gene token matrix shape: (1000, 64)
+Protein CLR output shape: (800, 134)
+Protein CLR output shape: (200, 134)
+Prepared: train rna (800, 64), train protein (800, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.1689 | val=4.0921 | best=4.0921
+[Stage A] Epoch 002 | train=4.1606 | val=4.0921 | best=4.0921
+Loaded best Stage A weights from epoch 1.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=3.7777 | val_acc=0.1833
+[Stage B] Epoch 002 | train=3.6859 | val_acc=0.1833
+Test embeddings saved: rna (200, 128), protein (200, 128)
+
+=== Training complete ===
+Run directory: results/smoke/contrastive_tf_gene_seed42_20260502_215900
+Final test accuracy: 0.2600
+Final macro AUROC:   0.5258
+  checkpoint: results/smoke/contrastive_tf_gene_seed42_20260502_215900
+
+=== Smoke test passed ===
+  Pathway checkpoint: results/smoke/contrastive_tf_seed42_20260502_215816
+  Gene checkpoint:    results/smoke/contrastive_tf_gene_seed42_20260502_215900

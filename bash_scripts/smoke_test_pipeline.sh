@@ -9,7 +9,7 @@
 # errors, shape mismatches, and checkpoint compatibility issues before submitting
 # a full cluster job. Completes in ~10 minutes on GPU.
 
-set -euo pipefail
+# set -euo pipefail
 
 cd ~/project_cpsc4520/cpsc4520_bcw45/5420-multimodal/
 

@@ -1,0 +1,265 @@
+=== Smoke test pipeline ===
+  DATA_PATH:   data/
+  OUTPUT_DIR:  results/smoke
+  MAX_CELLS:   1000
+
+--- [1/6] train_contrastive_tf (pathway tokens) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Subsampled to 1000 cells for smoke test.
+Cell type labels: 44 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'Erythroblast': 16, 'G/M prog': 17, 'HSC': 18, 'ILC': 19, 'ILC1': 20, 'Lymph prog': 21, 'MAIT': 22, 'MK/E prog': 23, 'NK': 24, 'NK CD158e1+': 25, 'Naive CD20+ B IGKC+': 26, 'Naive CD20+ B IGKC-': 27, 'Normoblast': 28, 'Plasma cell IGKC+': 29, 'Plasma cell IGKC-': 30, 'Plasmablast IGKC+': 31, 'Plasmablast IGKC-': 32, 'Proerythroblast': 33, 'Reticulocyte': 34, 'T prog cycling': 35, 'T reg': 36, 'Transitional B': 37, 'cDC1': 38, 'cDC2': 39, 'dnT': 40, 'gdT CD158b+': 41, 'gdT TCRVD2+': 42, 'pDC': 43}
+Split modalities: RNA (1000, 13953), Protein (1000, 134)
+Loading gene sets from data/kegg_2021_human.json...
+Building pathway tokens (KEGG_2021_Human)...
+Pathway tokens output shape: (1000, 313)
+  313 pathways included (>= 5 genes)
+  Pathway matrix shape: (1000, 313)
+Protein CLR output shape: (800, 134)
+Protein CLR output shape: (200, 134)
+Prepared: train pathway (800, 313), train protein (800, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.1637 | val=4.0920 | best=4.0920
+[Stage A] Epoch 002 | train=4.1586 | val=4.0919 | best=4.0919
+Loaded best Stage A weights from epoch 2.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=3.7397 | val_acc=0.1833
+[Stage B] Epoch 002 | train=3.6741 | val_acc=0.1833
+
+Extracting attention weights from test set...
+  RNA attention: (200, 313), Protein attention: (200, 134)
+  RNA per-head attention: (200, 2, 4, 313), Protein per-head attention: (200, 2, 4, 134)
+Attention weights saved to results/smoke/contrastive_tf_seed42_20260421_210228/
+Test embeddings saved: rna (200, 128), protein (200, 128)
+
+=== Training complete ===
+Run directory: results/smoke/contrastive_tf_seed42_20260421_210228
+Final test accuracy: 0.2600
+Final macro AUROC:   0.4630
+  checkpoint: results/smoke/contrastive_tf_seed42_20260421_210228
+
+--- [2/6] evaluate ---
+
+=== Selected run directories ===
+  Contrastive TF: results/smoke/contrastive_tf_seed42_20260421_210228
+
+=== Generating figures ===
+Saved: results/figures/fig_model_comparison.png
+Saved: results/figures/fig_training_curves.png
+Saved: results/figures/fig_accuracy_curves.png
+Saved: results/figures/fig_phate_tf.png
+Saved: results/figures/fig_recall_at_k.png
+  ASW (Contrastive TF): 0.3175
+Saved: results/figures/fig_asw.png
+
+All figures saved to results/figures/
+
+--- [3/6] attention_analysis ---
+Loaded: 200 cells, 313 pathways, 134 proteins, 44 cell types
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_rna.png
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_rna_specificity.png
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_rna_per_row.png
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_protein_specificity.png
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_protein.png
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_protein_per_row.png
+
+=== Marker validation (protein) ===
+  CD14+ Mono: recall=0.25  found=['CD64']  missing=['CD14', 'HLA-DR', 'CD11b']
+  CD16+ Mono: recall=0.00  found=[]  missing=['CD16', 'CX3CR1', 'HLA-DR']
+  CD4+ T activated: recall=0.00  found=[]  missing=['CD3', 'CD4', 'CD45RO', 'CD69']
+  CD4+ T naive: recall=0.25  found=['CD45RA']  missing=['CD3', 'CD4', 'CD62L']
+  CD8+ T naive: recall=0.50  found=['CD8', 'CD45RA']  missing=['CD3', 'CD62L']
+  Erythroblast: recall=0.00  found=[]  missing=['CD71']
+  HSC: recall=0.50  found=['CD45RA']  missing=['CD38']
+  MAIT: recall=0.50  found=['CD8', 'CD161']  missing=['CD3', 'TCRVa7.2']
+  NK: recall=0.00  found=[]  missing=['CD56', 'CD16', 'CD335']
+  Naive CD20+ B IGKC+: recall=0.00  found=[]  missing=['CD19', 'CD20', 'IgM', 'IgD', 'CD21']
+  Normoblast: recall=0.00  found=[]  missing=['CD71']
+  Reticulocyte: recall=0.00  found=[]  missing=['CD71']
+  T reg: recall=0.25  found=['CD127']  missing=['CD3', 'CD4', 'CD25']
+  Transitional B: recall=0.00  found=[]  missing=['CD24', 'CD38', 'IgM', 'CD19']
+  cDC2: recall=0.00  found=[]  missing=['CD11c', 'HLA-DR', 'CD1c']
+  pDC: recall=0.00  found=[]  missing=['CD123', 'CD303', 'CD304']
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/marker_validation.json
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/attention_heatmap_protein_per_head_max.png
+
+=== Marker validation (protein, max over per-head) ===
+  CD14+ Mono: recall=0.00  found=[]  missing=['CD14', 'HLA-DR', 'CD11b', 'CD64']
+  CD16+ Mono: recall=0.00  found=[]  missing=['CD16', 'CX3CR1', 'HLA-DR']
+  CD4+ T activated: recall=0.00  found=[]  missing=['CD3', 'CD4', 'CD45RO', 'CD69']
+  CD4+ T naive: recall=0.00  found=[]  missing=['CD3', 'CD4', 'CD45RA', 'CD62L']
+  CD8+ T naive: recall=0.00  found=[]  missing=['CD3', 'CD8', 'CD45RA', 'CD62L']
+  Erythroblast: recall=0.00  found=[]  missing=['CD71']
+  HSC: recall=0.00  found=[]  missing=['CD38', 'CD45RA']
+  MAIT: recall=0.00  found=[]  missing=['CD3', 'CD8', 'CD161', 'TCRVa7.2']
+  NK: recall=0.00  found=[]  missing=['CD56', 'CD16', 'CD335']
+  Naive CD20+ B IGKC+: recall=0.00  found=[]  missing=['CD19', 'CD20', 'IgM', 'IgD', 'CD21']
+  Normoblast: recall=0.00  found=[]  missing=['CD71']
+  Reticulocyte: recall=0.00  found=[]  missing=['CD71']
+  T reg: recall=0.00  found=[]  missing=['CD3', 'CD4', 'CD25', 'CD127']
+  Transitional B: recall=0.00  found=[]  missing=['CD24', 'CD38', 'IgM', 'CD19']
+  cDC2: recall=0.00  found=[]  missing=['CD11c', 'HLA-DR', 'CD1c']
+  pDC: recall=0.00  found=[]  missing=['CD123', 'CD303', 'CD304']
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/marker_validation_per_head_max.json
+Saved: results/smoke/contrastive_tf_seed42_20260421_210228/marker_best_rank_per_head.json
+
+=== Best (layer, head) per marker ===
+  CD14+ Mono / CD14 (CD14-1): rank=5/134 @layer1 head1
+  CD14+ Mono / HLA-DR (HLA-DR): rank=19/134 @layer1 head1
+  CD14+ Mono / CD11b (CD11b): rank=17/134 @layer1 head2
+  CD14+ Mono / CD64 (CD64): rank=3/134 @layer1 head3
+  CD16+ Mono / CD16 (CD16): rank=14/134 @layer0 head1
+  CD16+ Mono / CX3CR1 (CX3CR1-1): rank=23/134 @layer1 head1
+  CD16+ Mono / HLA-DR (HLA-DR): rank=15/134 @layer0 head0
+  CD4+ T activated / CD3 (CD3): rank=16/134 @layer0 head1
+  CD4+ T activated / CD4 (CD4-1): rank=14/134 @layer0 head3
+  CD4+ T activated / CD45RO (CD45RO): rank=3/134 @layer1 head2
+  CD4+ T activated / CD69 (CD69-1): rank=27/134 @layer0 head1
+  CD4+ T naive / CD3 (CD3): rank=18/134 @layer0 head1
+  CD4+ T naive / CD4 (CD4-1): rank=14/134 @layer0 head3
+  CD4+ T naive / CD45RA (CD45RA): rank=4/134 @layer1 head2
+  CD4+ T naive / CD62L (CD62L): rank=10/134 @layer1 head1
+  CD8+ T naive / CD3 (CD3): rank=16/134 @layer0 head1
+  CD8+ T naive / CD8 (CD8): rank=6/134 @layer1 head1
+  CD8+ T naive / CD45RA (CD45RA): rank=4/134 @layer0 head2
+  CD8+ T naive / CD62L (CD62L): rank=10/134 @layer1 head1
+  Erythroblast / CD71 (CD71): rank=4/134 @layer0 head0
+  HSC / CD38 (CD38-1): rank=51/134 @layer1 head3
+  HSC / CD45RA (CD45RA): rank=4/134 @layer1 head2
+  MAIT / CD3 (CD3): rank=15/134 @layer0 head1
+  MAIT / CD8 (CD8): rank=4/134 @layer1 head1
+  MAIT / CD161 (CD161): rank=1/134 @layer1 head2
+  MAIT / TCRVa7.2 (TCRVa7.2): rank=3/134 @layer0 head3
+  NK / CD56 (CD56): rank=10/134 @layer1 head2
+  NK / CD16 (CD16): rank=13/134 @layer0 head1
+  NK / CD335 (CD335): rank=15/134 @layer1 head1
+  Naive CD20+ B IGKC+ / CD19 (CD19-1): rank=24/134 @layer0 head0
+  Naive CD20+ B IGKC+ / CD20 (CD20): rank=19/134 @layer0 head2
+  Naive CD20+ B IGKC+ / IgM (IgM): rank=23/134 @layer0 head3
+  Naive CD20+ B IGKC+ / IgD (IgD): rank=2/134 @layer1 head0
+  Naive CD20+ B IGKC+ / CD21 (CD21): rank=12/134 @layer0 head1
+  Normoblast / CD71 (CD71): rank=4/134 @layer0 head0
+  Reticulocyte / CD71 (CD71): rank=4/134 @layer0 head0
+  T reg / CD3 (CD3): rank=17/134 @layer0 head1
+  T reg / CD4 (CD4-1): rank=17/134 @layer0 head3
+  T reg / CD25 (CD25): rank=25/134 @layer1 head2
+  T reg / CD127 (CD127): rank=1/134 @layer1 head1
+  Transitional B / CD24 (CD24-1): rank=8/134 @layer1 head0
+  Transitional B / CD38 (CD38-1): rank=39/134 @layer0 head3
+  Transitional B / IgM (IgM): rank=42/134 @layer0 head3
+  Transitional B / CD19 (CD19-1): rank=29/134 @layer0 head0
+  cDC2 / CD11c (CD11c): rank=12/134 @layer1 head1
+  cDC2 / HLA-DR (HLA-DR): rank=15/134 @layer0 head0
+  cDC2 / CD1c (CD1c): rank=17/134 @layer1 head0
+  pDC / CD123 (CD123): rank=19/134 @layer1 head3
+  pDC / CD303 (CD303): rank=6/134 @layer1 head1
+  pDC / CD304 (CD304): rank=6/134 @layer0 head3
+
+[info] Skipping rollout + gradient×attention (pass --data_path to enable).
+
+--- [4/6] attention_graph (raw, global) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 960, in <module>
+    main()
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 938, in main
+    run_pipeline(
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 767, in run_pipeline
+    rna_encoder, protein_encoder, classifier = _load_encoders(checkpoint_dir, ctx, device)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 744, in _load_encoders
+    classifier.load_state_dict(stage_b["classifier_state_dict"])
+  File "/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 2639, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for ClassificationHead:
+	size mismatch for net.3.weight: copying a param with shape torch.Size([44, 64]) from checkpoint, the shape in current model is torch.Size([33, 64]).
+	size mismatch for net.3.bias: copying a param with shape torch.Size([44]) from checkpoint, the shape in current model is torch.Size([33]).
+Using device: cuda
+Pathway tokens output shape: (1000, 313)
+  313 pathways included (>= 5 genes)
+Protein CLR output shape: (200, 134)
+
+--- [5/6] train_contrastive_tf_gene (gene tokens) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Subsampled to 1000 cells for smoke test.
+Cell type labels: 44 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'Erythroblast': 16, 'G/M prog': 17, 'HSC': 18, 'ILC': 19, 'ILC1': 20, 'Lymph prog': 21, 'MAIT': 22, 'MK/E prog': 23, 'NK': 24, 'NK CD158e1+': 25, 'Naive CD20+ B IGKC+': 26, 'Naive CD20+ B IGKC-': 27, 'Normoblast': 28, 'Plasma cell IGKC+': 29, 'Plasma cell IGKC-': 30, 'Plasmablast IGKC+': 31, 'Plasmablast IGKC-': 32, 'Proerythroblast': 33, 'Reticulocyte': 34, 'T prog cycling': 35, 'T reg': 36, 'Transitional B': 37, 'cDC1': 38, 'cDC2': 39, 'dnT': 40, 'gdT CD158b+': 41, 'gdT TCRVD2+': 42, 'pDC': 43}
+Split modalities: RNA (1000, 13953), Protein (1000, 134)
+Building gene tokens (top 64 HVGs)...
+Gene tokens output shape: (1000, 64)
+  64 HVG tokens retained
+  Gene token matrix shape: (1000, 64)
+Protein CLR output shape: (800, 134)
+Protein CLR output shape: (200, 134)
+Prepared: train rna (800, 64), train protein (800, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.1677 | val=4.0921 | best=4.0921
+[Stage A] Epoch 002 | train=4.1598 | val=4.0920 | best=4.0921
+Loaded best Stage A weights from epoch 1.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=3.7641 | val_acc=0.1833
+[Stage B] Epoch 002 | train=3.6641 | val_acc=0.1833
+Test embeddings saved: rna (200, 128), protein (200, 128)
+
+=== Training complete ===
+Run directory: results/smoke/contrastive_tf_gene_seed42_20260421_210327
+Final test accuracy: 0.2600
+Final macro AUROC:   0.4551
+  checkpoint: results/smoke/contrastive_tf_gene_seed42_20260421_210327
+
+--- [6/6] attention_graph on gene checkpoint (raw, global) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 960, in <module>
+    main()
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 938, in main
+    run_pipeline(
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 767, in run_pipeline
+    rna_encoder, protein_encoder, classifier = _load_encoders(checkpoint_dir, ctx, device)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/roberts/project/cpsc4520/cpsc4520_bcw45/5420-multimodal/src/attention_graph.py", line 744, in _load_encoders
+    classifier.load_state_dict(stage_b["classifier_state_dict"])
+  File "/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 2639, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for ClassificationHead:
+	size mismatch for net.3.weight: copying a param with shape torch.Size([44, 64]) from checkpoint, the shape in current model is torch.Size([33, 64]).
+	size mismatch for net.3.bias: copying a param with shape torch.Size([44]) from checkpoint, the shape in current model is torch.Size([33]).
+Using device: cuda
+Gene tokens output shape: (1000, 64)
+  64 HVG tokens retained
+Protein CLR output shape: (200, 134)
+
+=== Smoke test passed ===
+  Pathway checkpoint: results/smoke/contrastive_tf_seed42_20260421_210228
+  Gene checkpoint:    results/smoke/contrastive_tf_gene_seed42_20260421_210327

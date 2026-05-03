@@ -1,3 +1,5 @@
+
+--- [1/7] train_contrastive_tf (pathway tokens) ---
 /home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
   if Version(scanpy.__version__) < Version("1.10"):
 /home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
@@ -208,36 +210,39 @@ Loaded best Stage A weights from epoch 136.
 Extracting attention weights from test set...
   RNA attention: (18053, 313), Protein attention: (18053, 134)
   RNA per-head attention: (18053, 2, 4, 313), Protein per-head attention: (18053, 2, 4, 134)
-Attention weights saved to results/checkpoints/contrastive_tf_seed42_20260421_195114/
+Attention weights saved to results/checkpoints/contrastive_tf_seed42_20260421_220032/
 Test embeddings saved: rna (18053, 128), protein (18053, 128)
 
 === Training complete ===
-Run directory: results/checkpoints/contrastive_tf_seed42_20260421_195114
+Run directory: results/checkpoints/contrastive_tf_seed42_20260421_220032
 Final test accuracy: 0.8497
 Final macro AUROC:   0.9962
-Using checkpoint: results/checkpoints/contrastive_tf_seed42_20260421_195114
+  checkpoint: results/checkpoints/contrastive_tf_seed42_20260421_220032
+
+--- [2/7] evaluate ---
 
 === Selected run directories ===
-  Contrastive TF: results/checkpoints/contrastive_tf_seed42_20260421_195114
+  Contrastive TF: results/checkpoints/contrastive_tf_seed42_20260421_220032
 
 === Generating figures ===
 Saved: results/figures/fig_model_comparison.png
 Saved: results/figures/fig_training_curves.png
 Saved: results/figures/fig_accuracy_curves.png
-    SGD-MDS may not have converged: stress changed by -1.8% in final iterations. Consider increasing n_iter or adjusting learning_rate.
 Saved: results/figures/fig_phate_tf.png
 Saved: results/figures/fig_recall_at_k.png
   ASW (Contrastive TF): 0.5123
 Saved: results/figures/fig_asw.png
 
 All figures saved to results/figures/
+
+--- [3/7] attention_analysis ---
 Loaded: 18053 cells, 313 pathways, 134 proteins, 45 cell types
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_rna.png
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_rna_specificity.png
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_rna_per_row.png
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_protein_specificity.png
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_protein.png
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_protein_per_row.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_rna.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_rna_specificity.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_rna_per_row.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_protein_specificity.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_protein.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_protein_per_row.png
 
 === Marker validation (protein) ===
   CD14+ Mono: recall=0.25  found=['HLA-DR']  missing=['CD14', 'CD11b', 'CD64']
@@ -259,8 +264,8 @@ Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatm
   Transitional B: recall=1.00  found=['CD24', 'CD38', 'IgM', 'CD19']  missing=[]
   cDC2: recall=1.00  found=['CD11c', 'HLA-DR', 'CD1c']  missing=[]
   pDC: recall=0.67  found=['CD303', 'CD304']  missing=['CD123']
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/marker_validation.json
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatmap_protein_per_head_max.png
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/marker_validation.json
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/attention_heatmap_protein_per_head_max.png
 
 === Marker validation (protein, max over per-head) ===
   CD14+ Mono: recall=0.00  found=[]  missing=['CD14', 'HLA-DR', 'CD11b', 'CD64']
@@ -282,8 +287,8 @@ Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/attention_heatm
   Transitional B: recall=0.25  found=['CD38']  missing=['CD24', 'IgM', 'CD19']
   cDC2: recall=0.67  found=['CD11c', 'CD1c']  missing=['HLA-DR']
   pDC: recall=0.33  found=['CD123']  missing=['CD303', 'CD304']
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/marker_validation_per_head_max.json
-Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/marker_best_rank_per_head.json
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/marker_validation_per_head_max.json
+Saved: results/checkpoints/contrastive_tf_seed42_20260421_220032/marker_best_rank_per_head.json
 
 === Best (layer, head) per marker ===
   CD14+ Mono / CD14 (CD14-1): rank=2/134 @layer0 head0
@@ -347,6 +352,8 @@ Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/marker_best_ran
   pDC / CD304 (CD304): rank=1/134 @layer1 head1
 
 [info] Skipping rollout + gradient×attention (pass --data_path to enable).
+
+--- [4/7] attribution_ablation ---
 [ablation] device=cuda
 /home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
   utils.warn_names_duplicates("var")
@@ -374,7 +381,7 @@ Saved: results/checkpoints/contrastive_tf_seed42_20260421_195114/marker_best_ran
   ablated token 20/134  elapsed=6s  eta=32s
   ablated token 21/134  elapsed=6s  eta=31s
   ablated token 22/134  elapsed=6s  eta=31s
-  ablated token 23/134  elapsed=6s  eta=30s
+  ablated token 23/134  elapsed=6s  eta=31s
   ablated token 24/134  elapsed=7s  eta=30s
   ablated token 25/134  elapsed=7s  eta=30s
   ablated token 26/134  elapsed=7s  eta=29s
@@ -535,8 +542,10 @@ Saved: ablation_logit_drop_per_type.npy  shape=(45, 134)
   gdT CD158b+: ['HLA-A-B-C(+1.824)', 'CD45RA(+0.306)', 'CD11a(+0.292)', 'CD94(+0.181)', 'CD35(+0.130)', 'CD36-1(+0.102)', 'CD33-1(+0.061)', 'CD244-1(+0.059)', 'CD7-1(+0.051)', 'CD24-1(+0.041)']
   gdT TCRVD2+: ['CD11a(+0.433)', 'CD94(+0.325)', 'CD36-1(+0.319)', 'CD48-1(+0.220)', 'CD44-1(+0.161)', 'KLRG1-1(+0.129)', 'CD35(+0.116)', 'CD33-1(+0.086)', 'CD47-1(+0.064)', 'CD52-1(+0.059)']
   pDC: ['CD162(+1.937)', 'HLA-DR(+0.267)', 'CD71(+0.202)', 'CD35(+0.198)', 'CD11a(+0.141)', 'CD32(+0.099)', 'CD123(+0.074)', 'CD47-1(+0.061)', 'CD141(+0.043)', 'CD154(+0.042)']
+
+--- [5/7] attention_graph (pathway tokens) ---
 /home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
   if Version(scanpy.__version__) < Version("1.10"):
 /home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
   utils.warn_names_duplicates("var")
-slurmstepd: error: *** JOB 9137217 ON a1128u05n01 CANCELLED AT 2026-04-21T20:59:57 ***
+slurmstepd: error: *** JOB 9145927 ON a1128u44n01 CANCELLED AT 2026-04-22T00:47:51 ***

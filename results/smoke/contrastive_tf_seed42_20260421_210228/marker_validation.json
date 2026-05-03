@@ -1,71 +1,71 @@
 {
   "HSC": {
     "top_10_recall": 0.5,
-    "top_10_recall_specificity": 0.5,
+    "top_10_recall_specificity": 0.0,
     "marker_ranks_raw": {
       "CD38": {
         "resolved": "CD38-1",
-        "rank": 1,
+        "rank": 110,
         "n_tokens": 134,
-        "percentile": 1.0
+        "percentile": 0.1865671641791045
       },
       "CD45RA": {
         "resolved": "CD45RA",
-        "rank": 117,
+        "rank": 2,
         "n_tokens": 134,
-        "percentile": 0.13432835820895522
+        "percentile": 0.9925373134328358
       }
     },
     "marker_ranks_specificity": {
       "CD38": {
         "resolved": "CD38-1",
-        "rank": 10,
+        "rank": 64,
         "n_tokens": 134,
-        "percentile": 0.9328358208955224
+        "percentile": 0.5298507462686567
       },
       "CD45RA": {
         "resolved": "CD45RA",
-        "rank": 122,
+        "rank": 126,
         "n_tokens": 134,
-        "percentile": 0.09701492537313433
+        "percentile": 0.06716417910447761
       }
     }
   },
   "NK": {
-    "top_10_recall": 0.6666666666666666,
-    "top_10_recall_specificity": 1.0,
+    "top_10_recall": 0.0,
+    "top_10_recall_specificity": 0.6666666666666666,
     "marker_ranks_raw": {
       "CD56": {
         "resolved": "CD56",
-        "rank": 4,
+        "rank": 24,
         "n_tokens": 134,
-        "percentile": 0.9776119402985075
+        "percentile": 0.8283582089552238
+      },
+      "CD16": {
+        "resolved": "CD16",
+        "rank": 49,
+        "n_tokens": 134,
+        "percentile": 0.6417910447761194
+      },
+      "CD335": {
+        "resolved": "CD335",
+        "rank": 71,
+        "n_tokens": 134,
+        "percentile": 0.47761194029850745
+      }
+    },
+    "marker_ranks_specificity": {
+      "CD56": {
+        "resolved": "CD56",
+        "rank": 70,
+        "n_tokens": 134,
+        "percentile": 0.48507462686567165
       },
       "CD16": {
         "resolved": "CD16",
         "rank": 3,
         "n_tokens": 134,
         "percentile": 0.9850746268656716
-      },
-      "CD335": {
-        "resolved": "CD335",
-        "rank": 11,
-        "n_tokens": 134,
-        "percentile": 0.9253731343283582
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD56": {
-        "resolved": "CD56",
-        "rank": 4,
-        "n_tokens": 134,
-        "percentile": 0.9776119402985075
-      },
-      "CD16": {
-        "resolved": "CD16",
-        "rank": 5,
-        "n_tokens": 134,
-        "percentile": 0.9701492537313433
       },
       "CD335": {
         "resolved": "CD335",
@@ -76,40 +76,40 @@
     }
   },
   "Transitional B": {
-    "top_10_recall": 1.0,
-    "top_10_recall_specificity": 0.75,
+    "top_10_recall": 0.0,
+    "top_10_recall_specificity": 0.5,
     "marker_ranks_raw": {
       "CD24": {
         "resolved": "CD24-1",
-        "rank": 5,
+        "rank": 18,
         "n_tokens": 134,
-        "percentile": 0.9701492537313433
+        "percentile": 0.8731343283582089
       },
       "CD38": {
         "resolved": "CD38-1",
-        "rank": 2,
+        "rank": 106,
         "n_tokens": 134,
-        "percentile": 0.9925373134328358
+        "percentile": 0.21641791044776118
       },
       "IgM": {
         "resolved": "IgM",
-        "rank": 4,
+        "rank": 130,
         "n_tokens": 134,
-        "percentile": 0.9776119402985075
+        "percentile": 0.03731343283582089
       },
       "CD19": {
         "resolved": "CD19-1",
-        "rank": 6,
+        "rank": 76,
         "n_tokens": 134,
-        "percentile": 0.9626865671641791
+        "percentile": 0.44029850746268656
       }
     },
     "marker_ranks_specificity": {
       "CD24": {
         "resolved": "CD24-1",
-        "rank": 2,
+        "rank": 5,
         "n_tokens": 134,
-        "percentile": 0.9925373134328358
+        "percentile": 0.9701492537313433
       },
       "CD38": {
         "resolved": "CD38-1",
@@ -119,59 +119,59 @@
       },
       "IgM": {
         "resolved": "IgM",
-        "rank": 16,
+        "rank": 78,
         "n_tokens": 134,
-        "percentile": 0.8880597014925373
+        "percentile": 0.4253731343283582
       },
       "CD19": {
         "resolved": "CD19-1",
-        "rank": 5,
+        "rank": 13,
         "n_tokens": 134,
-        "percentile": 0.9701492537313433
+        "percentile": 0.9104477611940298
       }
     }
   },
   "pDC": {
-    "top_10_recall": 0.6666666666666666,
-    "top_10_recall_specificity": 1.0,
+    "top_10_recall": 0.0,
+    "top_10_recall_specificity": 0.6666666666666666,
     "marker_ranks_raw": {
       "CD123": {
         "resolved": "CD123",
-        "rank": 32,
+        "rank": 50,
         "n_tokens": 134,
-        "percentile": 0.7686567164179104
+        "percentile": 0.6343283582089553
       },
       "CD303": {
         "resolved": "CD303",
-        "rank": 4,
+        "rank": 37,
         "n_tokens": 134,
-        "percentile": 0.9776119402985075
+        "percentile": 0.7313432835820896
       },
       "CD304": {
         "resolved": "CD304",
-        "rank": 6,
+        "rank": 75,
         "n_tokens": 134,
-        "percentile": 0.9626865671641791
+        "percentile": 0.44776119402985076
       }
     },
     "marker_ranks_specificity": {
       "CD123": {
         "resolved": "CD123",
-        "rank": 6,
-        "n_tokens": 134,
-        "percentile": 0.9626865671641791
-      },
-      "CD303": {
-        "resolved": "CD303",
-        "rank": 2,
-        "n_tokens": 134,
-        "percentile": 0.9925373134328358
-      },
-      "CD304": {
-        "resolved": "CD304",
         "rank": 1,
         "n_tokens": 134,
         "percentile": 1.0
+      },
+      "CD303": {
+        "resolved": "CD303",
+        "rank": 13,
+        "n_tokens": 134,
+        "percentile": 0.9104477611940298
+      },
+      "CD304": {
+        "resolved": "CD304",
+        "rank": 2,
+        "n_tokens": 134,
+        "percentile": 0.9925373134328358
       }
     }
   },
@@ -181,91 +181,91 @@
     "marker_ranks_raw": {
       "CD14": {
         "resolved": "CD14-1",
-        "rank": 12,
-        "n_tokens": 134,
-        "percentile": 0.917910447761194
-      },
-      "HLA-DR": {
-        "resolved": "HLA-DR",
-        "rank": 1,
-        "n_tokens": 134,
-        "percentile": 1.0
-      },
-      "CD11b": {
-        "resolved": "CD11b",
         "rank": 18,
         "n_tokens": 134,
         "percentile": 0.8731343283582089
       },
+      "HLA-DR": {
+        "resolved": "HLA-DR",
+        "rank": 77,
+        "n_tokens": 134,
+        "percentile": 0.43283582089552236
+      },
+      "CD11b": {
+        "resolved": "CD11b",
+        "rank": 111,
+        "n_tokens": 134,
+        "percentile": 0.1791044776119403
+      },
       "CD64": {
         "resolved": "CD64",
-        "rank": 23,
+        "rank": 6,
         "n_tokens": 134,
-        "percentile": 0.835820895522388
+        "percentile": 0.9626865671641791
       }
     },
     "marker_ranks_specificity": {
       "CD14": {
         "resolved": "CD14-1",
-        "rank": 6,
+        "rank": 26,
         "n_tokens": 134,
-        "percentile": 0.9626865671641791
+        "percentile": 0.8134328358208955
       },
       "HLA-DR": {
         "resolved": "HLA-DR",
-        "rank": 12,
+        "rank": 75,
         "n_tokens": 134,
-        "percentile": 0.917910447761194
+        "percentile": 0.44776119402985076
       },
       "CD11b": {
         "resolved": "CD11b",
-        "rank": 5,
+        "rank": 2,
         "n_tokens": 134,
-        "percentile": 0.9701492537313433
+        "percentile": 0.9925373134328358
       },
       "CD64": {
         "resolved": "CD64",
-        "rank": 20,
+        "rank": 9,
         "n_tokens": 134,
-        "percentile": 0.8582089552238806
+        "percentile": 0.9402985074626866
       }
     }
   },
   "CD16+ Mono": {
-    "top_10_recall": 0.6666666666666666,
+    "top_10_recall": 0.0,
     "top_10_recall_specificity": 0.3333333333333333,
     "marker_ranks_raw": {
       "CD16": {
         "resolved": "CD16",
-        "rank": 3,
+        "rank": 51,
         "n_tokens": 134,
-        "percentile": 0.9850746268656716
+        "percentile": 0.6268656716417911
       },
       "CX3CR1": {
         "resolved": "CX3CR1-1",
-        "rank": 44,
+        "rank": 69,
         "n_tokens": 134,
-        "percentile": 0.6791044776119403
+        "percentile": 0.4925373134328358
       },
       "HLA-DR": {
         "resolved": "HLA-DR",
-        "rank": 6,
+        "rank": 76,
         "n_tokens": 134,
-        "percentile": 0.9626865671641791
+        "percentile": 0.44029850746268656
       }
     },
     "marker_ranks_specificity": {
       "CD16": {
         "resolved": "CD16",
-        "rank": 9,
+        "rank": 8,
         "n_tokens": 134,
-        "percentile": 0.9402985074626866
+        "percentile": 0.9477611940298507
       },
       "CX3CR1": {
         "resolved": "CX3CR1-1",
-        "rank": 27,
+        "rank": 34,
         "n_tokens": 134,
-        "percentile": 0.8059701492537313
+        "percentile": 0.753731343283582
       },
       "HLA-DR": {
         "resolved": "HLA-DR",
@@ -276,46 +276,46 @@
     }
   },
   "CD4+ T naive": {
-    "top_10_recall": 0.5,
-    "top_10_recall_specificity": 0.75,
+    "top_10_recall": 0.25,
+    "top_10_recall_specificity": 0.5,
     "marker_ranks_raw": {
       "CD3": {
         "resolved": "CD3",
-        "rank": 5,
+        "rank": 127,
         "n_tokens": 134,
-        "percentile": 0.9701492537313433
+        "percentile": 0.05970149253731343
       },
       "CD4": {
         "resolved": "CD4-1",
-        "rank": 13,
+        "rank": 70,
         "n_tokens": 134,
-        "percentile": 0.9104477611940298
+        "percentile": 0.48507462686567165
       },
       "CD45RA": {
         "resolved": "CD45RA",
-        "rank": 18,
+        "rank": 2,
         "n_tokens": 134,
-        "percentile": 0.8731343283582089
+        "percentile": 0.9925373134328358
       },
       "CD62L": {
         "resolved": "CD62L",
-        "rank": 4,
+        "rank": 51,
         "n_tokens": 134,
-        "percentile": 0.9776119402985075
+        "percentile": 0.6268656716417911
       }
     },
     "marker_ranks_specificity": {
       "CD3": {
         "resolved": "CD3",
-        "rank": 8,
+        "rank": 3,
         "n_tokens": 134,
-        "percentile": 0.9477611940298507
+        "percentile": 0.9850746268656716
       },
       "CD4": {
         "resolved": "CD4-1",
-        "rank": 2,
+        "rank": 1,
         "n_tokens": 134,
-        "percentile": 0.9925373134328358
+        "percentile": 1.0
       },
       "CD45RA": {
         "resolved": "CD45RA",
@@ -325,115 +325,115 @@
       },
       "CD62L": {
         "resolved": "CD62L",
-        "rank": 3,
+        "rank": 15,
         "n_tokens": 134,
-        "percentile": 0.9850746268656716
+        "percentile": 0.8955223880597015
       }
     }
   },
   "CD4+ T activated": {
-    "top_10_recall": 0.25,
+    "top_10_recall": 0.0,
     "top_10_recall_specificity": 0.5,
     "marker_ranks_raw": {
       "CD3": {
         "resolved": "CD3",
-        "rank": 16,
+        "rank": 127,
         "n_tokens": 134,
-        "percentile": 0.8880597014925373
+        "percentile": 0.05970149253731343
       },
       "CD4": {
         "resolved": "CD4-1",
-        "rank": 23,
+        "rank": 70,
         "n_tokens": 134,
-        "percentile": 0.835820895522388
+        "percentile": 0.48507462686567165
       },
       "CD45RO": {
         "resolved": "CD45RO",
-        "rank": 2,
+        "rank": 40,
         "n_tokens": 134,
-        "percentile": 0.9925373134328358
+        "percentile": 0.7089552238805971
       },
       "CD69": {
         "resolved": "CD69-1",
-        "rank": 63,
+        "rank": 64,
         "n_tokens": 134,
-        "percentile": 0.5373134328358209
+        "percentile": 0.5298507462686567
       }
     },
     "marker_ranks_specificity": {
       "CD3": {
         "resolved": "CD3",
-        "rank": 20,
+        "rank": 12,
         "n_tokens": 134,
-        "percentile": 0.8582089552238806
+        "percentile": 0.917910447761194
       },
       "CD4": {
         "resolved": "CD4-1",
-        "rank": 4,
-        "n_tokens": 134,
-        "percentile": 0.9776119402985075
-      },
-      "CD45RO": {
-        "resolved": "CD45RO",
-        "rank": 3,
-        "n_tokens": 134,
-        "percentile": 0.9850746268656716
-      },
-      "CD69": {
-        "resolved": "CD69-1",
-        "rank": 45,
-        "n_tokens": 134,
-        "percentile": 0.6716417910447762
-      }
-    }
-  },
-  "CD8+ T naive": {
-    "top_10_recall": 0.75,
-    "top_10_recall_specificity": 0.75,
-    "marker_ranks_raw": {
-      "CD3": {
-        "resolved": "CD3",
-        "rank": 14,
-        "n_tokens": 134,
-        "percentile": 0.9029850746268657
-      },
-      "CD8": {
-        "resolved": "CD8",
-        "rank": 3,
-        "n_tokens": 134,
-        "percentile": 0.9850746268656716
-      },
-      "CD45RA": {
-        "resolved": "CD45RA",
-        "rank": 4,
-        "n_tokens": 134,
-        "percentile": 0.9776119402985075
-      },
-      "CD62L": {
-        "resolved": "CD62L",
-        "rank": 5,
-        "n_tokens": 134,
-        "percentile": 0.9701492537313433
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD3": {
-        "resolved": "CD3",
-        "rank": 18,
-        "n_tokens": 134,
-        "percentile": 0.8731343283582089
-      },
-      "CD8": {
-        "resolved": "CD8",
         "rank": 1,
         "n_tokens": 134,
         "percentile": 1.0
       },
+      "CD45RO": {
+        "resolved": "CD45RO",
+        "rank": 7,
+        "n_tokens": 134,
+        "percentile": 0.9552238805970149
+      },
+      "CD69": {
+        "resolved": "CD69-1",
+        "rank": 61,
+        "n_tokens": 134,
+        "percentile": 0.5522388059701493
+      }
+    }
+  },
+  "CD8+ T naive": {
+    "top_10_recall": 0.5,
+    "top_10_recall_specificity": 0.5,
+    "marker_ranks_raw": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 127,
+        "n_tokens": 134,
+        "percentile": 0.05970149253731343
+      },
+      "CD8": {
+        "resolved": "CD8",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      },
       "CD45RA": {
         "resolved": "CD45RA",
-        "rank": 4,
+        "rank": 2,
         "n_tokens": 134,
-        "percentile": 0.9776119402985075
+        "percentile": 0.9925373134328358
+      },
+      "CD62L": {
+        "resolved": "CD62L",
+        "rank": 50,
+        "n_tokens": 134,
+        "percentile": 0.6343283582089553
+      }
+    },
+    "marker_ranks_specificity": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      },
+      "CD8": {
+        "resolved": "CD8",
+        "rank": 132,
+        "n_tokens": 134,
+        "percentile": 0.022388059701492536
+      },
+      "CD45RA": {
+        "resolved": "CD45RA",
+        "rank": 11,
+        "n_tokens": 134,
+        "percentile": 0.9253731343283582
       },
       "CD62L": {
         "resolved": "CD62L",
@@ -444,238 +444,176 @@
     }
   },
   "Naive CD20+ B IGKC+": {
-    "top_10_recall": 0.6,
-    "top_10_recall_specificity": 0.6,
-    "marker_ranks_raw": {
-      "CD19": {
-        "resolved": "CD19-1",
-        "rank": 20,
-        "n_tokens": 134,
-        "percentile": 0.8582089552238806
-      },
-      "CD20": {
-        "resolved": "CD20",
-        "rank": 8,
-        "n_tokens": 134,
-        "percentile": 0.9477611940298507
-      },
-      "IgM": {
-        "resolved": "IgM",
-        "rank": 10,
-        "n_tokens": 134,
-        "percentile": 0.9328358208955224
-      },
-      "IgD": {
-        "resolved": "IgD",
-        "rank": 24,
-        "n_tokens": 134,
-        "percentile": 0.8283582089552238
-      },
-      "CD21": {
-        "resolved": "CD21",
-        "rank": 9,
-        "n_tokens": 134,
-        "percentile": 0.9402985074626866
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD19": {
-        "resolved": "CD19-1",
-        "rank": 27,
-        "n_tokens": 134,
-        "percentile": 0.8059701492537313
-      },
-      "CD20": {
-        "resolved": "CD20",
-        "rank": 6,
-        "n_tokens": 134,
-        "percentile": 0.9626865671641791
-      },
-      "IgM": {
-        "resolved": "IgM",
-        "rank": 67,
-        "n_tokens": 134,
-        "percentile": 0.5074626865671642
-      },
-      "IgD": {
-        "resolved": "IgD",
-        "rank": 7,
-        "n_tokens": 134,
-        "percentile": 0.9552238805970149
-      },
-      "CD21": {
-        "resolved": "CD21",
-        "rank": 1,
-        "n_tokens": 134,
-        "percentile": 1.0
-      }
-    }
-  },
-  "Naive CD20+ B IGKC-": {
-    "top_10_recall": 0.4,
-    "top_10_recall_specificity": 0.6,
-    "marker_ranks_raw": {
-      "CD19": {
-        "resolved": "CD19-1",
-        "rank": 21,
-        "n_tokens": 134,
-        "percentile": 0.8507462686567164
-      },
-      "CD20": {
-        "resolved": "CD20",
-        "rank": 6,
-        "n_tokens": 134,
-        "percentile": 0.9626865671641791
-      },
-      "IgM": {
-        "resolved": "IgM",
-        "rank": 12,
-        "n_tokens": 134,
-        "percentile": 0.917910447761194
-      },
-      "IgD": {
-        "resolved": "IgD",
-        "rank": 26,
-        "n_tokens": 134,
-        "percentile": 0.8134328358208955
-      },
-      "CD21": {
-        "resolved": "CD21",
-        "rank": 10,
-        "n_tokens": 134,
-        "percentile": 0.9328358208955224
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD19": {
-        "resolved": "CD19-1",
-        "rank": 25,
-        "n_tokens": 134,
-        "percentile": 0.8208955223880597
-      },
-      "CD20": {
-        "resolved": "CD20",
-        "rank": 6,
-        "n_tokens": 134,
-        "percentile": 0.9626865671641791
-      },
-      "IgM": {
-        "resolved": "IgM",
-        "rank": 75,
-        "n_tokens": 134,
-        "percentile": 0.44776119402985076
-      },
-      "IgD": {
-        "resolved": "IgD",
-        "rank": 10,
-        "n_tokens": 134,
-        "percentile": 0.9328358208955224
-      },
-      "CD21": {
-        "resolved": "CD21",
-        "rank": 3,
-        "n_tokens": 134,
-        "percentile": 0.9850746268656716
-      }
-    }
-  },
-  "MAIT": {
-    "top_10_recall": 0.5,
-    "top_10_recall_specificity": 0.5,
-    "marker_ranks_raw": {
-      "CD3": {
-        "resolved": "CD3",
-        "rank": 18,
-        "n_tokens": 134,
-        "percentile": 0.8731343283582089
-      },
-      "CD8": {
-        "resolved": "CD8",
-        "rank": 20,
-        "n_tokens": 134,
-        "percentile": 0.8582089552238806
-      },
-      "CD161": {
-        "resolved": "CD161",
-        "rank": 2,
-        "n_tokens": 134,
-        "percentile": 0.9925373134328358
-      },
-      "TCRVa7.2": {
-        "resolved": "TCRVa7.2",
-        "rank": 4,
-        "n_tokens": 134,
-        "percentile": 0.9776119402985075
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD3": {
-        "resolved": "CD3",
-        "rank": 19,
-        "n_tokens": 134,
-        "percentile": 0.8656716417910447
-      },
-      "CD8": {
-        "resolved": "CD8",
-        "rank": 16,
-        "n_tokens": 134,
-        "percentile": 0.8880597014925373
-      },
-      "CD161": {
-        "resolved": "CD161",
-        "rank": 2,
-        "n_tokens": 134,
-        "percentile": 0.9925373134328358
-      },
-      "TCRVa7.2": {
-        "resolved": "TCRVa7.2",
-        "rank": 1,
-        "n_tokens": 134,
-        "percentile": 1.0
-      }
-    }
-  },
-  "T reg": {
     "top_10_recall": 0.0,
-    "top_10_recall_specificity": 0.25,
+    "top_10_recall_specificity": 0.8,
     "marker_ranks_raw": {
-      "CD3": {
-        "resolved": "CD3",
-        "rank": 14,
+      "CD19": {
+        "resolved": "CD19-1",
+        "rank": 69,
         "n_tokens": 134,
-        "percentile": 0.9029850746268657
+        "percentile": 0.4925373134328358
       },
-      "CD4": {
-        "resolved": "CD4-1",
-        "rank": 33,
+      "CD20": {
+        "resolved": "CD20",
+        "rank": 131,
         "n_tokens": 134,
-        "percentile": 0.7611940298507462
+        "percentile": 0.029850746268656716
       },
-      "CD25": {
-        "resolved": "CD25",
+      "IgM": {
+        "resolved": "IgM",
+        "rank": 128,
+        "n_tokens": 134,
+        "percentile": 0.05223880597014925
+      },
+      "IgD": {
+        "resolved": "IgD",
         "rank": 11,
         "n_tokens": 134,
         "percentile": 0.9253731343283582
       },
-      "CD127": {
-        "resolved": "CD127",
-        "rank": 99,
+      "CD21": {
+        "resolved": "CD21",
+        "rank": 82,
         "n_tokens": 134,
-        "percentile": 0.26865671641791045
+        "percentile": 0.39552238805970147
+      }
+    },
+    "marker_ranks_specificity": {
+      "CD19": {
+        "resolved": "CD19-1",
+        "rank": 7,
+        "n_tokens": 134,
+        "percentile": 0.9552238805970149
+      },
+      "CD20": {
+        "resolved": "CD20",
+        "rank": 4,
+        "n_tokens": 134,
+        "percentile": 0.9776119402985075
+      },
+      "IgM": {
+        "resolved": "IgM",
+        "rank": 8,
+        "n_tokens": 134,
+        "percentile": 0.9477611940298507
+      },
+      "IgD": {
+        "resolved": "IgD",
+        "rank": 23,
+        "n_tokens": 134,
+        "percentile": 0.835820895522388
+      },
+      "CD21": {
+        "resolved": "CD21",
+        "rank": 2,
+        "n_tokens": 134,
+        "percentile": 0.9925373134328358
+      }
+    }
+  },
+  "Naive CD20+ B IGKC-": {
+    "top_10_recall": null,
+    "top_10_recall_specificity": null,
+    "marker_ranks_raw": {},
+    "marker_ranks_specificity": {}
+  },
+  "MAIT": {
+    "top_10_recall": 0.5,
+    "top_10_recall_specificity": 0.25,
+    "marker_ranks_raw": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 127,
+        "n_tokens": 134,
+        "percentile": 0.05970149253731343
+      },
+      "CD8": {
+        "resolved": "CD8",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      },
+      "CD161": {
+        "resolved": "CD161",
+        "rank": 4,
+        "n_tokens": 134,
+        "percentile": 0.9776119402985075
+      },
+      "TCRVa7.2": {
+        "resolved": "TCRVa7.2",
+        "rank": 116,
+        "n_tokens": 134,
+        "percentile": 0.1417910447761194
       }
     },
     "marker_ranks_specificity": {
       "CD3": {
         "resolved": "CD3",
-        "rank": 17,
+        "rank": 23,
         "n_tokens": 134,
-        "percentile": 0.8805970149253731
+        "percentile": 0.835820895522388
+      },
+      "CD8": {
+        "resolved": "CD8",
+        "rank": 111,
+        "n_tokens": 134,
+        "percentile": 0.1791044776119403
+      },
+      "CD161": {
+        "resolved": "CD161",
+        "rank": 134,
+        "n_tokens": 134,
+        "percentile": 0.007462686567164179
+      },
+      "TCRVa7.2": {
+        "resolved": "TCRVa7.2",
+        "rank": 3,
+        "n_tokens": 134,
+        "percentile": 0.9850746268656716
+      }
+    }
+  },
+  "T reg": {
+    "top_10_recall": 0.25,
+    "top_10_recall_specificity": 0.5,
+    "marker_ranks_raw": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 127,
+        "n_tokens": 134,
+        "percentile": 0.05970149253731343
       },
       "CD4": {
         "resolved": "CD4-1",
-        "rank": 13,
+        "rank": 71,
         "n_tokens": 134,
-        "percentile": 0.9104477611940298
+        "percentile": 0.47761194029850745
+      },
+      "CD25": {
+        "resolved": "CD25",
+        "rank": 85,
+        "n_tokens": 134,
+        "percentile": 0.373134328358209
+      },
+      "CD127": {
+        "resolved": "CD127",
+        "rank": 10,
+        "n_tokens": 134,
+        "percentile": 0.9328358208955224
+      }
+    },
+    "marker_ranks_specificity": {
+      "CD3": {
+        "resolved": "CD3",
+        "rank": 22,
+        "n_tokens": 134,
+        "percentile": 0.8432835820895522
+      },
+      "CD4": {
+        "resolved": "CD4-1",
+        "rank": 9,
+        "n_tokens": 134,
+        "percentile": 0.9402985074626866
       },
       "CD25": {
         "resolved": "CD25",
@@ -685,177 +623,125 @@
       },
       "CD127": {
         "resolved": "CD127",
-        "rank": 93,
+        "rank": 90,
         "n_tokens": 134,
-        "percentile": 0.31343283582089554
+        "percentile": 0.3358208955223881
       }
     }
   },
   "Plasma cell IGKC+": {
-    "top_10_recall": 0.5,
-    "top_10_recall_specificity": 0.0,
-    "marker_ranks_raw": {
-      "CD38": {
-        "resolved": "CD38-1",
-        "rank": 2,
-        "n_tokens": 134,
-        "percentile": 0.9925373134328358
-      },
-      "CD27": {
-        "resolved": "CD27-1",
-        "rank": 63,
-        "n_tokens": 134,
-        "percentile": 0.5373134328358209
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD38": {
-        "resolved": "CD38-1",
-        "rank": 16,
-        "n_tokens": 134,
-        "percentile": 0.8880597014925373
-      },
-      "CD27": {
-        "resolved": "CD27-1",
-        "rank": 69,
-        "n_tokens": 134,
-        "percentile": 0.4925373134328358
-      }
-    }
+    "top_10_recall": null,
+    "top_10_recall_specificity": null,
+    "marker_ranks_raw": {},
+    "marker_ranks_specificity": {}
   },
   "Plasma cell IGKC-": {
-    "top_10_recall": 0.5,
-    "top_10_recall_specificity": 0.0,
-    "marker_ranks_raw": {
-      "CD38": {
-        "resolved": "CD38-1",
-        "rank": 1,
-        "n_tokens": 134,
-        "percentile": 1.0
-      },
-      "CD27": {
-        "resolved": "CD27-1",
-        "rank": 58,
-        "n_tokens": 134,
-        "percentile": 0.5746268656716418
-      }
-    },
-    "marker_ranks_specificity": {
-      "CD38": {
-        "resolved": "CD38-1",
-        "rank": 15,
-        "n_tokens": 134,
-        "percentile": 0.8955223880597015
-      },
-      "CD27": {
-        "resolved": "CD27-1",
-        "rank": 61,
-        "n_tokens": 134,
-        "percentile": 0.5522388059701493
-      }
-    }
+    "top_10_recall": null,
+    "top_10_recall_specificity": null,
+    "marker_ranks_raw": {},
+    "marker_ranks_specificity": {}
   },
   "cDC2": {
-    "top_10_recall": 1.0,
+    "top_10_recall": 0.0,
     "top_10_recall_specificity": 0.6666666666666666,
     "marker_ranks_raw": {
       "CD11c": {
         "resolved": "CD11c",
-        "rank": 4,
+        "rank": 70,
         "n_tokens": 134,
-        "percentile": 0.9776119402985075
+        "percentile": 0.48507462686567165
       },
       "HLA-DR": {
         "resolved": "HLA-DR",
-        "rank": 7,
+        "rank": 73,
         "n_tokens": 134,
-        "percentile": 0.9552238805970149
+        "percentile": 0.4626865671641791
       },
       "CD1c": {
         "resolved": "CD1c",
-        "rank": 5,
+        "rank": 61,
         "n_tokens": 134,
-        "percentile": 0.9701492537313433
+        "percentile": 0.5522388059701493
       }
     },
     "marker_ranks_specificity": {
       "CD11c": {
         "resolved": "CD11c",
-        "rank": 3,
-        "n_tokens": 134,
-        "percentile": 0.9850746268656716
-      },
-      "HLA-DR": {
-        "resolved": "HLA-DR",
-        "rank": 22,
-        "n_tokens": 134,
-        "percentile": 0.8432835820895522
-      },
-      "CD1c": {
-        "resolved": "CD1c",
         "rank": 2,
         "n_tokens": 134,
         "percentile": 0.9925373134328358
+      },
+      "HLA-DR": {
+        "resolved": "HLA-DR",
+        "rank": 16,
+        "n_tokens": 134,
+        "percentile": 0.8880597014925373
+      },
+      "CD1c": {
+        "resolved": "CD1c",
+        "rank": 7,
+        "n_tokens": 134,
+        "percentile": 0.9552238805970149
       }
     }
   },
   "Erythroblast": {
     "top_10_recall": 0.0,
-    "top_10_recall_specificity": 0.0,
+    "top_10_recall_specificity": 1.0,
     "marker_ranks_raw": {
       "CD71": {
         "resolved": "CD71",
-        "rank": 61,
+        "rank": 12,
         "n_tokens": 134,
-        "percentile": 0.5522388059701493
+        "percentile": 0.917910447761194
       }
     },
     "marker_ranks_specificity": {
       "CD71": {
         "resolved": "CD71",
-        "rank": 132,
+        "rank": 5,
         "n_tokens": 134,
-        "percentile": 0.022388059701492536
+        "percentile": 0.9701492537313433
       }
     }
   },
   "Normoblast": {
     "top_10_recall": 0.0,
-    "top_10_recall_specificity": 0.0,
+    "top_10_recall_specificity": 1.0,
     "marker_ranks_raw": {
       "CD71": {
         "resolved": "CD71",
-        "rank": 54,
+        "rank": 12,
         "n_tokens": 134,
-        "percentile": 0.6044776119402985
+        "percentile": 0.917910447761194
       }
     },
     "marker_ranks_specificity": {
       "CD71": {
         "resolved": "CD71",
-        "rank": 133,
+        "rank": 4,
         "n_tokens": 134,
-        "percentile": 0.014925373134328358
+        "percentile": 0.9776119402985075
       }
     }
   },
   "Reticulocyte": {
     "top_10_recall": 0.0,
-    "top_10_recall_specificity": 0.0,
+    "top_10_recall_specificity": 1.0,
     "marker_ranks_raw": {
       "CD71": {
         "resolved": "CD71",
-        "rank": 47,
+        "rank": 12,
         "n_tokens": 134,
-        "percentile": 0.6567164179104478
+        "percentile": 0.917910447761194
       }
     },
     "marker_ranks_specificity": {
       "CD71": {
         "resolved": "CD71",
-        "rank": 133,
+        "rank": 6,
         "n_tokens": 134,
-        "percentile": 0.014925373134328358
+        "percentile": 0.9626865671641791
       }
     }
   }

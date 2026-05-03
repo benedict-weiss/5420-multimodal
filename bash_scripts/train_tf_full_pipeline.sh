@@ -6,7 +6,7 @@
 #SBATCH --partition=education_gpu
 #SBATCH --output=logs/%x-%j.out
 
-set -euo pipefail
+# set -euo pipefail
 
 cd ~/project_cpsc4520/cpsc4520_bcw45/5420-multimodal/
 

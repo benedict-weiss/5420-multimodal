@@ -19,53 +19,49 @@
     "recall": 0.0
   },
   "CD4+ T activated": {
-    "found": [
-      "CD3",
-      "CD4"
-    ],
+    "found": [],
     "missing": [
+      "CD3",
+      "CD4",
       "CD45RO",
       "CD69"
     ],
-    "recall": 0.5
+    "recall": 0.0
   },
   "CD4+ T naive": {
-    "found": [
-      "CD3",
-      "CD4"
-    ],
+    "found": [],
     "missing": [
+      "CD3",
+      "CD4",
       "CD45RA",
       "CD62L"
     ],
-    "recall": 0.5
+    "recall": 0.0
   },
   "CD8+ T naive": {
-    "found": [
-      "CD3"
-    ],
+    "found": [],
     "missing": [
+      "CD3",
       "CD8",
       "CD45RA",
       "CD62L"
     ],
-    "recall": 0.25
+    "recall": 0.0
   },
   "Erythroblast": {
-    "found": [
+    "found": [],
+    "missing": [
       "CD71"
     ],
-    "missing": [],
-    "recall": 1.0
+    "recall": 0.0
   },
   "HSC": {
-    "found": [
-      "CD38"
-    ],
+    "found": [],
     "missing": [
+      "CD38",
       "CD45RA"
     ],
-    "recall": 0.5
+    "recall": 0.0
   },
   "MAIT": {
     "found": [],
@@ -87,101 +83,66 @@
     "recall": 0.0
   },
   "Naive CD20+ B IGKC+": {
-    "found": [
-      "CD19"
-    ],
+    "found": [],
     "missing": [
+      "CD19",
       "CD20",
       "IgM",
       "IgD",
       "CD21"
     ],
-    "recall": 0.2
-  },
-  "Naive CD20+ B IGKC-": {
-    "found": [
-      "CD19"
-    ],
-    "missing": [
-      "CD20",
-      "IgM",
-      "IgD",
-      "CD21"
-    ],
-    "recall": 0.2
+    "recall": 0.0
   },
   "Normoblast": {
-    "found": [
+    "found": [],
+    "missing": [
       "CD71"
     ],
-    "missing": [],
-    "recall": 1.0
-  },
-  "Plasma cell IGKC+": {
-    "found": [
-      "CD38"
-    ],
-    "missing": [
-      "CD27"
-    ],
-    "recall": 0.5
-  },
-  "Plasma cell IGKC-": {
-    "found": [
-      "CD38"
-    ],
-    "missing": [
-      "CD27"
-    ],
-    "recall": 0.5
+    "recall": 0.0
   },
   "Reticulocyte": {
-    "found": [
+    "found": [],
+    "missing": [
       "CD71"
     ],
-    "missing": [],
-    "recall": 1.0
+    "recall": 0.0
   },
   "T reg": {
-    "found": [
-      "CD4"
-    ],
+    "found": [],
     "missing": [
       "CD3",
+      "CD4",
       "CD25",
       "CD127"
     ],
-    "recall": 0.25
+    "recall": 0.0
   },
   "Transitional B": {
-    "found": [
-      "CD38"
-    ],
+    "found": [],
     "missing": [
       "CD24",
+      "CD38",
       "IgM",
       "CD19"
     ],
-    "recall": 0.25
+    "recall": 0.0
   },
   "cDC2": {
-    "found": [
+    "found": [],
+    "missing": [
       "CD11c",
+      "HLA-DR",
       "CD1c"
     ],
-    "missing": [
-      "HLA-DR"
-    ],
-    "recall": 0.6666666666666666
+    "recall": 0.0
   },
   "pDC": {
-    "found": [
-      "CD123"
-    ],
+    "found": [],
     "missing": [
+      "CD123",
       "CD303",
       "CD304"
     ],
-    "recall": 0.3333333333333333
+    "recall": 0.0
   }
 }
