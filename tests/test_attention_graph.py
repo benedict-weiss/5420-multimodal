@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 import torch
 
-from src.attention_graph import (
+from src.attention.attention_graph import (
     _expand_pathway_cluster_to_genes,
     _head_average_layer_maps,
     _raw_full_from_layer_maps,
