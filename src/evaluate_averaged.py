@@ -134,6 +134,16 @@ def _fig_training_curves_avg(all_runs: dict[str, list[dict]], output_dir: Path) 
                 _plot_band(ax, ep, m, s, "tab:blue", "train")
                 ep, m, s = _mean_std(val_lists)
                 _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
+            test_losses = [
+                float(r["metrics"]["final_test_loss"])
+                for r in runs
+                if "metrics" in r and "final_test_loss" in r["metrics"]
+            ]
+            if test_losses:
+                ax.axhline(
+                    np.mean(test_losses), color="tab:red", linestyle=":",
+                    label=f"test mean ({np.mean(test_losses):.4f})",
+                )
         else:
             # Stage A
             sa_train, sa_val, sb_train, sb_val = [], [], [], []
@@ -216,6 +226,16 @@ def _fig_accuracy_curves_avg(all_runs: dict[str, list[dict]], output_dir: Path) 
             if val_lists:
                 ep, m, s = _mean_std(val_lists)
                 _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
+            test_accs = [
+                float(r["metrics"]["final_accuracy"])
+                for r in runs
+                if "metrics" in r and "final_accuracy" in r["metrics"]
+            ]
+            if test_accs:
+                ax.axhline(
+                    np.mean(test_accs), color="tab:red", linestyle=":",
+                    label=f"test mean ({np.mean(test_accs):.4f})",
+                )
         else:
             sb_val, sb_train = [], []
             a_lengths = []
