@@ -6,6 +6,14 @@
 #SBATCH --partition=education_gpu
 #SBATCH --output=logs/%x-%j.out
 
+# When run directly (not via sbatch), submit one job per seed and exit.
+if [[ -z "${SLURM_JOB_ID:-}" ]]; then
+  for seed in 13 42 77; do
+    SEED=$seed sbatch "$0"
+  done
+  exit 0
+fi
+
 set -euo pipefail
 
 cd ~/project_cpsc4520/cpsc4520_bcw45/5420-multimodal/
