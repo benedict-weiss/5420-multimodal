@@ -5,6 +5,8 @@
 #SBATCH --time=5:00:00
 #SBATCH --partition=education_gpu
 #SBATCH --output=logs/%x-%j.out
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=ben.weiss@yale.edu
 
 set -euo pipefail
 
