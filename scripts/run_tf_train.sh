@@ -5,7 +5,7 @@
 #SBATCH --time=5:00:00
 #SBATCH --partition=education_gpu
 #SBATCH --output=logs/%x-%j.out
-#SBATCH --exclusive
+#SBATCH --cpus-per-task=4
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=ben.weiss@yale.edu
 
