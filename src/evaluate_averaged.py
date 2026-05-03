@@ -476,27 +476,7 @@ def _figs_per_model(all_runs: dict[str, list[dict]], output_dir: Path) -> None:
         plt.close(fig)
         print(f"Saved: {save_path}")
 
-        # ── ASW ──────────────────────────────────────────────────────────────
-        scores = [
-            compute_asw(r["test_embeddings"], r["test_labels"])
-            for r in runs
-            if "test_embeddings" in r and "test_labels" in r
-        ]
-        if scores:
-            mean_asw, std_asw = float(np.mean(scores)), float(np.std(scores))
-            fig, ax = plt.subplots(figsize=(3, 1.5))
-            ax.barh([MODEL_DISPLAY_NAMES[mkey]], [mean_asw], xerr=[std_asw],
-                    color=MODEL_COLORS[mkey], capsize=4)
-            ax.text(mean_asw + std_asw + 0.005, 0,
-                    f"{mean_asw:.3f}±{std_asw:.3f}", va="center", fontsize=9)
-            ax.set_xlim(0, 1.0)
-            ax.set_xlabel("Normalized ASW")
-            ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — ASW (mean ± std)")
-            plt.tight_layout()
-            save_path = mdir / "fig_asw_avg.png"
-            plt.savefig(save_path, dpi=150, bbox_inches="tight")
-            plt.close(fig)
-            print(f"Saved: {save_path}")
+        # ASW is combined-only (fig_asw_avg.png in parent dir)
 
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
