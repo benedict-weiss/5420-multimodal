@@ -324,13 +324,22 @@ def main(args: argparse.Namespace) -> None:
     sc.pp.log1p(rna_adata)
 
     # Pathway tokens: built on full dataset — KEGG gene sets are global, no leakage risk.
-    gene_sets = None
-    if args.gene_sets_path:
-        print(f"Loading gene sets from {args.gene_sets_path}...")
-        with open(args.gene_sets_path, "r", encoding="utf-8") as f:
-            gene_sets = json.load(f)
-    print("Building pathway tokens (KEGG_2021_Human)...")
-    pathway_matrix, pathway_names = build_pathway_tokens(rna_adata, gene_sets=gene_sets)
+    data_dir = Path(args.data_path) if Path(args.data_path).is_dir() else Path(args.data_path).parent
+    _cache_mat = data_dir / "pathway_matrix_cache.npy"
+    _cache_names = data_dir / "pathway_names_cache.json"
+    if _cache_mat.exists() and _cache_names.exists():
+        print(f"Loading cached pathway matrix from {_cache_mat}...")
+        pathway_matrix = np.load(str(_cache_mat))
+        with open(_cache_names, "r", encoding="utf-8") as f:
+            pathway_names = json.load(f)
+    else:
+        gene_sets = None
+        if args.gene_sets_path:
+            print(f"Loading gene sets from {args.gene_sets_path}...")
+            with open(args.gene_sets_path, "r", encoding="utf-8") as f:
+                gene_sets = json.load(f)
+        print("Building pathway tokens (KEGG_2021_Human)... (run src/build_pathway_cache.py to pre-cache)")
+        pathway_matrix, pathway_names = build_pathway_tokens(rna_adata, gene_sets=gene_sets)
     n_pathways = pathway_matrix.shape[1]
     print(f"  Pathway matrix shape: {pathway_matrix.shape}")
 
