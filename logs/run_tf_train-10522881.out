@@ -1,0 +1,305 @@
+
+--- [1/2] train_contrastive_tf (pathway tokens) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Cell type labels: 45 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'CD8+ T naive CD127+ CD26- CD101-': 16, 'Erythroblast': 17, 'G/M prog': 18, 'HSC': 19, 'ILC': 20, 'ILC1': 21, 'Lymph prog': 22, 'MAIT': 23, 'MK/E prog': 24, 'NK': 25, 'NK CD158e1+': 26, 'Naive CD20+ B IGKC+': 27, 'Naive CD20+ B IGKC-': 28, 'Normoblast': 29, 'Plasma cell IGKC+': 30, 'Plasma cell IGKC-': 31, 'Plasmablast IGKC+': 32, 'Plasmablast IGKC-': 33, 'Proerythroblast': 34, 'Reticulocyte': 35, 'T prog cycling': 36, 'T reg': 37, 'Transitional B': 38, 'cDC1': 39, 'cDC2': 40, 'dnT': 41, 'gdT CD158b+': 42, 'gdT TCRVD2+': 43, 'pDC': 44}
+Split modalities: RNA (90261, 13953), Protein (90261, 134)
+Loading cached pathway matrix from data/pathway_matrix_cache.npy...
+  Pathway matrix shape: (90261, 313)
+Protein CLR output shape: (72208, 134)
+Protein CLR output shape: (18053, 134)
+Prepared: train pathway (72208, 313), train protein (72208, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.5725 | val=3.8420 | best=3.8420
+[Stage A] Epoch 002 | train=3.3965 | val=2.8475 | best=2.8475
+[Stage A] Epoch 003 | train=2.8325 | val=2.5242 | best=2.5242
+[Stage A] Epoch 004 | train=2.5894 | val=2.3816 | best=2.3816
+[Stage A] Epoch 005 | train=2.4374 | val=2.1969 | best=2.1969
+[Stage A] Epoch 006 | train=2.3025 | val=2.0629 | best=2.0629
+[Stage A] Epoch 007 | train=2.2047 | val=2.0305 | best=2.0305
+[Stage A] Epoch 008 | train=2.0980 | val=1.8860 | best=1.8860
+[Stage A] Epoch 009 | train=2.0139 | val=1.8629 | best=1.8629
+[Stage A] Epoch 010 | train=1.9420 | val=1.8359 | best=1.8359
+[Stage A] Epoch 011 | train=1.8848 | val=1.7046 | best=1.7046
+[Stage A] Epoch 012 | train=1.8437 | val=1.6682 | best=1.6682
+[Stage A] Epoch 013 | train=1.7950 | val=1.6126 | best=1.6126
+[Stage A] Epoch 014 | train=1.7548 | val=1.6159 | best=1.6126
+[Stage A] Epoch 015 | train=1.7194 | val=1.5642 | best=1.5642
+[Stage A] Epoch 016 | train=1.6874 | val=1.5479 | best=1.5479
+[Stage A] Epoch 017 | train=1.6597 | val=1.5230 | best=1.5230
+[Stage A] Epoch 018 | train=1.6298 | val=1.5793 | best=1.5230
+[Stage A] Epoch 019 | train=1.6065 | val=1.4748 | best=1.4748
+[Stage A] Epoch 020 | train=1.5803 | val=1.4764 | best=1.4748
+[Stage A] Epoch 021 | train=1.5633 | val=1.4303 | best=1.4303
+[Stage A] Epoch 022 | train=1.5447 | val=1.4118 | best=1.4118
+[Stage A] Epoch 023 | train=1.5289 | val=1.4140 | best=1.4118
+[Stage A] Epoch 024 | train=1.5011 | val=1.4302 | best=1.4118
+[Stage A] Epoch 025 | train=1.4892 | val=1.4117 | best=1.4117
+[Stage A] Epoch 026 | train=1.4701 | val=1.3872 | best=1.3872
+[Stage A] Epoch 027 | train=1.4594 | val=1.3873 | best=1.3872
+[Stage A] Epoch 028 | train=1.4455 | val=1.3634 | best=1.3634
+[Stage A] Epoch 029 | train=1.4237 | val=1.3522 | best=1.3522
+[Stage A] Epoch 030 | train=1.4174 | val=1.3168 | best=1.3168
+[Stage A] Epoch 031 | train=1.4081 | val=1.3354 | best=1.3168
+[Stage A] Epoch 032 | train=1.3950 | val=1.3636 | best=1.3168
+[Stage A] Epoch 033 | train=1.3817 | val=1.3249 | best=1.3168
+[Stage A] Epoch 034 | train=1.3663 | val=1.3155 | best=1.3155
+[Stage A] Epoch 035 | train=1.3594 | val=1.2871 | best=1.2871
+[Stage A] Epoch 036 | train=1.3509 | val=1.3001 | best=1.2871
+[Stage A] Epoch 037 | train=1.3352 | val=1.3026 | best=1.2871
+[Stage A] Epoch 038 | train=1.3310 | val=1.2843 | best=1.2843
+[Stage A] Epoch 039 | train=1.3213 | val=1.3093 | best=1.2843
+[Stage A] Epoch 040 | train=1.3102 | val=1.2543 | best=1.2543
+[Stage A] Epoch 041 | train=1.3045 | val=1.2408 | best=1.2408
+[Stage A] Epoch 042 | train=1.2973 | val=1.2391 | best=1.2391
+[Stage A] Epoch 043 | train=1.2797 | val=1.2152 | best=1.2152
+[Stage A] Epoch 044 | train=1.2739 | val=1.2406 | best=1.2152
+[Stage A] Epoch 045 | train=1.2758 | val=1.3091 | best=1.2152
+[Stage A] Epoch 046 | train=1.2614 | val=1.2343 | best=1.2152
+[Stage A] Epoch 047 | train=1.2525 | val=1.2201 | best=1.2152
+[Stage A] Epoch 048 | train=1.2453 | val=1.2192 | best=1.2152
+[Stage A] Epoch 049 | train=1.2413 | val=1.2164 | best=1.2152
+[Stage A] Epoch 050 | train=1.2270 | val=1.2153 | best=1.2152
+[Stage A] Epoch 051 | train=1.2267 | val=1.1991 | best=1.1991
+[Stage A] Epoch 052 | train=1.2221 | val=1.2278 | best=1.1991
+[Stage A] Epoch 053 | train=1.2107 | val=1.1854 | best=1.1854
+[Stage A] Epoch 054 | train=1.1964 | val=1.1991 | best=1.1854
+[Stage A] Epoch 055 | train=1.1909 | val=1.1964 | best=1.1854
+[Stage A] Epoch 056 | train=1.1984 | val=1.1833 | best=1.1833
+[Stage A] Epoch 057 | train=1.1886 | val=1.2040 | best=1.1833
+[Stage A] Epoch 058 | train=1.1856 | val=1.2083 | best=1.1833
+[Stage A] Epoch 059 | train=1.1791 | val=1.2171 | best=1.1833
+[Stage A] Epoch 060 | train=1.1720 | val=1.2712 | best=1.1833
+[Stage A] Epoch 061 | train=1.1699 | val=1.1910 | best=1.1833
+[Stage A] Epoch 062 | train=1.1553 | val=1.1986 | best=1.1833
+[Stage A] Epoch 063 | train=1.1557 | val=1.1645 | best=1.1645
+[Stage A] Epoch 064 | train=1.1515 | val=1.1647 | best=1.1645
+[Stage A] Epoch 065 | train=1.1441 | val=1.1462 | best=1.1462
+[Stage A] Epoch 066 | train=1.1384 | val=1.1793 | best=1.1462
+[Stage A] Epoch 067 | train=1.1286 | val=1.1805 | best=1.1462
+[Stage A] Epoch 068 | train=1.1306 | val=1.1739 | best=1.1462
+[Stage A] Epoch 069 | train=1.1279 | val=1.1755 | best=1.1462
+[Stage A] Epoch 070 | train=1.1225 | val=1.1508 | best=1.1462
+[Stage A] Epoch 071 | train=1.1148 | val=1.1486 | best=1.1462
+[Stage A] Epoch 072 | train=1.1094 | val=1.1892 | best=1.1462
+[Stage A] Epoch 073 | train=1.1079 | val=1.1544 | best=1.1462
+[Stage A] Epoch 074 | train=1.1018 | val=1.1489 | best=1.1462
+[Stage A] Epoch 075 | train=1.0992 | val=1.1527 | best=1.1462
+[Stage A] Epoch 076 | train=1.0959 | val=1.1496 | best=1.1462
+[Stage A] Epoch 077 | train=1.0923 | val=1.1475 | best=1.1462
+[Stage A] Epoch 078 | train=1.0871 | val=1.1245 | best=1.1245
+[Stage A] Epoch 079 | train=1.0844 | val=1.1563 | best=1.1245
+[Stage A] Epoch 080 | train=1.0793 | val=1.1221 | best=1.1221
+[Stage A] Epoch 081 | train=1.0752 | val=1.1494 | best=1.1221
+[Stage A] Epoch 082 | train=1.0706 | val=1.1567 | best=1.1221
+[Stage A] Epoch 083 | train=1.0714 | val=1.1351 | best=1.1221
+[Stage A] Epoch 084 | train=1.0671 | val=1.1394 | best=1.1221
+[Stage A] Epoch 085 | train=1.0617 | val=1.1294 | best=1.1221
+[Stage A] Epoch 086 | train=1.0597 | val=1.1143 | best=1.1143
+[Stage A] Epoch 087 | train=1.0564 | val=1.1275 | best=1.1143
+[Stage A] Epoch 088 | train=1.0460 | val=1.1255 | best=1.1143
+[Stage A] Epoch 089 | train=1.0460 | val=1.1325 | best=1.1143
+[Stage A] Epoch 090 | train=1.0387 | val=1.1434 | best=1.1143
+[Stage A] Epoch 091 | train=1.0439 | val=1.1361 | best=1.1143
+[Stage A] Epoch 092 | train=1.0371 | val=1.1245 | best=1.1143
+[Stage A] Epoch 093 | train=1.0350 | val=1.1408 | best=1.1143
+[Stage A] Epoch 094 | train=1.0288 | val=1.1128 | best=1.1128
+[Stage A] Epoch 095 | train=1.0266 | val=1.1427 | best=1.1128
+[Stage A] Epoch 096 | train=1.0258 | val=1.1283 | best=1.1128
+[Stage A] Epoch 097 | train=1.0250 | val=1.1222 | best=1.1128
+[Stage A] Epoch 098 | train=1.0135 | val=1.1101 | best=1.1101
+[Stage A] Epoch 099 | train=1.0082 | val=1.1309 | best=1.1101
+[Stage A] Epoch 100 | train=1.0168 | val=1.1357 | best=1.1101
+[Stage A] Epoch 101 | train=1.0135 | val=1.1056 | best=1.1056
+[Stage A] Epoch 102 | train=1.0048 | val=1.1176 | best=1.1056
+[Stage A] Epoch 103 | train=1.0031 | val=1.1304 | best=1.1056
+[Stage A] Epoch 104 | train=1.0036 | val=1.1221 | best=1.1056
+[Stage A] Epoch 105 | train=1.0027 | val=1.1118 | best=1.1056
+[Stage A] Epoch 106 | train=0.9968 | val=1.1448 | best=1.1056
+[Stage A] Epoch 107 | train=0.9936 | val=1.1378 | best=1.1056
+[Stage A] Epoch 108 | train=0.9905 | val=1.1140 | best=1.1056
+[Stage A] Epoch 109 | train=0.9872 | val=1.1053 | best=1.1053
+[Stage A] Epoch 110 | train=0.9841 | val=1.1016 | best=1.1016
+[Stage A] Epoch 111 | train=0.9777 | val=1.1321 | best=1.1016
+[Stage A] Epoch 112 | train=0.9869 | val=1.1424 | best=1.1016
+[Stage A] Epoch 113 | train=0.9800 | val=1.1135 | best=1.1016
+[Stage A] Epoch 114 | train=0.9748 | val=1.1191 | best=1.1016
+[Stage A] Epoch 115 | train=0.9753 | val=1.1209 | best=1.1016
+[Stage A] Epoch 116 | train=0.9761 | val=1.1122 | best=1.1016
+[Stage A] Epoch 117 | train=0.9697 | val=1.1018 | best=1.1016
+[Stage A] Epoch 118 | train=0.9668 | val=1.1267 | best=1.1016
+[Stage A] Epoch 119 | train=0.9622 | val=1.1328 | best=1.1016
+[Stage A] Epoch 120 | train=0.9609 | val=1.1237 | best=1.1016
+[Stage A] Epoch 121 | train=0.9630 | val=1.1258 | best=1.1016
+[Stage A] Epoch 122 | train=0.9613 | val=1.1040 | best=1.1016
+[Stage A] Epoch 123 | train=0.9549 | val=1.1134 | best=1.1016
+[Stage A] Epoch 124 | train=0.9504 | val=1.1077 | best=1.1016
+[Stage A] Epoch 125 | train=0.9493 | val=1.1162 | best=1.1016
+[Stage A] Epoch 126 | train=0.9509 | val=1.1197 | best=1.1016
+[Stage A] Epoch 127 | train=0.9508 | val=1.1159 | best=1.1016
+[Stage A] Epoch 128 | train=0.9390 | val=1.0991 | best=1.0991
+[Stage A] Epoch 129 | train=0.9408 | val=1.1052 | best=1.0991
+[Stage A] Epoch 130 | train=0.9392 | val=1.1021 | best=1.0991
+[Stage A] Epoch 131 | train=0.9414 | val=1.1008 | best=1.0991
+[Stage A] Epoch 132 | train=0.9329 | val=1.0844 | best=1.0844
+[Stage A] Epoch 133 | train=0.9328 | val=1.1102 | best=1.0844
+[Stage A] Epoch 134 | train=0.9337 | val=1.1243 | best=1.0844
+[Stage A] Epoch 135 | train=0.9332 | val=1.1091 | best=1.0844
+[Stage A] Epoch 136 | train=0.9357 | val=1.1130 | best=1.0844
+[Stage A] Epoch 137 | train=0.9239 | val=1.1076 | best=1.0844
+[Stage A] Epoch 138 | train=0.9214 | val=1.1234 | best=1.0844
+[Stage A] Epoch 139 | train=0.9197 | val=1.1064 | best=1.0844
+[Stage A] Epoch 140 | train=0.9268 | val=1.1107 | best=1.0844
+[Stage A] Epoch 141 | train=0.9208 | val=1.1236 | best=1.0844
+[Stage A] Epoch 142 | train=0.9120 | val=1.1068 | best=1.0844
+[Stage A] Epoch 143 | train=0.9165 | val=1.1375 | best=1.0844
+[Stage A] Epoch 144 | train=0.9101 | val=1.1031 | best=1.0844
+[Stage A] Epoch 145 | train=0.9079 | val=1.1058 | best=1.0844
+[Stage A] Epoch 146 | train=0.9067 | val=1.1062 | best=1.0844
+[Stage A] Epoch 147 | train=0.9099 | val=1.1025 | best=1.0844
+[Stage A] Epoch 148 | train=0.9065 | val=1.1181 | best=1.0844
+[Stage A] Epoch 149 | train=0.8988 | val=1.1096 | best=1.0844
+[Stage A] Epoch 150 | train=0.9021 | val=1.1157 | best=1.0844
+Loaded best Stage A weights from epoch 132.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=1.3476 | val_acc=0.7914
+[Stage B] Epoch 002 | train=0.6196 | val_acc=0.8147
+[Stage B] Epoch 003 | train=0.5604 | val_acc=0.8254
+[Stage B] Epoch 004 | train=0.5322 | val_acc=0.8276
+[Stage B] Epoch 005 | train=0.5143 | val_acc=0.8319
+[Stage B] Epoch 006 | train=0.5006 | val_acc=0.8367
+[Stage B] Epoch 007 | train=0.4933 | val_acc=0.8384
+[Stage B] Epoch 008 | train=0.4811 | val_acc=0.8402
+[Stage B] Epoch 009 | train=0.4771 | val_acc=0.8391
+[Stage B] Epoch 010 | train=0.4725 | val_acc=0.8437
+[Stage B] Epoch 011 | train=0.4667 | val_acc=0.8437
+[Stage B] Epoch 012 | train=0.4661 | val_acc=0.8439
+[Stage B] Epoch 013 | train=0.4616 | val_acc=0.8455
+[Stage B] Epoch 014 | train=0.4616 | val_acc=0.8468
+[Stage B] Epoch 015 | train=0.4561 | val_acc=0.8452
+[Stage B] Epoch 016 | train=0.4547 | val_acc=0.8449
+[Stage B] Epoch 017 | train=0.4546 | val_acc=0.8443
+[Stage B] Epoch 018 | train=0.4517 | val_acc=0.8488
+[Stage B] Epoch 019 | train=0.4497 | val_acc=0.8474
+[Stage B] Epoch 020 | train=0.4464 | val_acc=0.8475
+[Stage B] Epoch 021 | train=0.4470 | val_acc=0.8448
+[Stage B] Epoch 022 | train=0.4455 | val_acc=0.8460
+[Stage B] Epoch 023 | train=0.4430 | val_acc=0.8477
+[Stage B] Epoch 024 | train=0.4408 | val_acc=0.8478
+[Stage B] Epoch 025 | train=0.4397 | val_acc=0.8470
+[Stage B] Epoch 026 | train=0.4410 | val_acc=0.8456
+[Stage B] Epoch 027 | train=0.4406 | val_acc=0.8459
+[Stage B] Epoch 028 | train=0.4382 | val_acc=0.8484
+[Stage B] Epoch 029 | train=0.4404 | val_acc=0.8457
+[Stage B] Epoch 030 | train=0.4377 | val_acc=0.8493
+
+Extracting attention weights from test set...
+  RNA attention: (18053, 313), Protein attention: (18053, 134)
+  RNA per-head attention: (18053, 2, 4, 313), Protein per-head attention: (18053, 2, 4, 134)
+Attention weights saved to results/checkpoints/contrastive_tf_seed77_20260503_113702/
+Test embeddings saved: rna (18053, 128), protein (18053, 128)
+
+=== Training complete ===
+Run directory: results/checkpoints/contrastive_tf_seed77_20260503_113702
+Final test accuracy: 0.8438
+Final macro AUROC:   0.9959
+
+--- [2/2] train_contrastive_tf_gene (gene tokens) ---
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/muon/_core/preproc.py:31: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+/home/cpsc4520_bcw45/.conda/envs/multimodal_env/lib/python3.11/site-packages/anndata/_core/anndata.py:1825: UserWarning: Variable names are not unique. To make them unique, call `.var_names_make_unique`.
+  utils.warn_names_duplicates("var")
+Using device: cuda
+Loading dataset from data/GSE194122_openproblems_neurips2021_cite_BMMC_processed.h5ad.gz...
+  Shape: (90261, 14087)
+  var columns: ['feature_types', 'gene_id']
+  obs columns: ['GEX_n_genes_by_counts', 'GEX_pct_counts_mt', 'GEX_size_factors', 'GEX_phase', 'ADT_n_antibodies_by_counts']... (total 26)
+  feature_types: {'GEX': 13953, 'ADT': 134}
+Cell type labels: 45 classes
+  {'B1 B IGKC+': 0, 'B1 B IGKC-': 1, 'CD14+ Mono': 2, 'CD16+ Mono': 3, 'CD4+ T CD314+ CD45RA+': 4, 'CD4+ T activated': 5, 'CD4+ T activated integrinB7+': 6, 'CD4+ T naive': 7, 'CD8+ T CD49f+': 8, 'CD8+ T CD57+ CD45RA+': 9, 'CD8+ T CD57+ CD45RO+': 10, 'CD8+ T CD69+ CD45RA+': 11, 'CD8+ T CD69+ CD45RO+': 12, 'CD8+ T TIGIT+ CD45RA+': 13, 'CD8+ T TIGIT+ CD45RO+': 14, 'CD8+ T naive': 15, 'CD8+ T naive CD127+ CD26- CD101-': 16, 'Erythroblast': 17, 'G/M prog': 18, 'HSC': 19, 'ILC': 20, 'ILC1': 21, 'Lymph prog': 22, 'MAIT': 23, 'MK/E prog': 24, 'NK': 25, 'NK CD158e1+': 26, 'Naive CD20+ B IGKC+': 27, 'Naive CD20+ B IGKC-': 28, 'Normoblast': 29, 'Plasma cell IGKC+': 30, 'Plasma cell IGKC-': 31, 'Plasmablast IGKC+': 32, 'Plasmablast IGKC-': 33, 'Proerythroblast': 34, 'Reticulocyte': 35, 'T prog cycling': 36, 'T reg': 37, 'Transitional B': 38, 'cDC1': 39, 'cDC2': 40, 'dnT': 41, 'gdT CD158b+': 42, 'gdT TCRVD2+': 43, 'pDC': 44}
+Split modalities: RNA (90261, 13953), Protein (90261, 134)
+Building gene tokens (top 512 HVGs)...
+Gene tokens output shape: (90261, 512)
+  512 HVG tokens retained
+  Gene token matrix shape: (90261, 512)
+Protein CLR output shape: (72208, 134)
+Protein CLR output shape: (18053, 134)
+Prepared: train rna (72208, 512), train protein (72208, 134)
+
+=== Stage A: Contrastive pretraining ===
+[Stage A] Epoch 001 | train=4.8526 | val=4.8366 | best=4.8366
+[Stage A] Epoch 002 | train=4.8522 | val=4.8366 | best=4.8366
+[Stage A] Epoch 003 | train=4.8522 | val=4.8366 | best=4.8366
+[Stage A] Epoch 004 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 005 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 006 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 007 | train=4.8520 | val=4.8366 | best=4.8366
+[Stage A] Epoch 008 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 009 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 010 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 011 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 012 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 013 | train=4.8520 | val=4.8366 | best=4.8366
+[Stage A] Epoch 014 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 015 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 016 | train=4.8520 | val=4.8366 | best=4.8366
+[Stage A] Epoch 017 | train=4.8521 | val=4.8366 | best=4.8366
+[Stage A] Epoch 018 | train=4.8520 | val=4.8366 | best=4.8366
+[Stage A] Epoch 019 | train=4.8520 | val=4.8366 | best=4.8366
+[Stage A] Epoch 020 | train=4.8520 | val=4.8366 | best=4.8366
+[Stage A] Epoch 021 | train=4.8520 | val=4.8366 | best=4.8366
+Early stopping at epoch 21.
+Loaded best Stage A weights from epoch 1.
+
+=== Stage B: Classifier training ===
+[Stage B] Epoch 001 | train=3.1390 | val_acc=0.2403
+[Stage B] Epoch 002 | train=3.0846 | val_acc=0.2403
+[Stage B] Epoch 003 | train=3.0820 | val_acc=0.2403
+[Stage B] Epoch 004 | train=3.0800 | val_acc=0.2403
+[Stage B] Epoch 005 | train=3.0799 | val_acc=0.2403
+[Stage B] Epoch 006 | train=3.0794 | val_acc=0.2403
+[Stage B] Epoch 007 | train=3.0793 | val_acc=0.2403
+[Stage B] Epoch 008 | train=3.0787 | val_acc=0.2403
+[Stage B] Epoch 009 | train=3.0787 | val_acc=0.2403
+[Stage B] Epoch 010 | train=3.0764 | val_acc=0.2403
+[Stage B] Epoch 011 | train=3.0766 | val_acc=0.2403
+[Stage B] Epoch 012 | train=3.0771 | val_acc=0.2403
+[Stage B] Epoch 013 | train=3.0771 | val_acc=0.2403
+[Stage B] Epoch 014 | train=3.0756 | val_acc=0.2403
+[Stage B] Epoch 015 | train=3.0769 | val_acc=0.2403
+[Stage B] Epoch 016 | train=3.0756 | val_acc=0.2403
+[Stage B] Epoch 017 | train=3.0758 | val_acc=0.2403
+[Stage B] Epoch 018 | train=3.0755 | val_acc=0.2403
+[Stage B] Epoch 019 | train=3.0751 | val_acc=0.2403
+[Stage B] Epoch 020 | train=3.0753 | val_acc=0.2403
+[Stage B] Epoch 021 | train=3.0752 | val_acc=0.2403
+[Stage B] Epoch 022 | train=3.0745 | val_acc=0.2403
+[Stage B] Epoch 023 | train=3.0743 | val_acc=0.2403
+[Stage B] Epoch 024 | train=3.0741 | val_acc=0.2403
+[Stage B] Epoch 025 | train=3.0741 | val_acc=0.2403
+[Stage B] Epoch 026 | train=3.0738 | val_acc=0.2403
+[Stage B] Epoch 027 | train=3.0736 | val_acc=0.2403
+[Stage B] Epoch 028 | train=3.0738 | val_acc=0.2403
+[Stage B] Epoch 029 | train=3.0737 | val_acc=0.2403
+[Stage B] Epoch 030 | train=3.0743 | val_acc=0.2403
+Test embeddings saved: rna (18053, 128), protein (18053, 128)
+
+=== Training complete ===
+Run directory: results/checkpoints/contrastive_tf_gene_seed77_20260503_120832
+Final test accuracy: 0.2403
+Final macro AUROC:   0.5748
+
+=== Training complete ===
+  Pathway outputs: results/checkpoints
+  Gene outputs:    results/checkpoints
