@@ -331,6 +331,174 @@ def _fig_asw_avg(all_runs: dict[str, list[dict]], output_dir: Path) -> None:
     print(f"Saved: {save_path}")
 
 
+# ── Per-model figures ─────────────────────────────────────────────────────────
+
+
+def _figs_per_model(all_runs: dict[str, list[dict]], output_dir: Path) -> None:
+    """One subfolder per model; each contains training + accuracy curve figures."""
+    for mkey in ALL_MODEL_KEYS:
+        runs = all_runs[mkey]
+        if not runs:
+            continue
+
+        mdir = output_dir / mkey
+        mdir.mkdir(parents=True, exist_ok=True)
+
+        # ── training curves ──────────────────────────────────────────────────
+        fig, ax = plt.subplots(figsize=(8, 4))
+
+        if mkey in SINGLE_STAGE_MODELS:
+            train_lists, val_lists = [], []
+            for r in runs:
+                hist = r.get("metrics", {}).get("history", [])
+                if hist:
+                    train_lists.append([h["train_loss"] for h in hist])
+                    val_lists.append([h["val_loss"] for h in hist])
+            if train_lists:
+                ep, m, s = _mean_std(train_lists)
+                _plot_band(ax, ep, m, s, "tab:blue", "train")
+                ep, m, s = _mean_std(val_lists)
+                _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
+            test_losses = [
+                float(r["metrics"]["final_test_loss"])
+                for r in runs if "metrics" in r and "final_test_loss" in r["metrics"]
+            ]
+            if test_losses:
+                ax.axhline(np.mean(test_losses), color="tab:red", linestyle=":",
+                           label=f"test mean ({np.mean(test_losses):.4f})")
+        else:
+            sa_train, sa_val, sb_train, sb_val_list = [], [], [], []
+            a_lengths = []
+            for r in runs:
+                metrics = r.get("metrics", {})
+                sa = metrics.get("stage_a_history", [])
+                sb = metrics.get("stage_b_history", [])
+                if sa:
+                    sa_train.append([h["train_loss"] for h in sa])
+                    sa_val.append([h["val_loss"] for h in sa])
+                    a_lengths.append(len(sa))
+                if sb:
+                    sb_train.append([h["train_loss"] for h in sb])
+                    sb_val_list.append([h["val_loss"] for h in sb])
+            if sa_train:
+                ep, m, s = _mean_std(sa_train)
+                _plot_band(ax, ep, m, s, "tab:blue", "Stage A train")
+                ep, m, s = _mean_std(sa_val)
+                _plot_band(ax, ep, m, s, "tab:blue", "Stage A val", linestyle="--")
+                mean_a_len = int(np.mean(a_lengths))
+                ax.axvline(mean_a_len, color="gray", linestyle=":", alpha=0.7, label="Stage A→B")
+            if sb_train:
+                mean_a_len = int(np.mean(a_lengths)) if a_lengths else 0
+                ep_raw, m, s = _mean_std(sb_train)
+                _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B train")
+                ep_raw, m, s = _mean_std(sb_val_list)
+                _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B val",
+                           linestyle="--")
+            test_losses = [
+                float(r["metrics"]["final_test_loss"])
+                for r in runs if "metrics" in r and "final_test_loss" in r["metrics"]
+            ]
+            if test_losses:
+                ax.axhline(np.mean(test_losses), color="tab:red", linestyle=":",
+                           label=f"test mean ({np.mean(test_losses):.4f})")
+
+        ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Training Curves (mean ± std)")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Loss")
+        ax.legend(fontsize=8)
+        plt.tight_layout()
+        save_path = mdir / "fig_training_curves_avg.png"
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved: {save_path}")
+
+        # ── accuracy curves ──────────────────────────────────────────────────
+        fig, ax = plt.subplots(figsize=(8, 4))
+
+        if mkey in SINGLE_STAGE_MODELS:
+            val_lists, train_lists = [], []
+            for r in runs:
+                hist = r.get("metrics", {}).get("history", [])
+                if hist:
+                    val_lists.append([h["val_accuracy"] for h in hist])
+                    if "train_accuracy" in hist[0]:
+                        train_lists.append([h["train_accuracy"] for h in hist])
+            if train_lists:
+                ep, m, s = _mean_std(train_lists)
+                _plot_band(ax, ep, m, s, "tab:blue", "train")
+            if val_lists:
+                ep, m, s = _mean_std(val_lists)
+                _plot_band(ax, ep, m, s, "tab:orange", "val", linestyle="--")
+            test_accs = [
+                float(r["metrics"]["final_accuracy"])
+                for r in runs if "metrics" in r and "final_accuracy" in r["metrics"]
+            ]
+            if test_accs:
+                ax.axhline(np.mean(test_accs), color="tab:red", linestyle=":",
+                           label=f"test mean ({np.mean(test_accs):.4f})")
+        else:
+            sb_val, sb_train = [], []
+            a_lengths = []
+            for r in runs:
+                metrics = r.get("metrics", {})
+                sa = metrics.get("stage_a_history", [])
+                sb = metrics.get("stage_b_history", [])
+                if sa:
+                    a_lengths.append(len(sa))
+                if sb:
+                    sb_val.append([h["val_accuracy"] for h in sb])
+                    if "train_accuracy" in sb[0]:
+                        sb_train.append([h["train_accuracy"] for h in sb])
+            mean_a_len = int(np.mean(a_lengths)) if a_lengths else 0
+            if sb_train:
+                ep_raw, m, s = _mean_std(sb_train)
+                _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:blue", "Stage B train")
+            if sb_val:
+                ep_raw, m, s = _mean_std(sb_val)
+                _plot_band(ax, ep_raw + mean_a_len, m, s, "tab:orange", "Stage B val",
+                           linestyle="--")
+            test_accs = [
+                float(r["metrics"]["final_accuracy"])
+                for r in runs if "metrics" in r and "final_accuracy" in r["metrics"]
+            ]
+            if test_accs:
+                ax.axhline(np.mean(test_accs), color="tab:red", linestyle=":",
+                           label=f"test mean ({np.mean(test_accs):.4f})")
+
+        ax.set_ylim(0, 1.05)
+        ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — Accuracy Curves (mean ± std)")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Accuracy")
+        ax.legend(fontsize=8)
+        plt.tight_layout()
+        save_path = mdir / "fig_accuracy_curves_avg.png"
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved: {save_path}")
+
+        # ── ASW ──────────────────────────────────────────────────────────────
+        scores = [
+            compute_asw(r["test_embeddings"], r["test_labels"])
+            for r in runs
+            if "test_embeddings" in r and "test_labels" in r
+        ]
+        if scores:
+            mean_asw, std_asw = float(np.mean(scores)), float(np.std(scores))
+            fig, ax = plt.subplots(figsize=(3, 1.5))
+            ax.barh([MODEL_DISPLAY_NAMES[mkey]], [mean_asw], xerr=[std_asw],
+                    color=MODEL_COLORS[mkey], capsize=4)
+            ax.text(mean_asw + std_asw + 0.005, 0,
+                    f"{mean_asw:.3f}±{std_asw:.3f}", va="center", fontsize=9)
+            ax.set_xlim(0, 1.0)
+            ax.set_xlabel("Normalized ASW")
+            ax.set_title(f"{MODEL_DISPLAY_NAMES[mkey]} — ASW (mean ± std)")
+            plt.tight_layout()
+            save_path = mdir / "fig_asw_avg.png"
+            plt.savefig(save_path, dpi=150, bbox_inches="tight")
+            plt.close(fig)
+            print(f"Saved: {save_path}")
+
+
 # ── CLI ────────────────────────────────────────────────────────────────────────
 
 
@@ -399,11 +567,14 @@ def main(argv: list[str] | None = None) -> None:
         print(f"No runs found under {ckpt_root}")
         return
 
-    print(f"\n=== Generating averaged figures ===")
+    print(f"\n=== Generating combined averaged figures ===")
     _fig_model_comparison_avg(all_runs, output_dir)
     _fig_training_curves_avg(all_runs, output_dir)
     _fig_accuracy_curves_avg(all_runs, output_dir)
     _fig_asw_avg(all_runs, output_dir)
+
+    print(f"\n=== Generating per-model averaged figures ===")
+    _figs_per_model(all_runs, output_dir)
 
     print(f"\nAll figures saved to {output_dir}/")
 
