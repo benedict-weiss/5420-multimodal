@@ -96,26 +96,6 @@ def compute_asw(embeddings: np.ndarray, labels: np.ndarray) -> float:
     return float((raw + 1) / 2)
 
 
-def compute_recall_at_k(
-    z_rna: np.ndarray,
-    z_protein: np.ndarray,
-    k_values: list[int] | None = None,
-) -> dict:
-    """
-    Cross-modal retrieval recall@k. Both inputs must be L2-normalized.
-    For each RNA embedding, checks if the paired protein embedding (same index)
-    is within the top-k most similar protein embeddings by cosine similarity.
-    """
-    if k_values is None:
-        k_values = [10, 20, 30, 40, 50]
-    sim = z_rna @ z_protein.T  # (n, n) — cosine sim for L2-normed inputs
-    results: dict = {}
-    for k in k_values:
-        top_k = np.argsort(sim, axis=1)[:, -k:]  # (n, k) highest-similarity indices
-        hits = np.array([i in top_k[i] for i in range(len(z_rna))])
-        results[k] = float(hits.mean())
-    return results
-
 
 def plot_phate(
     embeddings: np.ndarray,
@@ -212,8 +192,6 @@ def _load_run(run_dir: Path) -> dict:
     for key, fname in [
         ("test_embeddings", "test_embeddings.npy"),
         ("test_labels", "test_labels.npy"),
-        ("test_rna_embeddings", "test_rna_embeddings.npy"),
-        ("test_protein_embeddings", "test_protein_embeddings.npy"),
     ]:
         p = run_dir / fname
         if p.exists():
@@ -409,45 +387,6 @@ def _fig_accuracy_curves(runs: dict, output_dir: Path) -> None:
     print(f"Saved: {save_path}")
 
 
-# ── Figure D: Recall@k ────────────────────────────────────────────────────────
-
-
-def _fig_recall_at_k(runs: dict, output_dir: Path) -> None:
-    k_values = [10, 20, 30, 40, 50]
-    fig, ax = plt.subplots(figsize=(7, 5))
-    plotted = False
-
-    for mkey in ["mlp", "tf"]:
-        if mkey not in runs:
-            continue
-        run = runs[mkey]
-        if "test_rna_embeddings" not in run or "test_protein_embeddings" not in run:
-            print(f"[warn] Skipping Recall@k for {mkey}: cross-modal embeddings not found")
-            continue
-        recall = compute_recall_at_k(
-            run["test_rna_embeddings"], run["test_protein_embeddings"], k_values=k_values
-        )
-        ax.plot(
-            k_values, [recall[k] for k in k_values],
-            marker="o", label=MODEL_DISPLAY_NAMES[mkey], color=MODEL_COLORS[mkey],
-        )
-        plotted = True
-
-    if not plotted:
-        print("[warn] No cross-modal embeddings found; skipping fig_recall_at_k.png")
-        plt.close(fig)
-        return
-
-    ax.set_xlabel("k")
-    ax.set_ylabel("Recall@k")
-    ax.set_title("Cross-Modal Retrieval: Recall@k")
-    ax.set_ylim(0, 1.05)
-    ax.legend()
-    plt.tight_layout()
-    save_path = output_dir / "fig_recall_at_k.png"
-    plt.savefig(save_path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved: {save_path}")
 
 
 # ── Figure E: ASW bar chart ───────────────────────────────────────────────────
@@ -565,7 +504,6 @@ def main(argv: list[str] | None = None) -> None:
     _fig_training_curves(runs, output_dir)
     _fig_accuracy_curves(runs, output_dir)
     _fig_phate(runs, output_dir)
-    _fig_recall_at_k(runs, output_dir)
     _fig_asw(runs, output_dir)
 
     print(f"\nAll figures saved to {output_dir}/")
