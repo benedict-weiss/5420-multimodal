@@ -24,6 +24,7 @@ tasks/
 
 # Results (large files)
 results/metrics/*.csv
+results/smoke
 
 # Planning
 /docs
