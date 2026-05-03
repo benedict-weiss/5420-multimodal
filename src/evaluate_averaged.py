@@ -64,27 +64,6 @@ def _plot_band(ax, epochs, mean, std, color, label, linestyle="-", alpha=0.2):
     )
 
 
-# ── Per-model data loader ──────────────────────────────────────────────────────
-
-
-def _load_all_seeds(
-    checkpoint_dir: Path,
-    prefixes: dict[str, str],
-    seeds: list[int],
-) -> dict[str, list[dict]]:
-    """For each model key, load run data from every seed; skip missing."""
-    all_runs: dict[str, list[dict]] = {k: [] for k in ALL_MODEL_KEYS}
-    for mkey, prefix in prefixes.items():
-        for seed in seeds:
-            d = _find_seed_run(checkpoint_dir, prefix, seed)
-            if d is None:
-                print(f"[warn] No run found for {mkey} seed{seed} — skipping")
-                continue
-            print(f"  {MODEL_DISPLAY_NAMES[mkey]} seed{seed}: {d.name}")
-            all_runs[mkey].append(_load_run(d))
-    return all_runs
-
-
 # ── Figure: averaged model comparison ─────────────────────────────────────────
 
 
@@ -351,7 +330,20 @@ def main(argv: list[str] | None = None) -> None:
         "--seeds", type=int, nargs="+", default=[13, 42, 77],
         help="Seed values to aggregate (default: 13 42 77)",
     )
+    parser.add_argument(
+        "--exclude", type=str, nargs="*", default=[],
+        metavar="MODEL:SEED",
+        help="Exclude specific model+seed combinations, e.g. --exclude tf_gene:77",
+    )
     args = parser.parse_args(argv)
+
+    # Parse exclusions into a set of (model_key, seed) tuples
+    exclusions: set[tuple[str, int]] = set()
+    for item in args.exclude:
+        mkey, seed_str = item.split(":")
+        exclusions.add((mkey, int(seed_str)))
+    if exclusions:
+        print(f"[info] Excluding: {', '.join(f'{m}:seed{s}' for m, s in sorted(exclusions))}")
 
     ckpt_root = Path(args.checkpoint_dir)
     output_dir = Path(args.output_dir)
@@ -365,15 +357,29 @@ def main(argv: list[str] | None = None) -> None:
         "tf_gene": "contrastive_tf_gene_seed",
     }
 
-    print(f"\n=== Loading runs for seeds {args.seeds} ===")
-    all_runs = _load_all_seeds(ckpt_root, prefixes, args.seeds)
+    # Build per-model seed lists, applying exclusions
+    model_seeds = {
+        mkey: [s for s in args.seeds if (mkey, s) not in exclusions]
+        for mkey in prefixes
+    }
 
-    present = {k: v for k, v in all_runs.items() if v}
-    if not present:
+    print(f"\n=== Loading runs ===")
+    all_runs: dict[str, list[dict]] = {k: [] for k in ALL_MODEL_KEYS}
+    for mkey, prefix in prefixes.items():
+        seeds_for_model = model_seeds[mkey]
+        for seed in seeds_for_model:
+            d = _find_seed_run(ckpt_root, prefix, seed)
+            if d is None:
+                print(f"[warn] No run found for {mkey} seed{seed} — skipping")
+                continue
+            print(f"  {MODEL_DISPLAY_NAMES[mkey]} seed{seed}: {d.name}")
+            all_runs[mkey].append(_load_run(d))
+
+    if not any(all_runs.values()):
         print(f"No runs found under {ckpt_root}")
         return
 
-    print(f"\n=== Generating averaged figures ({len(args.seeds)} seeds) ===")
+    print(f"\n=== Generating averaged figures ===")
     _fig_model_comparison_avg(all_runs, output_dir)
     _fig_training_curves_avg(all_runs, output_dir)
     _fig_accuracy_curves_avg(all_runs, output_dir)
