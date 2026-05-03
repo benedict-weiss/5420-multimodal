@@ -2,6 +2,11 @@
 data/
 *.h5ad
 *.h5ad.gz
+*.npy
+!**/test_embeddings.npy
+!**/test_labels.npy
+!**/test_rna_embeddings.npy
+!**/test_protein_embeddings.npy
 
 # Python
 __pycache__/
