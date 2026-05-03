@@ -283,6 +283,8 @@ def main(args: argparse.Namespace) -> None:
     set_seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     print(f"Using device: {device}")
+    if device.type == "cuda":
+        torch.zeros(1, device=device)  # init CUDA context before long data loading
 
     dataset_file = resolve_data_file(args.data_path)
     adata = load_data(dataset_file)
