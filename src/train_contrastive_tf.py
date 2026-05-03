@@ -329,8 +329,23 @@ def main(args: argparse.Namespace) -> None:
         print(f"Loading gene sets from {args.gene_sets_path}...")
         with open(args.gene_sets_path, "r", encoding="utf-8") as f:
             gene_sets = json.load(f)
-    print("Building pathway tokens (KEGG_2021_Human)...")
-    pathway_matrix, pathway_names = build_pathway_tokens(rna_adata, gene_sets=gene_sets)
+
+    data_dir = Path(args.data_path) if Path(args.data_path).is_dir() else Path(args.data_path).parent
+    _cache_mat = data_dir / "pathway_matrix_cache.npy"
+    _cache_names = data_dir / "pathway_names_cache.json"
+    if _cache_mat.exists() and _cache_names.exists():
+        print("Loading cached pathway matrix...")
+        pathway_matrix = np.load(str(_cache_mat))
+        with open(_cache_names, "r", encoding="utf-8") as f:
+            pathway_names = json.load(f)
+        print(f"  Loaded from cache: {pathway_matrix.shape}")
+    else:
+        print("Building pathway tokens (KEGG_2021_Human)...")
+        pathway_matrix, pathway_names = build_pathway_tokens(rna_adata, gene_sets=gene_sets)
+        np.save(str(_cache_mat), pathway_matrix)
+        with open(_cache_names, "w", encoding="utf-8") as f:
+            json.dump(pathway_names, f)
+        print("  Saved pathway cache for future runs.")
     n_pathways = pathway_matrix.shape[1]
     print(f"  Pathway matrix shape: {pathway_matrix.shape}")
 
