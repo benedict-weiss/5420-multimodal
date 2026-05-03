@@ -29,17 +29,19 @@ MODEL_COLORS = {
     "baseline_protein": "#8172B2",
     "mlp": "#DD8452",
     "tf": "#55A868",
+    "tf_gene": "#C44E52",
 }
 MODEL_DISPLAY_NAMES = {
     "baseline": "RNA Baseline",
     "baseline_protein": "Protein Baseline",
     "mlp": "Contrastive MLP",
-    "tf": "Contrastive TF",
+    "tf": "Contrastive TF (Pathway)",
+    "tf_gene": "Contrastive TF (Gene)",
 }
 # Single-stage models (for training-curve branching)
 SINGLE_STAGE_MODELS = {"baseline", "baseline_protein"}
 # Canonical display order
-ALL_MODEL_KEYS = ["baseline", "baseline_protein", "mlp", "tf"]
+ALL_MODEL_KEYS = ["baseline", "baseline_protein", "mlp", "tf", "tf_gene"]
 
 # ── Metric Functions ──────────────────────────────────────────────────────────
 
@@ -511,6 +513,8 @@ def main(argv: list[str] | None = None) -> None:
                         help="Pin a specific contrastive_mlp run directory")
     parser.add_argument("--tf_dir", type=str, default=None,
                         help="Pin a specific contrastive_tf run directory")
+    parser.add_argument("--tf_gene_dir", type=str, default=None,
+                        help="Pin a specific contrastive_tf_gene run directory")
     args = parser.parse_args(argv)
 
     ckpt_root = Path(args.checkpoint_dir)
@@ -522,12 +526,14 @@ def main(argv: list[str] | None = None) -> None:
         "baseline_protein": args.protein_baseline_dir,
         "mlp": args.mlp_dir,
         "tf": args.tf_dir,
+        "tf_gene": args.tf_gene_dir,
     }
     prefixes = {
         "baseline": "baseline_rna_",
         "baseline_protein": "baseline_protein_",
         "mlp": "contrastive_mlp_",
-        "tf": "contrastive_tf_",
+        "tf": "contrastive_tf_seed",
+        "tf_gene": "contrastive_tf_gene_",
     }
 
     run_dirs: dict[str, Path] = {}
